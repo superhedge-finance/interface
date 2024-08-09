@@ -5,6 +5,7 @@ import { useAccount, useSigner, useNetwork } from "wagmi";
 import { PrimaryButton } from "../basic";
 import { IProduct } from "../../types";
 import ProductABI from "../../utils/abis/SHProduct.json";
+import ERC20ABI from"../../utils/abis/ERC20.json";
 import { useRouter } from "next/router";
 import Timeline from "../product/Timeline";
 import { SUPPORT_CHAIN_IDS } from "../../utils/enums";
@@ -35,8 +36,35 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
 
   const chainId = useMemo(() => {
     if (chain) return chain.id;
-    return SUPPORT_CHAIN_IDS.GOERLI;
+    return SUPPORT_CHAIN_IDS.ARBITRUM;
   }, [chain]);
+
+  const [withdrawBlockSize, setwithdrawBlockSize] = useState<number>(0);
+  const [totalBlocks, setTotalBlocks] = useState<number>(0); // State for total blocks
+  const [blocksToWithdraw, setBlocksToWithdraw] = useState<number>(0); // State for blocks to withdraw
+  const [unwindPrice, setUnwindPrice] = useState<number | null>(null); // State for unwind price
+
+  const handleUnwind = async () => {
+    // Calculate the unwind price based on blocksToWithdraw
+    const pricePerBlock = 10; // Example price per block
+    const calculatedPrice = blocksToWithdraw * withdrawBlockSize;
+    const _subAccountId = 59358
+    try {
+      const { data } = await axios.post(`products/get-direction-instrument?subAccountId=${_subAccountId}`);
+      const response = await axios.post(`products/get-option-position`, data, {
+        headers: {
+          'Content-Type': 'application/json'},}) 
+      const _userOptionPosition = await axios.post(`products/get-user-option-position?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}&totalOptionPosition=${response.data.totalAmountPosition}`);
+      console.log(response.data.totalAmountPosition)
+      setUnwindPrice(_userOptionPosition.data.userOptionPosition);
+      console.log(`Unwinding ${blocksToWithdraw} blocks... Price: ${_userOptionPosition.data.userOptionPosition}`);
+    } catch (e) {
+      console.error(e);
+    }
+    // console.log(await axios.post(`products/get-direction-instrument?subAccountId=${_subAccountId}`))
+    // Update the unwind price state
+    
+  };
 
   useEffect(() => {
     (async () => {
@@ -50,11 +78,29 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   useEffect(() => {
     (async () => {
       if (position) {
-        try {
-          const { data } = await axios.get(position.issuanceCycle.url);
-          setImageURL(data.image);
-        } catch (e) {
-          console.log(e);
+        if(signer && address && position.address && productInstance)
+        {
+          try{
+            const _tokenAddress = await productInstance.tokenAddress()
+            const _tokenAddressInstance = new ethers.Contract(_tokenAddress, ERC20ABI, signer)
+            const _tokenBalance = await _tokenAddressInstance.balanceOf(address)
+            const _tokenDecimals = await _tokenAddressInstance.decimals()
+            const tokenBalance = Number(ethers.utils.formatUnits(_tokenBalance,0))/(10**_tokenDecimals)
+            console.log(position.address)
+            console.log(position.issuanceCycle)
+            const underlyingSpotRef = position.issuanceCycle.underlyingSpotRef
+            const optionMinOrderSize = (position.issuanceCycle.optionMinOrderSize) / 10
+            const withdrawBlockSize = underlyingSpotRef * optionMinOrderSize
+            console.log(withdrawBlockSize)
+            setwithdrawBlockSize(withdrawBlockSize)
+            setTotalBlocks(tokenBalance/withdrawBlockSize)
+          }
+          catch (e){
+            console.error(e)
+          } 
+        
+
+
         }
       }
     })();
@@ -95,8 +141,8 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
         <div className='flex flex-col flex-1 items-center bg-[#0000000a] h-[66px] rounded-[7px] py-3 px-4 mt-6'>
           <p className='text-[12px] font-light text-gray-700'>Principal Amount</p>
           <h3 className='text-[20px] font-light text-black'>
-            <span className={"bg-primary-gradient bg-clip-text text-transparent"}>USDC {principal.toLocaleString()}</span>
-            <span className={"ml-1"}>({principal / 1000} Lots)</span>
+            <span className={"bg-primary-gradient bg-clip-text text-transparent"}>{principal.toLocaleString()} USDC </span>
+            <span className={"ml-1"}>({principal} Lots)</span>
           </h3>
         </div>
 
@@ -105,6 +151,44 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
         </div>
 
         <PrimaryButton label={"SEE DETAILS"} className={"mt-6"} onClick={() => Router.push(`/portfolio/position/${position.address}`)} />
+
+        <div className="flex flex-col space-y-4 mt-6">
+            <div className="flex items-center space-x-4">
+                {/* Total Blocks Input */}
+                <div className="flex flex-col">
+                    <label htmlFor="totalBlocks" className="border rounded px-2 py-1">
+                        No of blocks in total: {totalBlocks}
+                    </label>
+                </div>
+
+                {/* Blocks to Withdraw Input */}
+                <div className="flex flex-col">
+                    <label htmlFor="blocksToWithdraw" className="text-sm font-medium">
+                        No of blocks to withdraw:
+                    </label>
+                    <input
+                        type="number"
+                        id="blocksToWithdraw"
+                        value={blocksToWithdraw}
+                        onChange={(e) => setBlocksToWithdraw(Number(e.target.value))}
+                        className="border rounded px-2 py-1"
+                        placeholder="Enter blocks to withdraw"
+                    />
+                </div>
+
+                {/* Get Unwind Price Button */}
+                <PrimaryButton label={"Get unwind price"} className={"mt-6"} onClick={handleUnwind} />
+            </div>
+
+                {/* Display Unwind Price */}
+                {unwindPrice !== null && (
+                    <div className="mt-4">
+                        <p className="text-lg font-semibold">
+                            Unwind Price: {unwindPrice}
+                        </p>
+                    </div>
+            )}
+            </div>
       </div>
 
       {enabled && (

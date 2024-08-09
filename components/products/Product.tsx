@@ -68,8 +68,8 @@ export default function Product({ product }: { product: IProduct }) {
   }, [product]);
 
   return (
-    <div 
-      className='flex flex-col p-5 cursor-pointer m-[15px] rounded-[12px] bg-white w-[340px] sm:w-[470px] drop-shadow hover:outline outline-2 outline-[#11CB79]' 
+    <div
+      className='flex flex-col p-5 cursor-pointer m-[15px] rounded-[12px] bg-white w-[340px] sm:w-[470px] drop-shadow hover:outline outline-2 outline-[#11CB79]'
       onClick={() => {router.push(`/product/${product.address}`)}}
     >
       <div className={"flex justify-between"}>
@@ -167,10 +167,10 @@ export default function Product({ product }: { product: IProduct }) {
 
       <div className={"flex-col md:flex-row md:flex space-y-3 md:space-y-0 md:space-x-2 items-center justify-between mt-3"}>
         <RecapCardMobile label={product.status == 3 ? "Time to Maturiy" : "Time to Issuance"} value={
-          <Countdown 
-            intervalDelay={60000} 
-            date={(product.status == 3 ? product.issuanceCycle.maturityDate : product.issuanceCycle.issuanceDate) * 1000} 
-            renderer={issuance_date_renderer} 
+          <Countdown
+            intervalDelay={60000}
+            date={(product.status == 3 ? product.issuanceCycle.maturityDate : product.issuanceCycle.issuanceDate) * 1000}
+            renderer={issuance_date_renderer}
           />
         }></RecapCardMobile>
         <RecapCardMobile label={"Investment Duration"} value={investment_duration}></RecapCardMobile>
@@ -178,8 +178,11 @@ export default function Product({ product }: { product: IProduct }) {
       </div>
 
       <div className={"flex-row flex space-x-2 items-center justify-center mt-3"}>
-        <div className={"flex items-center w-[24px] md:w-[30px] h-[28px] md:h-[36px]"}>
-          <img src={"/products/" + YIELD_SOURCE[chainId].toLowerCase() + "_logo.svg"} alt={"social logo"} width={"100%"} height={"100%"} />
+        <div className={"flex items-center w-[24px] md:w-[30px] h-[28px] md:h-[36px]"}>   
+          <img src={"/products/" + 'aUSDC' + "_logo.svg"} alt={"social logo"} width={"100%"} height={"100%"} />
+        </div>
+        <div className={"flex items-center w-[24px] md:w-[30px] h-[28px] md:h-[36px]"}>   
+          <img src={"/products/" + YIELD_SOURCE?.[chainId]?.toLowerCase() + "_logo.svg"} alt={"social logo"} width={"100%"} height={"100%"} />
         </div>
         <div>
           <span className="text-sm font-normal text-gray-700 dark:text-gray-400">Principal-Protected by</span>&nbsp;

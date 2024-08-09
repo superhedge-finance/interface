@@ -12,7 +12,9 @@ export type Cycle = {
   issuanceDate: number;
   maturityDate: number;
   apy: string;
-  url: string;
+  underlyingSpotRef: number;
+  optionMinOrderSize: number;
+  subAccountId: string;
 };
 
 export interface IProduct {
