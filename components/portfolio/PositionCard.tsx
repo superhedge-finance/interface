@@ -42,12 +42,11 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   const [withdrawBlockSize, setwithdrawBlockSize] = useState<number>(0);
   const [totalBlocks, setTotalBlocks] = useState<number>(0); // State for total blocks
   const [blocksToWithdraw, setBlocksToWithdraw] = useState<number>(0); // State for blocks to withdraw
-  const [unwindPrice, setUnwindPrice] = useState<number | null>(null); // State for unwind price
+  const [optionUnwindPrice, setOptionUnwindPrice] = useState<number | null>(null); // State for option unwind price
+  const [ptUnwindPrice, setPtUnwindPrice] = useState<number | null>(null); // State for pt unwind price
 
   const handleUnwind = async () => {
     // Calculate the unwind price based on blocksToWithdraw
-    const pricePerBlock = 10; // Example price per block
-    const calculatedPrice = blocksToWithdraw * withdrawBlockSize;
     const _subAccountId = 59358
     try {
       const { data } = await axios.post(`products/get-direction-instrument?subAccountId=${_subAccountId}`);
@@ -56,11 +55,18 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
           'Content-Type': 'application/json'},}) 
       const _userOptionPosition = await axios.post(`products/get-user-option-position?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}&totalOptionPosition=${response.data.totalAmountPosition}`);
       console.log(response.data.totalAmountPosition)
-      setUnwindPrice(_userOptionPosition.data.userOptionPosition);
+      setOptionUnwindPrice(_userOptionPosition.data.userOptionPosition);
       console.log(`Unwinding ${blocksToWithdraw} blocks... Price: ${_userOptionPosition.data.userOptionPosition}`);
+      
+      const _userPtUnwindPrice = await axios.post(`products/get-amount-out-min?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}`)
+      console.log(Number(_userPtUnwindPrice.data.amountTokenOut))
+      console.log(typeof Number(_userPtUnwindPrice.data.amountTokenOut))
+
+      setPtUnwindPrice((Number(_userPtUnwindPrice.data.amountTokenOut))/(10**6));
     } catch (e) {
       console.error(e);
     }
+
     // console.log(await axios.post(`products/get-direction-instrument?subAccountId=${_subAccountId}`))
     // Update the unwind price state
     
@@ -180,14 +186,26 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                 <PrimaryButton label={"Get unwind price"} className={"mt-6"} onClick={handleUnwind} />
             </div>
 
-                {/* Display Unwind Price */}
-                {unwindPrice !== null && (
+              {ptUnwindPrice !== null && <div className="mt-4"><p className="text-lg font-semibold">pT Unwind Price: {ptUnwindPrice}</p></div>} 
+              {optionUnwindPrice !== null && <div className="mt-4"><p className="text-lg font-semibold">Option Unwind Price: {optionUnwindPrice}</p></div>}
+
+                
+                {/* {ptUnwindPrice !== null && (
                     <div className="mt-4">
                         <p className="text-lg font-semibold">
-                            Unwind Price: {unwindPrice}
+                            pT Unwind Price: {ptUnwindPrice}
                         </p>
                     </div>
-            )}
+                )}
+
+                
+                {optionUnwindPrice !== null && (
+                    <div className="mt-4">
+                        <p className="text-lg font-semibold">
+                            Option Unwind Price: {optionUnwindPrice}
+                        </p>
+                    </div>
+                )} */}
             </div>
       </div>
 

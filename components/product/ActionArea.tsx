@@ -266,15 +266,6 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           const _totalCurrentSupply = await _productInstance.totalCurrentSupply()
           console.log(Number(ethers.utils.formatUnits(_totalCurrentSupply,0)))
 
-          const _amountOutMin = Number(ethers.utils.formatUnits(_ptBalance,0)) * (Number(ethers.utils.formatUnits(_tokenBalance,0))/Number(ethers.utils.formatUnits(_totalCurrentSupply,0)))
-          console.log(_amountOutMin)
-
-          const _marketAddrress = await _productInstance.market()
-          const url = `https://api-v2.pendle.finance/sdk/api/v1/swapExactPtForToken?chainId=42161&receiverAddr=${address}&marketAddr=${_marketAddrress}&amountPtIn=${_amountOutMin}&tokenOutAddr=${_currency}&slippage=0.002`;
-          const response = await fetch(url);
-          const params = await response.json();
-          console.log('amountTokenOut')
-          console.log(params.data.amountTokenOut)
 
           // try {
           //   const response = await fetch(url);
@@ -315,18 +306,21 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     })()
   }, [productAddress, signer, address])
 
-  useEffect(() => {
-    (async () => {
-      if (product) {
-        try {
-          const { data } = await axios.get(product.issuanceCycle.apy)
-          setImageURL(data.image)
-        } catch (e) {
-          console.log(e)
-        }
-      }
-    })()
-  }, [product])
+  // useEffect(() => {
+  //   (async () => {
+  //     if (product) {
+  //       try {
+  //         console.log("Product APY")
+  //         console.log(product)
+  //         const { data } = await axios.get(product.issuanceCycle.apy)
+  //         console.log(product.issuanceCycle)
+  //         setImageURL(data.image)
+  //       } catch (e) {
+  //         console.log(e)
+  //       }
+  //     }
+  //   })()
+  // }, [product])
 
   return (
     <>
