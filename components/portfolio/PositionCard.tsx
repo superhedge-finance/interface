@@ -53,16 +53,18 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
       const response = await axios.post(`products/get-option-position`, data, {
         headers: {
           'Content-Type': 'application/json'},}) 
-      const _userOptionPosition = await axios.post(`products/get-user-option-position?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}&totalOptionPosition=${response.data.totalAmountPosition}`);
-      console.log(response.data.totalAmountPosition)
-      setOptionUnwindPrice(_userOptionPosition.data.userOptionPosition);
-      console.log(`Unwinding ${blocksToWithdraw} blocks... Price: ${_userOptionPosition.data.userOptionPosition}`);
+      const results = await axios.post(`products/get-pt-and-position?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}&totalOptionPosition=${response.data.totalAmountPosition}`);
+      setPtUnwindPrice((Number(results.data.amountToken))/(10**6));
+      setOptionUnwindPrice(results.data.amountOption);
+      // console.log(response.data.totalAmountPosition)
+      // setOptionUnwindPrice(_userOptionPosition.data.userOptionPosition);
+      // console.log(`Unwinding ${blocksToWithdraw} blocks... Price: ${_userOptionPosition.data.userOptionPosition}`);
       
-      const _userPtUnwindPrice = await axios.post(`products/get-amount-out-min?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}`)
-      console.log(Number(_userPtUnwindPrice.data.amountTokenOut))
-      console.log(typeof Number(_userPtUnwindPrice.data.amountTokenOut))
+      // const _userPtUnwindPrice = await axios.post(`products/get-amount-out-min?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}`)
+      // console.log(Number(_userPtUnwindPrice.data.amountTokenOut))
+      // console.log(typeof Number(_userPtUnwindPrice.data.amountTokenOut))
 
-      setPtUnwindPrice((Number(_userPtUnwindPrice.data.amountTokenOut))/(10**6));
+      // setPtUnwindPrice((Number(_userPtUnwindPrice.data.amountTokenOut))/(10**6));
     } catch (e) {
       console.error(e);
     }
@@ -100,6 +102,8 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             console.log(withdrawBlockSize)
             setwithdrawBlockSize(withdrawBlockSize)
             setTotalBlocks(tokenBalance/withdrawBlockSize)
+            console.log("setTotalBlocks")
+            console.log(tokenBalance/withdrawBlockSize)
           }
           catch (e){
             console.error(e)
