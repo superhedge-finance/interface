@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment,useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { ethers } from "ethers";
 import { useAccount, useSigner, useNetwork } from "wagmi";
@@ -11,6 +11,7 @@ import Timeline from "../product/Timeline";
 import { SUPPORT_CHAIN_IDS } from "../../utils/enums";
 import { DECIMAL } from "../../utils/constants";
 import axios from "../../service/axios";
+import { Dialog, Transition, Switch } from "@headlessui/react"
 
 export const PositionCard = ({ position, enabled }: { position: IProduct; enabled: boolean }) => {
   const Router = useRouter();
@@ -20,6 +21,10 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
 
   const [principal, setPrincipal] = useState<number>(0);
   const [imageURL, setImageURL] = useState("");
+  const [isOpen, setIsOpen] = useState(false)
+  const [expand, setExpand] = useState(false)
+  const closeModal = () => setIsOpen(false);
+    // const [productInstance, setProductInstance] = useState<ethers.Contract | undefined>(undefined)
 
   const currency1 = useMemo(() => {
     return "/currency/" + position.underlying.split("/")[1].toLowerCase() + ".svg";
@@ -44,41 +49,68 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   const [blocksToWithdraw, setBlocksToWithdraw] = useState<number>(0); // State for blocks to withdraw
   const [optionUnwindPrice, setOptionUnwindPrice] = useState<number | null>(null); // State for option unwind price
   const [ptUnwindPrice, setPtUnwindPrice] = useState<number | null>(null); // State for pt unwind price
+  const [currencyInstance, setCurrencyInstance] = useState<ethers.Contract | undefined>(undefined)
+  const [tokenAddressInstance, setTokenAddressInstance] = useState<ethers.Contract | undefined>(undefined)
+
 
   const handleUnwind = async () => {
     // Calculate the unwind price based on blocksToWithdraw
-    const _subAccountId = 59358
     try {
-      const { data } = await axios.post(`products/get-direction-instrument?subAccountId=${_subAccountId}`);
-      const response = await axios.post(`products/get-option-position`, data, {
-        headers: {
-          'Content-Type': 'application/json'},}) 
-      const results = await axios.post(`products/get-pt-and-position?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}&totalOptionPosition=${response.data.totalAmountPosition}`);
-      setPtUnwindPrice((Number(results.data.amountToken))/(10**6));
+      const results = await axios.post(`products/get-pt-and-position?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}`);
+      setPtUnwindPrice((Number(results.data.amountToken)));
       setOptionUnwindPrice(results.data.amountOption);
-      // console.log(response.data.totalAmountPosition)
-      // setOptionUnwindPrice(_userOptionPosition.data.userOptionPosition);
-      // console.log(`Unwinding ${blocksToWithdraw} blocks... Price: ${_userOptionPosition.data.userOptionPosition}`);
-      
-      // const _userPtUnwindPrice = await axios.post(`products/get-amount-out-min?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}`)
-      // console.log(Number(_userPtUnwindPrice.data.amountTokenOut))
-      // console.log(typeof Number(_userPtUnwindPrice.data.amountTokenOut))
-
-      // setPtUnwindPrice((Number(_userPtUnwindPrice.data.amountTokenOut))/(10**6));
     } catch (e) {
       console.error(e);
     }
-
-    // console.log(await axios.post(`products/get-direction-instrument?subAccountId=${_subAccountId}`))
-    // Update the unwind price state
     
   };
+
+  const handleYes = async() => {
+    console.log(productInstance)
+    console.log(tokenAddressInstance)
+    if(productInstance && tokenAddressInstance && ptUnwindPrice){
+      try{
+        const currentAllowance = await tokenAddressInstance.allowance(address, position.address)
+        const early_withdraw_balance_user = (blocksToWithdraw * withdrawBlockSize) * 10**(6)
+        console.log(early_withdraw_balance_user)
+        if (currentAllowance.lt(ptUnwindPrice)) {
+          const approve_tx = await tokenAddressInstance.approve(position.address, early_withdraw_balance_user)
+          await approve_tx.wait()
+        }
+        const tx = await productInstance.earlyWithdraw(blocksToWithdraw)
+        await tx.wait()
+        const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ARBITRUM)
+        const receipt = await provider.getTransactionReceipt(tx.hash);
+        if (receipt && receipt.status === 1) {
+          console.log("Transaction was successful");
+          const data = {
+            "chainId": chainId,
+            "product": position.address,
+            "address": address,
+            "txid": tx.hash,
+            "amountPtUnwindPrice": ptUnwindPrice,
+            "amountOptionUnwindPrice": optionUnwindPrice
+          }
+          const result = await axios.post('products/update-withdraw-request', data, {
+            headers: {
+              'Content-Type': 'application/json'},})
+
+        } else {
+          console.log("Transaction failed");
+        }
+      } catch (e){
+        console.log(e)
+      }
+
+    };
+  }
+
 
   useEffect(() => {
     (async () => {
       if (productInstance && address) {
         const balance = await productInstance.principalBalance(address);
-        setPrincipal(Number(ethers.utils.formatUnits(balance, DECIMAL[chainId])));
+        setPrincipal(Number(ethers.utils.formatUnits(balance, DECIMAL[chainId])))
       }
     })();
   }, [productInstance, address, chainId]);
@@ -91,19 +123,24 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
           try{
             const _tokenAddress = await productInstance.tokenAddress()
             const _tokenAddressInstance = new ethers.Contract(_tokenAddress, ERC20ABI, signer)
+            setTokenAddressInstance(_tokenAddressInstance)
             const _tokenBalance = await _tokenAddressInstance.balanceOf(address)
             const _tokenDecimals = await _tokenAddressInstance.decimals()
             const tokenBalance = Number(ethers.utils.formatUnits(_tokenBalance,0))/(10**_tokenDecimals)
-            console.log(position.address)
-            console.log(position.issuanceCycle)
+            // console.log(position.address)
+            // console.log(position.issuanceCycle)
             const underlyingSpotRef = position.issuanceCycle.underlyingSpotRef
             const optionMinOrderSize = (position.issuanceCycle.optionMinOrderSize) / 10
             const withdrawBlockSize = underlyingSpotRef * optionMinOrderSize
-            console.log(withdrawBlockSize)
+            // console.log(withdrawBlockSize)
             setwithdrawBlockSize(withdrawBlockSize)
             setTotalBlocks(tokenBalance/withdrawBlockSize)
-            console.log("setTotalBlocks")
-            console.log(tokenBalance/withdrawBlockSize)
+            // console.log("setTotalBlocks")
+            // console.log(tokenBalance/withdrawBlockSize)
+
+            const _currency = await productInstance.currency()
+            const _currencyInstance = new ethers.Contract(_currency, ERC20ABI, signer)
+            setCurrencyInstance(_currencyInstance)
           }
           catch (e){
             console.error(e)
@@ -192,25 +229,37 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
 
               {ptUnwindPrice !== null && <div className="mt-4"><p className="text-lg font-semibold">pT Unwind Price: {ptUnwindPrice}</p></div>} 
               {optionUnwindPrice !== null && <div className="mt-4"><p className="text-lg font-semibold">Option Unwind Price: {optionUnwindPrice}</p></div>}
+              {/* <PrimaryButton label={"Yes"} className={"mt-6"} onClick={handleYes} /> */}
 
-                
-                {/* {ptUnwindPrice !== null && (
-                    <div className="mt-4">
-                        <p className="text-lg font-semibold">
-                            pT Unwind Price: {ptUnwindPrice}
-                        </p>
-                    </div>
-                )}
+              <PrimaryButton label={'Early Withdraw'} className={'mt-6'} onClick={() => { setIsOpen(true); }} />
 
-                
-                {optionUnwindPrice !== null && (
-                    <div className="mt-4">
-                        <p className="text-lg font-semibold">
-                            Option Unwind Price: {optionUnwindPrice}
-                        </p>
-                    </div>
-                )} */}
+              <Transition show={isOpen} as={Fragment}>
+                <Dialog onClose={closeModal} className='fixed inset-0 overflow-y-auto'>
+                <div className='flex min-h-full items-center justify-center p-4 text-center'>
+                    {/* <Dialog.Overlay className='fixed inset-0 bg-black opacity-30' /> */}
+                    <Dialog.Panel className='w-full max-w-[800px] transform overflow-hidden rounded-2xl bg-white py-[60px] px-[160px] text-left align-middle shadow-xl transition-all'>
+                    <Dialog.Title className='text-[32px] font-medium leading-[40px] text-[#161717] text-center'>Unwind Values</Dialog.Title>
+                      <div className='mt-4'>
+                        <p>pT Unwind Price: {ptUnwindPrice}</p>
+                        <p>Option Unwind Price: {optionUnwindPrice}</p>
+                      </div>
+                      <div className='mt-6'>
+                        <PrimaryButton label='Confirm' onClick={handleYes} />
+                      </div>
+                      <div className='mt-6'>
+                        <PrimaryButton label='Close' onClick={closeModal} />
+                      </div>
+                      
+                    </Dialog.Panel>
+                  </div>
+                </Dialog>
+              </Transition> 
+
             </div>
+            
+            
+
+           
       </div>
 
       {enabled && (
