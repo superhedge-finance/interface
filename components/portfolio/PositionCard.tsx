@@ -23,7 +23,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   const [imageURL, setImageURL] = useState("");
   const [isOpen, setIsOpen] = useState(false)
   const [expand, setExpand] = useState(false)
-  const closeModal = () => setIsOpen(false);
+  // const closeModal = () => setIsOpen(false);
     // const [productInstance, setProductInstance] = useState<ethers.Contract | undefined>(undefined)
 
   const currency1 = useMemo(() => {
@@ -44,6 +44,11 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
     return SUPPORT_CHAIN_IDS.ARBITRUM;
   }, [chain]);
 
+  const closeModal = () => {
+    setIsOpen(false);
+    setCountdown(30); // Reset countdown when closing the modal
+};
+
   const [withdrawBlockSize, setwithdrawBlockSize] = useState<number>(0);
   const [totalBlocks, setTotalBlocks] = useState<number>(0); // State for total blocks
   const [blocksToWithdraw, setBlocksToWithdraw] = useState<number>(0); // State for blocks to withdraw
@@ -51,7 +56,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   const [ptUnwindPrice, setPtUnwindPrice] = useState<number | null>(null); // State for pt unwind price
   const [currencyInstance, setCurrencyInstance] = useState<ethers.Contract | undefined>(undefined)
   const [tokenAddressInstance, setTokenAddressInstance] = useState<ethers.Contract | undefined>(undefined)
-
+  const [countdown, setCountdown] = useState(30);
 
   const handleUnwind = async () => {
     // Calculate the unwind price based on blocksToWithdraw
@@ -105,6 +110,21 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
     };
   }
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (isOpen && countdown > 0) {
+        timer = setInterval(() => {
+            setCountdown(prevCountdown => prevCountdown - 1);
+        }, 1000); // Decrease countdown every second
+    }
+
+    if (countdown === 0) {
+        closeModal(); // Close modal when countdown reaches zero
+    }
+
+    return () => clearInterval(timer); // Cleanup timer on unmount or when dependencies change
+}, [isOpen, countdown]);
 
   useEffect(() => {
     (async () => {
@@ -242,6 +262,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                       <div className='mt-4'>
                         <p>pT Unwind Price: {ptUnwindPrice}</p>
                         <p>Option Unwind Price: {optionUnwindPrice}</p>
+                        <p>Time Remaining: {countdown} seconds</p>
                       </div>
                       <div className='mt-6'>
                         <PrimaryButton label='Confirm' onClick={handleYes} />
@@ -255,7 +276,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                 </Dialog>
               </Transition> 
 
-            </div>
+              </div>
             
             
 

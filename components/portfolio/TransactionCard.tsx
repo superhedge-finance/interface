@@ -14,6 +14,7 @@ export const TransactionHeader = () => {
 };
 
 export const TransactionCard = ({ history, className, blockExplorer }: { history: History; className: string; blockExplorer: string }) => {
+  console.log(history)
   return (
     <div className={`py-3 px-6 h-[40px] grid grid-cols-6 rounded-[6px] ${className ?? ""}`}>
       <div className={"flex items-center space-x-2"}>
@@ -37,7 +38,7 @@ export const TransactionCard = ({ history, className, blockExplorer }: { history
         {history.type === HISTORY_TYPE.DEPOSIT ? "Deposited" : "Withdrawed"}
       </span>
       <span className={"text-[12px] leading-[16px] text-blacknew-100"}>
-        {((Number(history.amountInDecimal)).toLocaleString())} USDC
+        {((Number(history.amountInDecimal)/10**6).toLocaleString())} USDC
       </span>
     </div>
   );
