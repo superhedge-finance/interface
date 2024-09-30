@@ -17,7 +17,7 @@ import { SUPPORT_CHAIN_IDS } from "../../../utils/enums";
 import axios from "../../../service/axios";
 import { Dialog, Transition } from "@headlessui/react";
 import { getTxErrorMessage } from "../../../utils/helpers";
-import NFTListedDialog from "../../../components/portfolio/NFTListedDialog";
+// import NFTListedDialog from "../../../components/portfolio/NFTListedDialog";
 
 const PortfolioCreatePage = () => {
   const router = useRouter();
@@ -55,7 +55,7 @@ const PortfolioCreatePage = () => {
 
   const chainId = useMemo(() => {
     if (chain) return chain.id;
-    return SUPPORT_CHAIN_IDS.GOERLI;
+    return SUPPORT_CHAIN_IDS.ARBITRUM;
   }, [chain]);
 
   const productInstance = useMemo(() => {
@@ -295,7 +295,7 @@ const PortfolioCreatePage = () => {
         </Dialog>
       </Transition>
 
-      <NFTListedDialog open={isListed} setOpen={setIsListed} onConfirm={() => router.push("/portfolio")} />
+      {/* <NFTListedDialog open={isListed} setOpen={setIsListed} onConfirm={() => router.push("/portfolio")} /> */}
     </div>
   );
 };

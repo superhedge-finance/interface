@@ -27,11 +27,6 @@ export default function NavMenuMobile() {
                                 Portfolio
                             </Link>
                         </li>
-                        <li className="border-b-[1px] border-white border-opacity-30 py-5">
-                            <Link href="/marketplace" className={`block p-0 hover:text-white ${router.pathname === '/marketplace' ? 'text-white' : 'text-[#f8f8f880]'}`}>
-                                Marketplace
-                            </Link>
-                        </li>
                         <li className="md:hidden pt-10">
                             <WalletConnect isMobile={true} />
                         </li>

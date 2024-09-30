@@ -25,14 +25,6 @@ export default function NavMenu() {
             Portfolio
           </Link>
         </li>
-        <li>
-          <Link
-            href='/marketplace'
-            className={`block p-0 hover:text-white ${router.pathname === "/marketplace" ? "text-white" : "text-[#f8f8f880]"}`}
-          >
-            Marketplace
-          </Link>
-        </li>
       </ul>
     </div>
   );
