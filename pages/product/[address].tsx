@@ -44,7 +44,7 @@ const ProductDetail = () => {
 
   const chainId = useMemo(() => {
     if (chain) return chain.id;
-    return SUPPORT_CHAIN_IDS.GOERLI;
+    return SUPPORT_CHAIN_IDS.ARBITRUM;
   }, [chain]);
 
   const capacity = useMemo(() => {

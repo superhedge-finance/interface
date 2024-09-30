@@ -40,7 +40,7 @@ const mantleTestnet: Chain = {
 };
 
 const { chains, provider, webSocketProvider } = configureChains(
-  [...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS == "true" ? [arbitrum,goerli, moonbaseAlpha, arbitrumGoerli, mantleTestnet] : [])],
+  [...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS == "true" ? [arbitrum] : [])],
   [
     // alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_KEY_ARBITRUM || "" }),
 
