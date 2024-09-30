@@ -45,7 +45,7 @@ export const PortfolioTransactions = ({ order }: { order: number }) => {
 
   const chainId = useMemo(() => {
     if (chain) return chain.id;
-    return SUPPORT_CHAIN_IDS.GOERLI;
+    return SUPPORT_CHAIN_IDS.ARBITRUM;
   }, [chain]);
 
   useEffect(() => {

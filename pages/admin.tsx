@@ -27,10 +27,12 @@ const Admin = () => {
         setIsFetching(true);
         try {
             const response = await axios.post(`/products/get-holder-list?tokenAddress=${productAddress}&chainId=${chainId}`);
-            const balanceTokenArray: number[] = response.data.balanceToken.map(Number).slice(1);
-            const ownerAddressArray: string[] = response.data.ownerAddress.map(String).slice(1);
+            // const balanceTokenArray: number[] = response.data.balanceToken.map(Number).slice(0);
+            // const ownerAddressArray: string[] = response.data.ownerAddress.map(String).slice(0);
+            const balanceToken: number[] = response.data.balanceToken.map(Number);
+            const ownerAddress: string[] = response.data.ownerAddress;
             // Set data with fetched values
-            setData({ ownerAddressArray: ownerAddressArray, balanceTokenArray: balanceTokenArray });
+            setData({ ownerAddressArray: ownerAddress, balanceTokenArray: balanceToken });
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {
