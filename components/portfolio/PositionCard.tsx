@@ -1,6 +1,6 @@
 import { Fragment,useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { useAccount, useSigner, useNetwork } from "wagmi";
 import { PrimaryButton } from "../basic";
 import { IProduct } from "../../types";
@@ -77,13 +77,17 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
       try{
         const currentAllowance = await tokenAddressInstance.allowance(address, position.address)
         const early_withdraw_balance_user = (blocksToWithdraw * withdrawBlockSize) * 10**(6)
-        console.log(early_withdraw_balance_user)
+        console.log(Math.round(early_withdraw_balance_user))
         if (currentAllowance.lt(ptUnwindPrice)) {
-          const approve_tx = await tokenAddressInstance.approve(position.address, early_withdraw_balance_user)
+          console.log("approve")
+          const approve_tx = await tokenAddressInstance.approve(position.address, Math.round(early_withdraw_balance_user))
           await approve_tx.wait()
         }
+        console.log("earlyWithdraw")
+        console.log(blocksToWithdraw)
         const tx = await productInstance.earlyWithdraw(blocksToWithdraw)
         await tx.wait()
+        console.log(tx)
         const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ARBITRUM)
         const receipt = await provider.getTransactionReceipt(tx.hash);
         if (receipt && receipt.status === 1) {
@@ -96,6 +100,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             "amountPtUnwindPrice": ptUnwindPrice,
             "amountOptionUnwindPrice": optionUnwindPrice
           }
+          console.log(data)
           const result = await axios.post('products/update-withdraw-request', data, {
             headers: {
               'Content-Type': 'application/json'},})

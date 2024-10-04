@@ -199,6 +199,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     (async () => {
       if (signer && productAddress && address) {
         try {
+          console.log("productAddress")
+          console.log(productAddress)
           const _productInstance = new ethers.Contract(productAddress, ProductABI, signer)
           setProductInstance(_productInstance)
           const _status = await _productInstance.status()
@@ -223,8 +225,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           console.log(Number(ethers.utils.formatUnits(_ptBalance,0)))
 
           // totalCurrentSupply
-          const _totalCurrentSupply = await _productInstance.totalCurrentSupply()
-          console.log(Number(ethers.utils.formatUnits(_totalCurrentSupply,0)))
+          // const _totalCurrentSupply = await _productInstance.totalCurrentSupply()
+          // console.log(Number(ethers.utils.formatUnits(_totalCurrentSupply,0)))
 
 
           // try {
@@ -249,6 +251,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           const _optionBalance = await _productInstance.optionBalance(address)
           setOptionBalance(Number(ethers.utils.formatUnits(_optionBalance, _decimals)))
           const _principalBalance = await _productInstance.principalBalance(address)
+          console.log("_principalBalance")
+          console.log(_principalBalance)
           setPrincipalBalance(Number(ethers.utils.formatUnits(_principalBalance, _decimals)))
 
           const currentCapacity = await _productInstance.currentCapacity()
