@@ -62,8 +62,11 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
     // Calculate the unwind price based on blocksToWithdraw
     try {
       const results = await axios.post(`products/get-pt-and-position?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}`);
-      setPtUnwindPrice((Number(results.data.amountToken)));
-      setOptionUnwindPrice(results.data.amountOption);
+      
+      const ptUnwindPrice = Number(results.data.amountToken)
+      setPtUnwindPrice(Number(ethers.utils.formatUnits(ptUnwindPrice, DECIMAL[chainId])));
+      const optionUnwindPrice = results.data.amountOption
+      setOptionUnwindPrice(Number(ethers.utils.formatUnits(optionUnwindPrice, DECIMAL[chainId])));
     } catch (e) {
       console.error(e);
     }
@@ -214,7 +217,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
           <p className='text-[12px] font-light text-gray-700'>Principal Amount</p>
           <h3 className='text-[20px] font-light text-black'>
             <span className={"bg-primary-gradient bg-clip-text text-transparent"}>{principal.toLocaleString()} USDC </span>
-            <span className={"ml-1"}>({principal} Lots)</span>
+            <span className={"ml-1"}></span>
           </h3>
         </div>
 
@@ -252,8 +255,8 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                 <PrimaryButton label={"Get unwind price"} className={"mt-6"} onClick={handleUnwind} />
             </div>
 
-              {ptUnwindPrice !== null && <div className="mt-4"><p className="text-lg font-semibold">pT Unwind Price: {ptUnwindPrice}</p></div>} 
-              {optionUnwindPrice !== null && <div className="mt-4"><p className="text-lg font-semibold">Option Unwind Price: {optionUnwindPrice}</p></div>}
+              {ptUnwindPrice !== null && <div className="mt-4"><p className="text-lg font-semibold">pT Unwind Price: {ptUnwindPrice} USDC</p></div>} 
+              {optionUnwindPrice !== null && <div className="mt-4"><p className="text-lg font-semibold">Option Unwind Price: {optionUnwindPrice} USDC</p></div>}
               {/* <PrimaryButton label={"Yes"} className={"mt-6"} onClick={handleYes} /> */}
 
               <PrimaryButton label={'Early Withdraw'} className={'mt-6'} onClick={() => { setIsOpen(true); }} />
@@ -265,8 +268,8 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                     <Dialog.Panel className='w-full max-w-[800px] transform overflow-hidden rounded-2xl bg-white py-[60px] px-[160px] text-left align-middle shadow-xl transition-all'>
                     <Dialog.Title className='text-[32px] font-medium leading-[40px] text-[#161717] text-center'>Unwind Values</Dialog.Title>
                       <div className='mt-4'>
-                        <p>pT Unwind Price: {ptUnwindPrice}</p>
-                        <p>Option Unwind Price: {optionUnwindPrice}</p>
+                        <p>pT Unwind Price: {ptUnwindPrice} USDC</p>
+                        <p>Option Unwind Price: {optionUnwindPrice} USDC</p>
                         <p>Time Remaining: {countdown} seconds</p>
                       </div>
                       <div className='mt-6'>

@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { PrimaryButton } from "../components/basic";
 import axios from "../service/axios";
@@ -12,6 +12,7 @@ const Admin = () => {
     const [isFetching, setIsFetching] = useState(false);
     const [productAddress, setProductAddress] = useState("");
     const [unwindMargin, setUnwindMargin] = useState("");
+    const [currentUnwindMargin, setCurrentUnwindMargin] = useState("");
     const [signature, setSignature] = useState("");
     const { chain } = useNetwork();
     const chainId = chain ? chain.id : SUPPORT_CHAIN_IDS.ARBITRUM;
@@ -20,8 +21,27 @@ const Admin = () => {
         setIsOpen(false);
     };
 
+    // Function to fetch the current unwind margin based on the product address
+    const fetchCurrentUnwindMargin = async () => {
+        if (productAddress) {
+            try {
+                const response = await axios.post(`/products/get-unwind-margin?chainId=${chainId}&productAddress=${productAddress}`);
+                console.log(response.data.unwindMargin)
+                setCurrentUnwindMargin(response.data.unwindMargin); // Assuming the API returns unwindMargin
+                setUnwindMargin(response.data.unwindMargin); // Set this to allow user to edit
+            } catch (error) {
+                console.error("Error fetching current unwind margin:", error);
+            }
+        }
+    };
+
+    // Fetch unwind margin when product address changes
+    useEffect(() => {
+        fetchCurrentUnwindMargin();
+    }, [productAddress]);
+
     const handleConfirm = async () => {
-        if (signer && unwindMargin) {
+        if (signer && unwindMargin && productAddress) {
             setIsFetching(true);
             try {
                 // Create message to sign
@@ -33,9 +53,8 @@ const Admin = () => {
                 // Sign the message
                 const signature = await signer.signMessage(ethers.utils.arrayify(message));
                 setSignature(signature);
-                console.log(signature)
-
-                await axios.post(`/products/change-unwind-margin?unwindMarginValue=${unwindMargin}&signatureAdmin=${signature}`);
+                
+                await axios.post(`/products/change-unwind-margin?chainId=${chainId}&productAddress=${productAddress}&unwindMarginValue=${unwindMargin}&signatureAdmin=${signature}`);
 
                 setIsOpen(true);
             } catch (error) {
@@ -57,12 +76,27 @@ const Admin = () => {
                         </span>
                     </div>
                     <div className={"flex flex-col w-full px-[80px] py-[56px]"}>
+                        {/* Input for Product Address */}
+                        <input
+                            type="text"
+                            value={productAddress}
+                            onChange={(e) => setProductAddress(e.target.value)}
+                            className="border rounded px-2 py-1 mb-4"
+                            placeholder="Enter product address"
+                        />
+
+                        {/* Display Current Unwind Margin */}
+                        <div className="mb-4">
+                            <strong>Current Unwind Margin:</strong> {currentUnwindMargin}
+                        </div>
+
+                        {/* Input for New Unwind Margin */}
                         <input
                             type="number"
                             value={unwindMargin}
                             onChange={(e) => setUnwindMargin(e.target.value)}
                             className="border rounded px-2 py-1 mb-4"
-                            placeholder="Enter unwind margin"
+                            placeholder="Enter new unwind margin"
                         />
 
                         <PrimaryButton 
@@ -71,25 +105,6 @@ const Admin = () => {
                             onClick={handleConfirm} 
                             disabled={!unwindMargin}
                         />
-
-                        {/* <Transition show={isOpen} as={Fragment}>
-                            <Dialog onClose={closeModal} className='fixed inset-0 overflow-y-auto'>
-                                <div className='flex min-h-full items-center justify-center p-4 text-center'>
-                                    <Dialog.Panel className='w-full max-w-[800px] transform overflow-hidden rounded-2xl bg-white py-[60px] px-[160px] text-left align-middle shadow-xl transition-all'>
-                                        <Dialog.Title className='text-[32px] font-medium leading-[40px] text-[#161717] text-center'>Confirmation</Dialog.Title>
-                                        <div className='mt-4'>
-                                            <p>Off-chain signature successful!</p>
-                                            <p>Signature: {signature}</p>
-                                            <p>Product Address: {productAddress}</p>
-                                            <p>Unwind Margin: {unwindMargin}</p>
-                                        </div>
-                                        <div className='mt-6'>
-                                            <PrimaryButton label='Close' onClick={closeModal} />
-                                        </div>
-                                    </Dialog.Panel>
-                                </div>
-                            </Dialog>
-                        </Transition> */}
                     </div>
                 </div>
             </div>

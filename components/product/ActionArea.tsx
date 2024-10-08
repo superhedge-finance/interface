@@ -89,14 +89,21 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         if (status === 1) {
           if (principalBalance > 0) {
             // approve token
-            console.log("approve token")
+            console.log("Approve token")
             const decimal = await tokenAddressInstance.decimals()
-            const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toString(), decimal)
+            // const parsedBalance = ethers.utils.parseUnits(withdrawableBalance.toFixed(decimal), decimal);
+        
+            // const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toString(), decimal)
+            const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toFixed(decimal), decimal);
+            console.log(requestBalance)
+
             const _currentCapacity = await productInstance.currentCapacity()
+            console.log(_currentCapacity)
             if (withdrawableBalance + Number(ethers.utils.formatUnits(_currentCapacity, decimal)) > Number(product.maxCapacity)) {
               return toast.error("Your withdraw results in excess of max capacity.")
             }
             const currentAllowance = await tokenAddressInstance.allowance(address, productAddress)
+            console.log(currentAllowance)
             if (currentAllowance.lt(requestBalance)) {
               const tx = await tokenAddressInstance.approve(productAddress, requestBalance)
               await setWithdrawStatus(WITHDRAW_STATUS.APPROVING)
@@ -104,6 +111,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             }
             // withdraw
             await setWithdrawStatus(WITHDRAW_STATUS.WITHDRAW)
+            console.log("withdrawPrincipal")
             const withdrawTx = await productInstance.withdrawPrincipal()
             await withdrawTx.wait()
           }
@@ -111,6 +119,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             const tx1 = await productInstance.withdrawOption()
             await tx1.wait()
           }
+          console.log(couponBalance)
           if (couponBalance > 0) {
             const tx2 = await productInstance.withdrawCoupon()
             await tx2.wait()
@@ -131,6 +140,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         }
       } catch (e) {
         await setWithdrawStatus(WITHDRAW_STATUS.NONE)
+        console.log(e)
       } finally {
         console.log("Finally!")
       }
@@ -247,6 +257,9 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           //   }
 
           const _couponBalance = await _productInstance.couponBalance(address)
+          console.log("couponBalance")
+          console.log(_couponBalance)
+          console.log(Number(ethers.utils.formatUnits(_couponBalance, _decimals)))
           setCouponBalance(Number(ethers.utils.formatUnits(_couponBalance, _decimals)))
           const _optionBalance = await _productInstance.optionBalance(address)
           setOptionBalance(Number(ethers.utils.formatUnits(_optionBalance, _decimals)))
@@ -304,7 +317,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             Please Connect your Wallet to have access to our Products.
           </div>
         )}
-
+        
         {address && tab === 0 && (
           <div className={"flex flex-col justify-between w-full"}>
             <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
@@ -441,7 +454,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
                 <span className={"text-[#677079] text-[16px] leading-[16px]"}>Total Balance</span>
                 <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
-                  {(principalBalance + optionBalance + couponBalance).toLocaleString()} USDC ({lotsCount.toFixed(3)} lots)
+                  {/* {(principalBalance + optionBalance + couponBalance).toLocaleString()} USDC ({lotsCount.toFixed(3)} lots) */}
+                  {(principalBalance + optionBalance + couponBalance).toLocaleString()} USDC
                 </span>
               </div>
 
