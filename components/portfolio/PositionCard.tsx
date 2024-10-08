@@ -65,6 +65,9 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
       
       const ptUnwindPrice = Number(results.data.amountToken)
       setPtUnwindPrice(Number(ethers.utils.formatUnits(ptUnwindPrice, DECIMAL[chainId])));
+      // setPtUnwindPrice(ptUnwindPrice)
+      // ethers.utils.parseUnits(depositAmount.toString(), decimal)
+
       const optionUnwindPrice = results.data.amountOption
       setOptionUnwindPrice(Number(ethers.utils.formatUnits(optionUnwindPrice, DECIMAL[chainId])));
     } catch (e) {
@@ -78,10 +81,14 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
     console.log(tokenAddressInstance)
     if(productInstance && tokenAddressInstance && ptUnwindPrice){
       try{
+
         const currentAllowance = await tokenAddressInstance.allowance(address, position.address)
-        const early_withdraw_balance_user = (blocksToWithdraw * withdrawBlockSize) * 10**(6)
-        console.log(Math.round(early_withdraw_balance_user))
-        if (currentAllowance.lt(ptUnwindPrice)) {
+        const early_withdraw_balance_user = (blocksToWithdraw * withdrawBlockSize) * 10**(DECIMAL[chainId])
+        // console.log(ethers.utils.parseUnits(ptUnwindPrice.toString(), DECIMAL[chainId]))
+        // console.log(ptUnwindPrice** 10**(DECIMAL[chainId])
+        // console.log(Math.round(early_withdraw_balance_user))
+
+        if (currentAllowance.lt(ptUnwindPrice** 10**(DECIMAL[chainId]))) {
           console.log("approve")
           const approve_tx = await tokenAddressInstance.approve(position.address, Math.round(early_withdraw_balance_user))
           await approve_tx.wait()
