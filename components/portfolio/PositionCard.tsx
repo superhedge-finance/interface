@@ -102,13 +102,14 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
         const receipt = await provider.getTransactionReceipt(tx.hash);
         if (receipt && receipt.status === 1) {
           console.log("Transaction was successful");
+          console.log(ptUnwindPrice)
           const data = {
             "chainId": chainId,
             "product": position.address,
             "address": address,
             "txid": tx.hash,
             "amountPtUnwindPrice": ptUnwindPrice * 10 **(DECIMAL[chainId]),
-            "amountOptionUnwindPrice": optionUnwindPrice
+            "amountOptionUnwindPrice": optionUnwindPrice !== null ? optionUnwindPrice * 10 ** (DECIMAL[chainId]) : 0
           }
           console.log(data)
           const result = await axios.post('products/update-withdraw-request', data, {
@@ -180,8 +181,6 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
           catch (e){
             console.error(e)
           } 
-        
-
 
         }
       }
