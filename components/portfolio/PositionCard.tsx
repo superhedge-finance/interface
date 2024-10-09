@@ -170,7 +170,10 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             const withdrawBlockSize = underlyingSpotRef * optionMinOrderSize
             // console.log(withdrawBlockSize)
             setwithdrawBlockSize(withdrawBlockSize)
-            setTotalBlocks(tokenBalance/withdrawBlockSize)
+            console.log("No of block")
+            console.log(tokenBalance)
+            console.log(withdrawBlockSize)
+            setTotalBlocks(Math.round(tokenBalance/withdrawBlockSize))
             // console.log("setTotalBlocks")
             // console.log(tokenBalance/withdrawBlockSize)
 
