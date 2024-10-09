@@ -107,7 +107,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             "product": position.address,
             "address": address,
             "txid": tx.hash,
-            "amountPtUnwindPrice": ptUnwindPrice,
+            "amountPtUnwindPrice": ptUnwindPrice * 10 **(DECIMAL[chainId]),
             "amountOptionUnwindPrice": optionUnwindPrice
           }
           console.log(data)
