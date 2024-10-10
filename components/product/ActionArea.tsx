@@ -257,9 +257,6 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           //   }
 
           const _couponBalance = await _productInstance.couponBalance(address)
-          console.log("couponBalance")
-          console.log(_couponBalance)
-          console.log(Number(ethers.utils.formatUnits(_couponBalance, _decimals)))
           setCouponBalance(Number(ethers.utils.formatUnits(_couponBalance, _decimals)))
           const _optionBalance = await _productInstance.optionBalance(address)
           setOptionBalance(Number(ethers.utils.formatUnits(_optionBalance, _decimals)))
@@ -267,13 +264,9 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           console.log("_principalBalance")
           console.log(_principalBalance)
           setPrincipalBalance(Number(ethers.utils.formatUnits(_principalBalance, _decimals)))
-
-          const currentCapacity = await _productInstance.currentCapacity()
-          const maxCapacity = await _productInstance.maxCapacity()
-          setMaxLots((maxCapacity.toNumber() - Number(ethers.utils.formatUnits(currentCapacity, _decimals))) / pricePerLot)
-
           // wallet balance
           const currencyBalance = await _currencyInstance.balanceOf(address)
+          setMaxLots(Number(ethers.utils.formatUnits(currencyBalance, _decimals)))
           setWalletBalance(Number(ethers.utils.formatUnits(currencyBalance, _decimals)))
           
         } catch (e) {

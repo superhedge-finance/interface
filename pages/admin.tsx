@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useEffect } from "react";
+import React, { Fragment, useState, useEffect ,ChangeEvent} from "react";
 import { ethers } from "ethers";
 import { PrimaryButton } from "../components/basic";
 import axios from "../service/axios";
@@ -14,6 +14,7 @@ const Admin = () => {
     const [unwindMargin, setUnwindMargin] = useState("");
     const [currentUnwindMargin, setCurrentUnwindMargin] = useState("");
     const [signature, setSignature] = useState("");
+    const [errorMessage, setErrorMessage] = useState(""); // State for error message
     const { chain } = useNetwork();
     const chainId = chain ? chain.id : SUPPORT_CHAIN_IDS.ARBITRUM;
 
@@ -55,13 +56,23 @@ const Admin = () => {
                 setSignature(signature);
                 
                 await axios.post(`/products/change-unwind-margin?chainId=${chainId}&productAddress=${productAddress}&unwindMarginValue=${unwindMargin}&signatureAdmin=${signature}`);
-
                 setIsOpen(true);
             } catch (error) {
                 console.error("Error during confirmation:", error);
             } finally {
                 setIsFetching(false);
             }
+        }
+    };
+
+    // Validate unwind margin input
+    const handleUnwindMarginChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (value === "" || (Number(value) >= 1 && Number(value) <= 999)) {
+            setUnwindMargin(value);
+            setErrorMessage(""); // Clear error message if valid
+        } else {
+            setErrorMessage("Please enter a value between 1 and 999.");
         }
     };
 
@@ -94,16 +105,21 @@ const Admin = () => {
                         <input
                             type="number"
                             value={unwindMargin}
-                            onChange={(e) => setUnwindMargin(e.target.value)}
+                            onChange={handleUnwindMarginChange} // Use validation function here
                             className="border rounded px-2 py-1 mb-4"
                             placeholder="Enter new unwind margin"
                         />
+
+                        {/* Error Message */}
+                        {errorMessage && (
+                            <div className="text-red-500 mb-2">{errorMessage}</div>
+                        )}
 
                         <PrimaryButton 
                             label={isFetching ? 'Processing...' : 'Confirm'} 
                             className={"mt-10 max-w-[220px]"} 
                             onClick={handleConfirm} 
-                            disabled={!unwindMargin}
+                            disabled={!unwindMargin || !!errorMessage} // Disable if there's an error
                         />
                     </div>
                 </div>

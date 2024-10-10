@@ -57,6 +57,8 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   const [currencyInstance, setCurrencyInstance] = useState<ethers.Contract | undefined>(undefined)
   const [tokenAddressInstance, setTokenAddressInstance] = useState<ethers.Contract | undefined>(undefined)
   const [countdown, setCountdown] = useState(30);
+  const [showConfirmButton, setShowConfirmButton] = useState(false);
+  const [showPrices, setShowPrices] = useState(false);
 
   const handleUnwind = async () => {
     // Calculate the unwind price based on blocksToWithdraw
@@ -70,6 +72,11 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
 
       const optionUnwindPrice = results.data.amountOption
       setOptionUnwindPrice(Number(ethers.utils.formatUnits(optionUnwindPrice, DECIMAL[chainId])));
+      setIsOpen(true);
+      setShowPrices(true);
+      // Start countdown and show Confirm button
+      setCountdown(30);
+      setShowConfirmButton(true);
     } catch (e) {
       console.error(e);
     }
@@ -81,13 +88,11 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
     console.log(tokenAddressInstance)
     if(productInstance && tokenAddressInstance && ptUnwindPrice){
       try{
-
         const currentAllowance = await tokenAddressInstance.allowance(address, position.address)
         const early_withdraw_balance_user = (blocksToWithdraw * withdrawBlockSize) * 10**(DECIMAL[chainId])
         // console.log(ethers.utils.parseUnits(ptUnwindPrice.toString(), DECIMAL[chainId]))
         // console.log(ptUnwindPrice** 10**(DECIMAL[chainId])
         // console.log(Math.round(early_withdraw_balance_user))
-
         if (currentAllowance.lt(ptUnwindPrice** 10**(DECIMAL[chainId]))) {
           console.log("approve")
           const approve_tx = await tokenAddressInstance.approve(position.address, Math.round(early_withdraw_balance_user))
@@ -129,18 +134,19 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
-    if (isOpen && countdown > 0) {
+    if (showConfirmButton && countdown > 0) {
         timer = setInterval(() => {
             setCountdown(prevCountdown => prevCountdown - 1);
         }, 1000); // Decrease countdown every second
     }
 
     if (countdown === 0) {
-        closeModal(); // Close modal when countdown reaches zero
+        setShowConfirmButton(false);
+        setShowPrices(false); // Hide Confirm button when countdown reaches zero
     }
 
     return () => clearInterval(timer); // Cleanup timer on unmount or when dependencies change
-}, [isOpen, countdown]);
+}, [showConfirmButton, countdown]);
 
   useEffect(() => {
     (async () => {
@@ -237,74 +243,74 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
         <PrimaryButton label={"SEE DETAILS"} className={"mt-6"} onClick={() => Router.push(`/portfolio/position/${position.address}`)} />
 
         <div className="flex flex-col space-y-4 mt-6">
-            <div className="flex items-center space-x-4">
-                {/* Total Blocks Input */}
-                <div className="flex flex-col">
-                    <label htmlFor="totalBlocks" className="border rounded px-2 py-1">
-                        No of blocks in total: {totalBlocks}
-                    </label>
+                    <div className="flex items-center space-x-4">
+                        {/* Total Blocks Input */}
+                        <div className="flex flex-col">
+                            <label htmlFor="totalBlocks" className="border rounded px-2 py-1">
+                                No of blocks in total: {totalBlocks}
+                            </label>
+                        </div>
+
+                        {/* Blocks to Withdraw Input */}
+                        <div className="flex flex-col">
+                            <label htmlFor="blocksToWithdraw" className="text-sm font-medium">
+                                No of blocks to withdraw:
+                            </label>
+                            <input
+                                type="number"
+                                id="blocksToWithdraw"
+                                value={blocksToWithdraw}
+                                onChange={(e) => setBlocksToWithdraw(Number(e.target.value))}
+                                className="border rounded px-2 py-1"
+                                placeholder="Enter blocks to withdraw"
+                            />
+                        </div>
+
+                         {/* Get Unwind Price Button */}
+                         <PrimaryButton label={"Get unwind price"} className={"mt-6"} onClick={handleUnwind} />
+                    </div>
+
+                    {/* Display Unwind Prices */}
+                    {showPrices && (
+                        <>
+                            {ptUnwindPrice !== null && (
+                                <div className="mt-4">
+                                    <p className="text-lg font-semibold">pT Unwind Price: {ptUnwindPrice} USDC</p>
+                                </div>
+                            )}
+                            {optionUnwindPrice !== null && (
+                                <div className="mt-4">
+                                    <p className="text-lg font-semibold">Option Unwind Price: {optionUnwindPrice} USDC</p>
+                                </div>
+                            )}
+                            {/* Countdown Display */}
+                            <div className="mt-4">
+                            <p>Countdown: {countdown} seconds</p>
+                            <PrimaryButton label={"Confirm"} className={"mt-2"} onClick={handleYes} />
+                        </div>
+                        </>
+                    )}
                 </div>
 
-                {/* Blocks to Withdraw Input */}
-                <div className="flex flex-col">
-                    <label htmlFor="blocksToWithdraw" className="text-sm font-medium">
-                        No of blocks to withdraw:
-                    </label>
-                    <input
-                        type="number"
-                        id="blocksToWithdraw"
-                        value={blocksToWithdraw}
-                        onChange={(e) => setBlocksToWithdraw(Number(e.target.value))}
-                        className="border rounded px-2 py-1"
-                        placeholder="Enter blocks to withdraw"
-                    />
-                </div>
-
-                {/* Get Unwind Price Button */}
-                <PrimaryButton label={"Get unwind price"} className={"mt-6"} onClick={handleUnwind} />
+                {enabled && (
+                    <div className={"mt-6"}>
+                        <img src={imageURL || "/products/default_nft_image.png"} width={"100%"} alt={""} />
+                    </div>
+                )}
             </div>
-
-              {ptUnwindPrice !== null && <div className="mt-4"><p className="text-lg font-semibold">pT Unwind Price: {ptUnwindPrice} USDC</p></div>} 
-              {optionUnwindPrice !== null && <div className="mt-4"><p className="text-lg font-semibold">Option Unwind Price: {optionUnwindPrice} USDC</p></div>}
-              {/* <PrimaryButton label={"Yes"} className={"mt-6"} onClick={handleYes} /> */}
-
-              <PrimaryButton label={'Early Withdraw'} className={'mt-6'} onClick={() => { setIsOpen(true); }} />
-
-              <Transition show={isOpen} as={Fragment}>
-                <Dialog onClose={closeModal} className='fixed inset-0 overflow-y-auto'>
-                <div className='flex min-h-full items-center justify-center p-4 text-center'>
-                    {/* <Dialog.Overlay className='fixed inset-0 bg-black opacity-30' /> */}
-                    <Dialog.Panel className='w-full max-w-[800px] transform overflow-hidden rounded-2xl bg-white py-[60px] px-[160px] text-left align-middle shadow-xl transition-all'>
-                    <Dialog.Title className='text-[32px] font-medium leading-[40px] text-[#161717] text-center'>Unwind Values</Dialog.Title>
-                      <div className='mt-4'>
-                        <p>pT Unwind Price: {ptUnwindPrice} USDC</p>
-                        <p>Option Unwind Price: {optionUnwindPrice} USDC</p>
-                        <p>Time Remaining: {countdown} seconds</p>
-                      </div>
-                      <div className='mt-6'>
-                        <PrimaryButton label='Confirm' onClick={handleYes} />
-                      </div>
-                      <div className='mt-6'>
-                        <PrimaryButton label='Close' onClick={closeModal} />
-                      </div>
-                      
-                    </Dialog.Panel>
-                  </div>
-                </Dialog>
-              </Transition> 
-
-              </div>
-            
+        </>
+    );
+};
             
 
            
-      </div>
 
-      {enabled && (
-        <div className={"mt-6"}>
-          <img src={imageURL || "/products/default_nft_image.png"} width={"100%"} alt={""} />
-        </div>
-      )}
-    </>
-  );
-};
+
+//       {enabled && (
+//         <div className={"mt-6"}>
+//           <img src={imageURL || "/products/default_nft_image.png"} width={"100%"} alt={""} />
+//         </div>
+//       )}
+//     </>
+//   );
+// };
