@@ -15,7 +15,7 @@ import { DECIMAL, YIELD_SOURCE } from "../../utils/constants";
 
 export default function Product({ product }: { product: IProduct }) {
 
-  const router = useRouter();
+  const router = useRouter(); 
 
   const { chain } = useNetwork();
 
