@@ -86,7 +86,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   const handleYes = async() => {
     console.log(productInstance)
     console.log(tokenAddressInstance)
-    if(productInstance && tokenAddressInstance && ptUnwindPrice){
+    if(productInstance && tokenAddressInstance && ptUnwindPrice && optionUnwindPrice){
       try{
         const currentAllowance = await tokenAddressInstance.allowance(address, position.address)
         const early_withdraw_balance_user = (blocksToWithdraw * withdrawBlockSize) * 10**(DECIMAL[chainId])
@@ -106,15 +106,17 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
         const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ARBITRUM)
         const receipt = await provider.getTransactionReceipt(tx.hash);
         if (receipt && receipt.status === 1) {
-          console.log("Transaction was successful");
-          console.log(ptUnwindPrice)
+          console.log("Transaction UI was successful");
+          console.log(optionUnwindPrice * 10 ** (DECIMAL[chainId]))
+          console.log(ptUnwindPrice * 10 **(DECIMAL[chainId]))
+
           const data = {
             "chainId": chainId,
             "product": position.address,
             "address": address,
             "txid": tx.hash,
-            "amountPtUnwindPrice": ptUnwindPrice * 10 **(DECIMAL[chainId]),
-            "amountOptionUnwindPrice": optionUnwindPrice !== null ? optionUnwindPrice * 10 ** (DECIMAL[chainId]) : 0
+            "amountPtUnwindPrice": Math.round(ptUnwindPrice * 10 **(DECIMAL[chainId])),
+            "amountOptionUnwindPrice": Math.round(optionUnwindPrice * 10 ** (DECIMAL[chainId]))
           }
           console.log(data)
           const result = await axios.post('products/update-withdraw-request', data, {
