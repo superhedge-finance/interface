@@ -68,11 +68,11 @@ const Admin = () => {
     // Validate unwind margin input
     const handleUnwindMarginChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        if (value === "" || (Number(value) >= 1 && Number(value) <= 999)) {
+        if (value === "" || (Number(value) >= 1 && Number(value) <= 1000)) {
             setUnwindMargin(value);
             setErrorMessage(""); // Clear error message if valid
         } else {
-            setErrorMessage("Please enter a value between 1 and 999.");
+            setErrorMessage("Please enter a value between 1 and 1000.");
         }
     };
 
