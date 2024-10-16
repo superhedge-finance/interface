@@ -12,6 +12,7 @@ import { SUPPORT_CHAIN_IDS } from "../../utils/enums";
 import { DECIMAL } from "../../utils/constants";
 import axios from "../../service/axios";
 import { Dialog, Transition, Switch } from "@headlessui/react"
+import IconLoading from "./IconLoading";
 
 export const PositionCard = ({ position, enabled }: { position: IProduct; enabled: boolean }) => {
   const Router = useRouter();
@@ -59,12 +60,15 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   const [countdown, setCountdown] = useState(30);
   const [showConfirmButton, setShowConfirmButton] = useState(false);
   const [showPrices, setShowPrices] = useState(false);
+  const [loadingBlock, setLoadingBlock] = useState(true)
+  const [loadingUnwind, setLoadingUnwind] = useState(false)
+
 
   const handleUnwind = async () => {
     // Calculate the unwind price based on blocksToWithdraw
+    setLoadingUnwind(true)
     try {
       const results = await axios.post(`products/get-pt-and-position?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}`);
-      
       const ptUnwindPrice = Number(results.data.amountToken)
       setPtUnwindPrice(Number(ethers.utils.formatUnits(ptUnwindPrice, DECIMAL[chainId])));
       // setPtUnwindPrice(ptUnwindPrice)
@@ -77,7 +81,9 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
       // Start countdown and show Confirm button
       setCountdown(30);
       setShowConfirmButton(true);
+      setLoadingUnwind(false)
     } catch (e) {
+      setLoadingUnwind(false)
       console.error(e);
     }
     
@@ -182,6 +188,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             console.log(tokenBalance)
             console.log(withdrawBlockSize)
             setTotalBlocks(Math.round(tokenBalance/withdrawBlockSize))
+            setLoadingBlock(false)
             // console.log("setTotalBlocks")
             // console.log(tokenBalance/withdrawBlockSize)
 
@@ -200,7 +207,17 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
 
   return (
     <>
-      <div className='flex flex-col py-11 px-12 w-full bg-white rounded-[16px] mt-6'>
+      <div className='flex flex-col py-11 px-12 w-full bg-white rounded-[16px] mt-6 relative overflow-hidden'>
+        {(loadingBlock || loadingUnwind) && (
+          <div className="absolute top-0 left-0 z-10 w-full h-full flex items-center justify-center gap-2 bg-[#00000050] text-white text-center">
+          <IconLoading className="h-4 w-4" />
+          <div>
+            {loadingBlock && "Loading Number Of Blocks..."}
+            {loadingUnwind && "Loading Unwind..."}
+          </div>
+        </div>
+        )}
+        
         <div className={"flex justify-between items-start"}>
           <div className='flex flex-row'>
             <div className={"relative flex items-center mr-[40px]"}>
@@ -269,9 +286,13 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                         </div>
 
                          {/* Get Unwind Price Button */}
-                         <PrimaryButton label={"Get unwind price"} className={"mt-6"} onClick={handleUnwind} />
+                         {loadingUnwind ? (
+                          <PrimaryButton label={"Loading..."} className={"mt-6"} />
+                         ) : (
+                          <PrimaryButton label={"Get unwind price"} className={"mt-6"} onClick={handleUnwind} />
+                          )}
                     </div>
-
+                        
                     {/* Display Unwind Prices */}
                     {showPrices && (
                         <>
