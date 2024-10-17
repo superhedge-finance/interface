@@ -75,7 +75,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
       try{
         const currentAllowance = await tokenAddressInstance.allowance(address, position.address)
         const early_withdraw_balance_user = (blocksToWithdraw * withdrawBlockSize) * 10**(6)
-        console.log(early_withdraw_balance_user)
+        // console.log(early_withdraw_balance_user)
         if (currentAllowance.lt(ptUnwindPrice)) {
           const approve_tx = await tokenAddressInstance.approve(position.address, early_withdraw_balance_user)
           await approve_tx.wait()
