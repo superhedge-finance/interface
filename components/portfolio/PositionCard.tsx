@@ -71,8 +71,6 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   };
 
   const handleYes = async() => {
-    console.log(productInstance)
-    console.log(tokenAddressInstance)
     if(productInstance && tokenAddressInstance && ptUnwindPrice){
       try{
         const currentAllowance = await tokenAddressInstance.allowance(address, position.address)
