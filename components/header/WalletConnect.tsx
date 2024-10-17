@@ -37,7 +37,7 @@ export default function WalletConnect({ isMobile }: { isMobile: boolean}) {
                 }
 
                 if (chain.unsupported) {
-                  console.log("Unsupported chains");
+                  console.log("Unsupported chain");
                   return (
                     <div onClick={openChainModal} className={"text-yellow-500 text-center"}>
                       Wrong network
