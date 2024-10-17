@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import { PrimaryButton, SecondaryButton, TitleH2 } from "../../../components/basic";
 import { getProduct } from "../../../service";
 import { IProduct, LISTING_STATUS } from "../../../types";
-import { getMarketplaceInstance, getNFTInstance } from "../../../utils/contract";
+// import { getMarketplaceInstance, getNFTInstance } from "../../../utils/contract";
 import "react-datepicker/dist/react-datepicker.css";
 import ProductABI from "../../../utils/abis/SHProduct.json";
 import { USDC_ADDRESS } from "../../../utils/address";
@@ -55,7 +55,7 @@ const PortfolioCreatePage = () => {
 
   const chainId = useMemo(() => {
     if (chain) return chain.id;
-    return SUPPORT_CHAIN_IDS.GOERLI;
+    return SUPPORT_CHAIN_IDS.ARBITRUM;
   }, [chain]);
 
   const productInstance = useMemo(() => {
@@ -122,12 +122,12 @@ const PortfolioCreatePage = () => {
     })();
   }, [productInstance, nftInstance, marketplaceInstance, address]);
 
-  useEffect(() => {
-    if (signer && chainId) {
-      setMarketplaceInstance(getMarketplaceInstance(signer, chainId));
-      setNFTInstance(getNFTInstance(signer, chainId));
-    }
-  }, [signer, chainId]);
+  // useEffect(() => {
+  //   if (signer && chainId) {
+  //     setMarketplaceInstance(getMarketplaceInstance(signer, chainId));
+  //     setNFTInstance(getNFTInstance(signer, chainId));
+  //   }
+  // }, [signer, chainId]);
 
   return (
     <div className={"py-[80px] flex justify-center"}>

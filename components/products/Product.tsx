@@ -15,13 +15,13 @@ import { DECIMAL, YIELD_SOURCE } from "../../utils/constants";
 
 export default function Product({ product }: { product: IProduct }) {
 
-  const router = useRouter();
+  const router = useRouter(); 
 
   const { chain } = useNetwork();
 
   const chainId = useMemo(() => {
     if (chain) return chain.id;
-    return SUPPORT_CHAIN_IDS.GOERLI;
+    return SUPPORT_CHAIN_IDS.ARBITRUM;
   }, [chain]);
 
   const capacity = useMemo(() => {
@@ -146,10 +146,10 @@ export default function Product({ product }: { product: IProduct }) {
             }}
           ></div>
         </div>
-        <div className='flex justify-between mb-2'>
+        {/* <div className='flex justify-between mb-2'>
           <span className='text-sm text-gray-700'>Max</span>
           <span className='text-sm text-gray-700'>USDC {Number(product.maxCapacity.toString()).toLocaleString()}</span>
-        </div>
+        </div> */}
       </div>
       <div className={"block md:hidden"}>
         <RecapCard label={"Estimated APY"} value={product.issuanceCycle.apy} />
