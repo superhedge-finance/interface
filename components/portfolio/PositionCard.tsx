@@ -145,8 +145,6 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             const _tokenBalance = await _tokenAddressInstance.balanceOf(address)
             const _tokenDecimals = await _tokenAddressInstance.decimals()
             const tokenBalance = Number(ethers.utils.formatUnits(_tokenBalance,0))/(10**_tokenDecimals)
-            // console.log(position.address)
-            // console.log(position.issuanceCycle)
             const underlyingSpotRef = position.issuanceCycle.underlyingSpotRef
             const optionMinOrderSize = (position.issuanceCycle.optionMinOrderSize) / 10
             const withdrawBlockSize = underlyingSpotRef * optionMinOrderSize
