@@ -1,3 +1,8 @@
+import React from "react";
+
+export default function Item(){
+    return null
+}
 // import { useEffect, useMemo, useState } from "react";
 // import Image from "next/image";
 // import { useRouter } from "next/router";

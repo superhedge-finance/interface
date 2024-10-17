@@ -1,19 +1,18 @@
-import { Fragment, useEffect, useMemo, useState } from "react"
+import { Dialog, Switch, Transition } from "@headlessui/react"
 import { useConnectModal } from "@rainbow-me/rainbowkit"
-import { useAccount, useSigner, useNetwork } from "wagmi"
+import { ethers } from "ethers"
 import Image from "next/image"
-import { Dialog, Transition, Switch } from "@headlessui/react"
-import { ParaRegular18, PrimaryButton, SecondaryButton, SubtitleRegular16 } from "../basic"
-import { BigNumber, ethers } from "ethers"
-import ProductABI from "../../utils/abis/SHProduct.json"
-import ERC20ABI from "../../utils/abis/ERC20.json"
-import PTTokenABI from "..//../utils/abis/PTToken.json"
-import { DEPOSIT_STATUS, IProduct, WITHDRAW_STATUS } from "../../types"
-import { truncateAddress, getTxErrorMessage } from "../../utils/helpers"
-import { SUPPORT_CHAIN_IDS } from "../../utils/enums"
-import { EXPLORER } from "../../utils/constants"
+import { Fragment, useEffect, useMemo, useState } from "react"
 import toast from "react-hot-toast"
-import axios from "../../service/axios"
+import { useAccount, useNetwork, useSigner } from "wagmi"
+import { DEPOSIT_STATUS, IProduct, WITHDRAW_STATUS } from "../../types"
+import ERC20ABI from "../../utils/abis/ERC20.json"
+import ProductABI from "../../utils/abis/SHProduct.json"
+import { EXPLORER } from "../../utils/constants"
+import { SUPPORT_CHAIN_IDS } from "../../utils/enums"
+import { getTxErrorMessage, truncateAddress } from "../../utils/helpers"
+import PTTokenABI from "..//../utils/abis/PTToken.json"
+import { ParaRegular18, PrimaryButton, SecondaryButton, SubtitleRegular16 } from "../basic"
 
 const pricePerLot = 1
 
@@ -29,7 +28,6 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   const [isOpen, setIsOpen] = useState(false)
   const [isOpenWithdraw, setIsOpenWithdraw] = useState(false)
   const [status, setStatus] = useState(0)
-  const [withdrawing, setWithdrawing] = useState(false)
   const [principalBalance, setPrincipalBalance] = useState(0)
   const [optionBalance, setOptionBalance] = useState(0)
   const [couponBalance, setCouponBalance] = useState(0)
@@ -47,7 +45,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   // const [reloadData, setReloadData] = useState(false)
 
   const [walletBalance, setWalletBalance] = useState(0)
-  const [imageURL, setImageURL] = useState("")
+  // const [imageURL, setImageURL] = useState("")
 
   const onConnect = () => {
     if (!address && openConnectModal) {
@@ -152,9 +150,9 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     return SUPPORT_CHAIN_IDS.ARBITRUM
   }, [chain])
 
-  const lotsCount = useMemo(() => {
-    return (principalBalance + optionBalance + couponBalance) / pricePerLot
-  }, [principalBalance, optionBalance, couponBalance])
+  // const lotsCount = useMemo(() => {
+  //   return (principalBalance + optionBalance + couponBalance) / pricePerLot
+  // }, [principalBalance, optionBalance, couponBalance])
 
   const withdrawableBalance = useMemo(() => {
     if (status === 1) {
@@ -783,8 +781,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                       <PrimaryButton
                         label={"YES"}
                         onClick={onWithdraw}
-                        disabled={withdrawing}
-                        loading={withdrawing}
+                        // disabled={withdrawing}
+                        // loading={withdrawing}
                         className={"flex items-center justify-center"}
                       />
                     </div>

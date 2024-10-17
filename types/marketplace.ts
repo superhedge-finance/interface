@@ -1,3 +1,4 @@
+export const a = 1
 // import { Cycle } from "./interface";
 
 // export type MarketplaceItemType = {

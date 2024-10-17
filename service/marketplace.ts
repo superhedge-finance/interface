@@ -1,3 +1,5 @@
+
+export const a = 0
 // import { MarketplaceItemDetailType, MarketplaceItemFullType, MarketplaceItemType } from "../types";
 // import axios from "./axios";
 

@@ -1,9 +1,8 @@
-import React, { Fragment, useState, useEffect ,ChangeEvent} from "react";
 import { ethers } from "ethers";
+import { ChangeEvent, useEffect, useState } from "react";
+import { useNetwork, useSigner } from "wagmi";
 import { PrimaryButton } from "../components/basic";
 import axios from "../service/axios";
-import { Dialog, Transition } from "@headlessui/react";
-import { useAccount, useSigner, useNetwork } from "wagmi";
 import { SUPPORT_CHAIN_IDS } from "../utils/enums";
 
 const Admin = () => {
