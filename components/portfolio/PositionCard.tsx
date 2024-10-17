@@ -71,13 +71,11 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   };
 
   const handleYes = async() => {
-    console.log(productInstance)
-    console.log(tokenAddressInstance)
     if(productInstance && tokenAddressInstance && ptUnwindPrice){
       try{
         const currentAllowance = await tokenAddressInstance.allowance(address, position.address)
         const early_withdraw_balance_user = (blocksToWithdraw * withdrawBlockSize) * 10**(6)
-        console.log(early_withdraw_balance_user)
+        // console.log(early_withdraw_balance_user)
         if (currentAllowance.lt(ptUnwindPrice)) {
           const approve_tx = await tokenAddressInstance.approve(position.address, early_withdraw_balance_user)
           await approve_tx.wait()
@@ -147,8 +145,6 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             const _tokenBalance = await _tokenAddressInstance.balanceOf(address)
             const _tokenDecimals = await _tokenAddressInstance.decimals()
             const tokenBalance = Number(ethers.utils.formatUnits(_tokenBalance,0))/(10**_tokenDecimals)
-            // console.log(position.address)
-            // console.log(position.issuanceCycle)
             const underlyingSpotRef = position.issuanceCycle.underlyingSpotRef
             const optionMinOrderSize = (position.issuanceCycle.optionMinOrderSize) / 10
             const withdrawBlockSize = underlyingSpotRef * optionMinOrderSize

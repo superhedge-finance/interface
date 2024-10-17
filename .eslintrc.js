@@ -13,7 +13,9 @@ module.exports = {
     '@next/next/no-img-element': 'off',
     "@typescript-eslint/no-inferrable-types": 0,
     "@typescript-eslint/no-unused-vars": 2,
-    "@typescript-eslint/no-var-requires": 0
+    "@typescript-eslint/no-var-requires": 0,
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "off"
   },
   env: {
     browser: true,

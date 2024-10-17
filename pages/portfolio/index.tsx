@@ -6,7 +6,7 @@ import { PortfolioSummary } from "../../components/portfolio/Summary";
 import { PortfolioPositions } from "../../components/portfolio/Positions";
 import { PortfolioTransactions } from "../../components/portfolio/Transactions";
 import { SuperHedgeTabs } from "../../components/commons/Tabs";
-import { PortfolioListings } from "../../components/portfolio/Listings";
+// import { PortfolioListings } from "../../components/portfolio/Listings";
 
 const Portfolio = () => {
   const { address } = useAccount();
@@ -54,7 +54,7 @@ const Portfolio = () => {
 
           {tab === 1 && (
             <div className={"flex flex-col sm:items-center mt-12"}>
-              <PortfolioListings />
+              {/* <PortfolioListings /> */}
             </div>
           )}
         </div>
