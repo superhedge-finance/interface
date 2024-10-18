@@ -14,7 +14,7 @@ export const TransactionHeader = () => {
 };
 
 export const TransactionCard = ({ history, className, blockExplorer }: { history: History; className: string; blockExplorer: string }) => {
-  console.log(history)
+  // console.log(history)
   return (
     <div className={`py-3 px-6 h-[40px] grid grid-cols-6 rounded-[6px] ${className ?? ""}`}>
       <div className={"flex items-center space-x-2"}>

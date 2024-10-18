@@ -1,19 +1,18 @@
-import { Fragment, useEffect, useMemo, useState } from "react"
+import { Dialog, Switch, Transition } from "@headlessui/react"
 import { useConnectModal } from "@rainbow-me/rainbowkit"
-import { useAccount, useSigner, useNetwork } from "wagmi"
+import { ethers } from "ethers"
 import Image from "next/image"
-import { Dialog, Transition, Switch } from "@headlessui/react"
-import { ParaRegular18, PrimaryButton, SecondaryButton, SubtitleRegular16 } from "../basic"
-import { BigNumber, ethers } from "ethers"
-import ProductABI from "../../utils/abis/SHProduct.json"
-import ERC20ABI from "../../utils/abis/ERC20.json"
-import PTTokenABI from "..//../utils/abis/PTToken.json"
-import { DEPOSIT_STATUS, IProduct, WITHDRAW_STATUS } from "../../types"
-import { truncateAddress, getTxErrorMessage } from "../../utils/helpers"
-import { SUPPORT_CHAIN_IDS } from "../../utils/enums"
-import { EXPLORER } from "../../utils/constants"
+import { Fragment, useEffect, useMemo, useState } from "react"
 import toast from "react-hot-toast"
-import axios from "../../service/axios"
+import { useAccount, useNetwork, useSigner } from "wagmi"
+import { DEPOSIT_STATUS, IProduct, WITHDRAW_STATUS } from "../../types"
+import ERC20ABI from "../../utils/abis/ERC20.json"
+import ProductABI from "../../utils/abis/SHProduct.json"
+import { EXPLORER } from "../../utils/constants"
+import { SUPPORT_CHAIN_IDS } from "../../utils/enums"
+import { getTxErrorMessage, truncateAddress } from "../../utils/helpers"
+import PTTokenABI from "..//../utils/abis/PTToken.json"
+import { ParaRegular18, PrimaryButton, SecondaryButton, SubtitleRegular16 } from "../basic"
 
 const pricePerLot = 1
 
@@ -29,7 +28,6 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   const [isOpen, setIsOpen] = useState(false)
   const [isOpenWithdraw, setIsOpenWithdraw] = useState(false)
   const [status, setStatus] = useState(0)
-  const [withdrawing, setWithdrawing] = useState(false)
   const [principalBalance, setPrincipalBalance] = useState(0)
   const [optionBalance, setOptionBalance] = useState(0)
   const [couponBalance, setCouponBalance] = useState(0)
@@ -47,7 +45,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   // const [reloadData, setReloadData] = useState(false)
 
   const [walletBalance, setWalletBalance] = useState(0)
-  const [imageURL, setImageURL] = useState("")
+  // const [imageURL, setImageURL] = useState("")
 
   const onConnect = () => {
     if (!address && openConnectModal) {
@@ -89,14 +87,21 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         if (status === 1) {
           if (principalBalance > 0) {
             // approve token
-            console.log("approve token")
+            console.log("Approve token")
             const decimal = await tokenAddressInstance.decimals()
-            const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toString(), decimal)
+            // const parsedBalance = ethers.utils.parseUnits(withdrawableBalance.toFixed(decimal), decimal);
+        
+            // const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toString(), decimal)
+            const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toFixed(decimal), decimal);
+            console.log(requestBalance)
+
             const _currentCapacity = await productInstance.currentCapacity()
+            console.log(_currentCapacity)
             if (withdrawableBalance + Number(ethers.utils.formatUnits(_currentCapacity, decimal)) > Number(product.maxCapacity)) {
               return toast.error("Your withdraw results in excess of max capacity.")
             }
             const currentAllowance = await tokenAddressInstance.allowance(address, productAddress)
+            console.log(currentAllowance)
             if (currentAllowance.lt(requestBalance)) {
               const tx = await tokenAddressInstance.approve(productAddress, requestBalance)
               await setWithdrawStatus(WITHDRAW_STATUS.APPROVING)
@@ -104,6 +109,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             }
             // withdraw
             await setWithdrawStatus(WITHDRAW_STATUS.WITHDRAW)
+            console.log("withdrawPrincipal")
             const withdrawTx = await productInstance.withdrawPrincipal()
             await withdrawTx.wait()
           }
@@ -111,6 +117,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             const tx1 = await productInstance.withdrawOption()
             await tx1.wait()
           }
+          console.log(couponBalance)
           if (couponBalance > 0) {
             const tx2 = await productInstance.withdrawCoupon()
             await tx2.wait()
@@ -131,6 +138,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         }
       } catch (e) {
         await setWithdrawStatus(WITHDRAW_STATUS.NONE)
+        console.log(e)
       } finally {
         console.log("Finally!")
       }
@@ -142,9 +150,9 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     return SUPPORT_CHAIN_IDS.ARBITRUM
   }, [chain])
 
-  const lotsCount = useMemo(() => {
-    return (principalBalance + optionBalance + couponBalance) / pricePerLot
-  }, [principalBalance, optionBalance, couponBalance])
+  // const lotsCount = useMemo(() => {
+  //   return (principalBalance + optionBalance + couponBalance) / pricePerLot
+  // }, [principalBalance, optionBalance, couponBalance])
 
   const withdrawableBalance = useMemo(() => {
     if (status === 1) {
@@ -199,6 +207,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     (async () => {
       if (signer && productAddress && address) {
         try {
+          console.log("productAddress")
+          console.log(productAddress)
           const _productInstance = new ethers.Contract(productAddress, ProductABI, signer)
           setProductInstance(_productInstance)
           const _status = await _productInstance.status()
@@ -223,8 +233,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           console.log(Number(ethers.utils.formatUnits(_ptBalance,0)))
 
           // totalCurrentSupply
-          const _totalCurrentSupply = await _productInstance.totalCurrentSupply()
-          console.log(Number(ethers.utils.formatUnits(_totalCurrentSupply,0)))
+          // const _totalCurrentSupply = await _productInstance.totalCurrentSupply()
+          // console.log(Number(ethers.utils.formatUnits(_totalCurrentSupply,0)))
 
 
           // try {
@@ -249,14 +259,12 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           const _optionBalance = await _productInstance.optionBalance(address)
           setOptionBalance(Number(ethers.utils.formatUnits(_optionBalance, _decimals)))
           const _principalBalance = await _productInstance.principalBalance(address)
+          console.log("_principalBalance")
+          console.log(_principalBalance)
           setPrincipalBalance(Number(ethers.utils.formatUnits(_principalBalance, _decimals)))
-
-          const currentCapacity = await _productInstance.currentCapacity()
-          const maxCapacity = await _productInstance.maxCapacity()
-          setMaxLots((maxCapacity.toNumber() - Number(ethers.utils.formatUnits(currentCapacity, _decimals))) / pricePerLot)
-
           // wallet balance
           const currencyBalance = await _currencyInstance.balanceOf(address)
+          setMaxLots(Number(ethers.utils.formatUnits(currencyBalance, _decimals)))
           setWalletBalance(Number(ethers.utils.formatUnits(currencyBalance, _decimals)))
           
         } catch (e) {
@@ -300,7 +308,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             Please Connect your Wallet to have access to our Products.
           </div>
         )}
-
+        
         {address && tab === 0 && (
           <div className={"flex flex-col justify-between w-full"}>
             <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
@@ -437,7 +445,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
                 <span className={"text-[#677079] text-[16px] leading-[16px]"}>Total Balance</span>
                 <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
-                  {(principalBalance + optionBalance + couponBalance).toLocaleString()} USDC ({lotsCount.toFixed(3)} lots)
+                  {/* {(principalBalance + optionBalance + couponBalance).toLocaleString()} USDC ({lotsCount.toFixed(3)} lots) */}
+                  {(principalBalance + optionBalance + couponBalance).toLocaleString()} USDC
                 </span>
               </div>
 
@@ -772,8 +781,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                       <PrimaryButton
                         label={"YES"}
                         onClick={onWithdraw}
-                        disabled={withdrawing}
-                        loading={withdrawing}
+                        // disabled={withdrawing}
+                        // loading={withdrawing}
                         className={"flex items-center justify-center"}
                       />
                     </div>

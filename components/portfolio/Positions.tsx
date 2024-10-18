@@ -7,6 +7,9 @@ import { PositionCard } from "./PositionCard";
 import { getPosition } from "../../service";
 import { IProduct } from "../../types";
 import { SUPPORT_CHAIN_IDS } from "../../utils/enums";
+import IconLoading from "./IconLoading";
+
+
 
 const ConnectWalletCard = ({ onConnect }: { onConnect: () => void }) => {
   return (
@@ -14,6 +17,15 @@ const ConnectWalletCard = ({ onConnect }: { onConnect: () => void }) => {
       <Image src={"/icons/wallet.svg"} alt={"wallet"} width={48} height={48} />
       <TitleH5 className={"text-center mt-5"}>Please connect your Wallet to view your Positions.</TitleH5>
       <PrimaryButton label={"Connect Wallet"} className={"mt-5 max-w-[300px] uppercase"} onClick={onConnect} />
+    </div>
+  );
+};
+
+const LoadingCard = () => {
+  return (
+    <div className={"py-12 px-[112px] flex flex-col items-center justify-center gap-2 bg-white rounded-lg"}>
+      <IconLoading className="h-4 w-4" />
+      <div>Loading...</div>
     </div>
   );
 };
@@ -33,7 +45,7 @@ export const PortfolioPositions = ({ enabled }: { enabled: boolean }) => {
   const { address } = useAccount();
   const { chain } = useNetwork();
   const { openConnectModal } = useConnectModal();
-
+  const [loadingPositions, setLoadingPositions] = useState(true)
   const [positions, setPositions] = useState<IProduct[]>([]);
 
   const onConnect = () => {
@@ -54,14 +66,18 @@ export const PortfolioPositions = ({ enabled }: { enabled: boolean }) => {
         const positions = await getPosition(address, chainId);
         setPositions(positions);
       }
+      setLoadingPositions(false)
     })();
   }, [address, chainId]);
 
   return (
     <div>
       {!address && <ConnectWalletCard onConnect={onConnect} />}
-      {address && positions.length === 0 && <NoPositionCard />}
-      {address &&
+      {!loadingPositions && address && positions.length === 0 && <NoPositionCard />}
+      {loadingPositions && (
+        <LoadingCard />
+      )}
+      {!loadingPositions && address &&
         positions.length > 0 &&
         positions.map((position, index) => {
           return <PositionCard key={index} position={position} enabled={enabled} />;

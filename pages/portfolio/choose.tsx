@@ -1,3 +1,8 @@
+import React from "react";
+
+export default function Item(){
+    return null
+}
 // import { ParaLight16, TitleH2 } from "../../components/basic";
 // import PortfolioNFTCard from "../../components/portfolio/NFTCard";
 // import { IProduct } from "../../types";
