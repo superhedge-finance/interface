@@ -62,7 +62,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   const [showPrices, setShowPrices] = useState(false);
   const [loadingBlock, setLoadingBlock] = useState(true)
   const [loadingUnwind, setLoadingUnwind] = useState(false)
-
+  const [expired, setExpired] = useState(false)
 
   const handleUnwind = async () => {
     // Calculate the unwind price based on blocksToWithdraw
@@ -184,9 +184,9 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             const withdrawBlockSize = underlyingSpotRef * optionMinOrderSize
             // console.log(withdrawBlockSize)
             setwithdrawBlockSize(withdrawBlockSize)
-            console.log("No of block")
-            console.log(tokenBalance)
-            console.log(withdrawBlockSize)
+            // console.log("No of block")
+            // console.log(tokenBalance)
+            // console.log(withdrawBlockSize)
             setTotalBlocks(Math.round(tokenBalance/withdrawBlockSize))
             setLoadingBlock(false)
             // console.log("setTotalBlocks")
@@ -195,6 +195,9 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             const _currency = await productInstance.currency()
             const _currencyInstance = new ethers.Contract(_currency, ERC20ABI, signer)
             setCurrencyInstance(_currencyInstance)
+
+            const result = await axios.post(`products/get-product-expired?chainId=${chainId}&productAddress=${position.address}`);
+            setExpired(result.data.expiredFlag)
           }
           catch (e){
             console.error(e)
@@ -290,7 +293,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                          {loadingUnwind ? (
                           <PrimaryButton label={"Loading..."} className={"mt-6"} />
                          ) : (
-                          <PrimaryButton label={"Get unwind price"} className={"mt-6"} onClick={handleUnwind} />
+                          <PrimaryButton label={"Get unwind price"} className={"mt-6"} onClick={handleUnwind} disabled={expired} />
                           )}
                     </div>
                         
