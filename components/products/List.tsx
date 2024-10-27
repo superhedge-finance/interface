@@ -54,7 +54,7 @@ export default function ProductList() {
   return (
     <div className='flex flex-col sm:items-center'>
       <div className='md:flex justify-center'>
-        <Tab.Group>
+        {/* <Tab.Group>
           <Tab.List className='flex space-x-1 rounded-xl bg-[#EBEBEB] p-1'>
             {ProductCategoryList.map((category, index) => (
               <Tab
@@ -72,7 +72,7 @@ export default function ProductList() {
               </Tab>
             ))}
           </Tab.List>
-        </Tab.Group>
+        </Tab.Group> */}
       </div>
       
       <div className={`md:mt-[50px] mt-8 flex flex-wrap justify-center sm:w-[500px] lg:w-[1000px] 2xl:w-[1500px] ${filteredProducts.length > 2 ? "sm:justify-start" : ""}`}>
