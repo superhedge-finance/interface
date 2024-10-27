@@ -184,7 +184,7 @@ const Admin = () => {
 
                 {/* Display Is Expired as Radio Buttons */}
                 <div className="mb-4">
-                    <strong>"Get unwind price" enabled:</strong>
+                    <strong>Get unwind price enabled:</strong>
                     <div>
                         <label>
                             <input
