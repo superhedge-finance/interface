@@ -23,10 +23,10 @@ const Portfolio = () => {
 
           {tab === 0 && (
             <div className={"flex flex-col w-full space-y-[80px] mt-12"}>
-              <div className={"flex flex-col space-y-[20px]"}>
+              {/* <div className={"flex flex-col space-y-[20px]"}>
                 <TitleH3>Portfolio summary</TitleH3>
                 <PortfolioSummary />
-              </div>
+              </div> */}
 
               <div className={"flex flex-col space-y-[20px]"}>
                 <div className={"flex items-center justify-between"}>
