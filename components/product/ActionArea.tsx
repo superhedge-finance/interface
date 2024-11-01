@@ -231,29 +231,6 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           const _ptAddressInstance = new ethers.Contract(_ptAddress, PTTokenABI, signer)
           const _ptBalance = await _ptAddressInstance.balanceOf(productAddress)
           console.log(Number(ethers.utils.formatUnits(_ptBalance,0)))
-
-          // totalCurrentSupply
-          // const _totalCurrentSupply = await _productInstance.totalCurrentSupply()
-          // console.log(Number(ethers.utils.formatUnits(_totalCurrentSupply,0)))
-
-
-          // try {
-          //   const response = await fetch(url);
-            
-          //   // Check if the response is ok (status in the range 200-299)
-          //   if (!response.ok) {
-          //       throw new Error(`HTTP error! status: ${response.status}`);
-          //   }
-            
-          //     const params = await response.json();
-          //     console.log('amountTokenOut')
-          //     console.log(params.data.amountTokenOut)
-          //     return params;
-          //   } catch (error) {
-          //       console.error('Error fetching data:', error);
-          //       throw error; // Rethrow the error for further handling if needed
-          //   }
-
           const _couponBalance = await _productInstance.couponBalance(address)
           setCouponBalance(Number(ethers.utils.formatUnits(_couponBalance, _decimals)))
           const _optionBalance = await _productInstance.optionBalance(address)
@@ -278,7 +255,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     <>
       <div
         className={`col-span-1 sticky md:right-[96px] md:top-[130px] w-full z-30 bottom-0 bg-white md:m-0 p-5 md:py-[45px] md:px-[63px] rounded ${expand ? "h-screen" : "h-fit"
-          } ${!address ? "justify-between space-y-[100px]" : ""}`}
+          } ${!address ? "justify-between space-y-[100px]" : ""} `}
       >
         {!expand ? (
           <div className={"p-1 flex items-center bg-[#EBEBEB] rounded-[6px] h-[38px]"}>
@@ -360,38 +337,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               </div>
 
               <div className={"mt-1 grid grid-cols-1 gap-2"}>
-                {/* <div
-                  className={
-                    "bg-[#FBFBFB] cursor-pointer flex flex-1 items-center justify-center text-center rounded-[6px] py-2 px-3 text-[12px] leading-[12px]"
-                  }
-                  onClick={() => setLots(1)}
-                >
-                  MIN
-                </div>
-                <div
-                  className={
-                    "bg-[#FBFBFB] cursor-pointer flex flex-1 items-center justify-center text-center rounded-[6px] py-2 px-3 text-[12px] leading-[12px]"
-                  }
-                  onClick={() => setLots(5)}
-                >
-                  5 LOTS
-                </div>
-                <div
-                  className={
-                    "bg-[#FBFBFB] cursor-pointer flex flex-1 items-center justify-center text-center rounded-[6px] py-2 px-3 text-[12px] leading-[12px]"
-                  }
-                  onClick={() => setLots(10)}
-                >
-                  10 LOTS
-                </div>
-                <div
-                  className={
-                    "bg-[#FBFBFB] cursor-pointer flex flex-1 items-center justify-center text-center rounded-[6px] py-2 px-3 text-[12px] leading-[12px]"
-                  }
-                  onClick={() => setLots(100)}
-                >
-                  100 LOTS
-                </div> */}
+
                 <div
                   className={
                     "bg-[#FBFBFB] cursor-pointer flex flex-1 items-center justify-center text-center rounded-[6px] py-2 px-3 text-[12px] leading-[12px]"
