@@ -6,6 +6,7 @@ import { PortfolioSummary } from "../../components/portfolio/Summary";
 import { PortfolioPositions } from "../../components/portfolio/Positions";
 import { PortfolioTransactions } from "../../components/portfolio/Transactions";
 import { SuperHedgeTabs } from "../../components/commons/Tabs";
+import { TableInvestment } from "../../components/portfolio/tableInvestment";
 // import { PortfolioListings } from "../../components/portfolio/Listings";
 
 const Portfolio = () => {
@@ -23,10 +24,13 @@ const Portfolio = () => {
 
           {tab === 0 && (
             <div className={"flex flex-col w-full space-y-[80px] mt-12"}>
-              {/* <div className={"flex flex-col space-y-[20px]"}>
+              <div className={"flex flex-col space-y-[20px]"}>
                 <TitleH3>Portfolio summary</TitleH3>
-                <PortfolioSummary />
-              </div> */}
+                {/* <PortfolioSummary /> */}
+                <TableInvestment />
+              </div>
+
+
 
               <div className={"flex flex-col space-y-[20px]"}>
                 <div className={"flex items-center justify-between"}>
