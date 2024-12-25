@@ -27,7 +27,7 @@ const TRANSACTION_TYPES = [
     "[User] Principal Withdraw"
 ];
 
-const transactionHistory = () => {
+const TransactionHistory = () => {
     const { address } = useAccount();
     const { chain } = useNetwork();
     const chainId = chain ? chain.id : SUPPORT_CHAIN_IDS.ARBITRUM;
@@ -207,4 +207,4 @@ const transactionHistory = () => {
     );
 };
 
-export default transactionHistory;
+export default TransactionHistory;
