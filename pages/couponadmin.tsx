@@ -18,7 +18,7 @@ const CouponAdmin = () => {
     const fetchCode = async () => {
         if (!productAddress) return;
         try {
-            const response = await axios.post(`products/get-token-holder-list-test?chainId=${chainId}&productAddress=${productAddress}&tokenAddress=${productAddress}`);
+            const response = await axios.post(`products/get-token-holder-list-final?chainId=${chainId}&productAddress=${productAddress}`);
             console.log(response.data);
             setCode(response.data);
         } catch (error) {

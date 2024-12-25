@@ -49,7 +49,7 @@ const Admin = () => {
     const fetchCoupon = async () => {
         if (!productAddress) return;
         try {
-            const response = await axios.post(`/products/get-token-holder-list?chainId=${chainId}&productAddress=${productAddress}`);
+            const response = await axios.post(`/products/get-token-holder-list-final?chainId=${chainId}&productAddress=${productAddress}`);
             console.log("fetchCoupon");
             console.log(response.data);
             setHolderList(response.data.ownerAddresses);
