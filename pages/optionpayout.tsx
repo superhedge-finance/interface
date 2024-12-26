@@ -6,7 +6,7 @@ import axios from "../service/axios";
 import { SUPPORT_CHAIN_IDS } from "../utils/enums";
 import ProductABI from "../utils/abis/SHProduct.json";
 
-const CouponAdmin = () => {
+const OptionPayout = () => {
     const { data: signer } = useSigner();
     const [productAddress, setProductAddress] = useState<string>("");
     const [code, setCode] = useState<string>("");
@@ -60,21 +60,26 @@ const CouponAdmin = () => {
         if (!signer) return;
         console.log("handleSignature")
         try {
-            // console.log(`Address: ${address}, Balance: ${balance}`);
-            const issuanceCycle = await productInstance.issuanceCycle()
-            const coupon = issuanceCycle[0]
+            const getoptionProfit = await productInstance.optionProfit();
+            console.log("optionProfit", getoptionProfit)
+
+            const optionProfit = 45000000
+            console.log("mock optionProfit", optionProfit)
+            // Calculate total balance
+            const totalBalance = balance.reduce((sum, bal) => sum + Number(bal), 0);
             
-            // Add coupon value to each balance
+            // Calculate each address's share of the option profit based on their proportion
             const updatedBalances = balance.map(bal => 
-                (Number(bal) * (coupon/10000))
+                Math.floor((Number(bal) / totalBalance) * Number(optionProfit))
             );
             
-            // console.log("Original balances:", balance);
-            console.log("Address", address)
+            console.log("Total Balance:", totalBalance);
+            console.log("Option Profit:", optionProfit.toString());
+            console.log("Address:", address);
             console.log("Updated balances:", updatedBalances);
 
-            const tx = await productInstance.coupon(address, updatedBalances)
-            await tx.wait()
+            const tx = await productInstance.addOptionProfitList(address, updatedBalances);
+            await tx.wait();
            
         } catch (error) {
             console.error("Error signing item:", error);
@@ -88,7 +93,7 @@ const CouponAdmin = () => {
                     <div className="relative w-full h-[230px] rounded-[16px] bg-dark-gradient">
                         <img src="/profile/banner.svg" alt="profile banner" className="absolute right-0 top-0" />
                         <span className="text-[44px] leading-[44px] text-whitenew-100 absolute left-[45px] bottom-[40px] max-w-[300px]">
-                            Coupon Admin
+                            Option Payout
                         </span>
                     </div>
                     <div className="flex flex-col w-full px-[80px] py-[56px]">
@@ -158,4 +163,4 @@ const CouponAdmin = () => {
     );
 };
 
-export default CouponAdmin;
+export default OptionPayout;
