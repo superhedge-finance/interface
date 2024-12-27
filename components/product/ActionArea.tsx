@@ -294,7 +294,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 {(principalBalance + optionBalance + couponBalance).toLocaleString()} USDC
               </span>
             </div>
-            {principalBalance > 0 && (
+
+            {/* {principalBalance > 0 && (
               <div
                 className={`${expand ? "bg-[#EBEBEB]" : "bg-transparent"
                   } md:bg-[#EBEBEB] rounded-[6px] p-5 flex flex-col items-center mt-0 md:mt-5`}
@@ -306,7 +307,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                   </span>
                 </div>
               </div>
-            )}
+            )} */}
 
             <div className={`${expand ? "" : "hidden"} md:block flex flex-col w-full`}>
               <div className={"mt-8 text-[#494D51] text-[16px]"}>Amount</div>
@@ -394,6 +395,16 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                   {/* {(principalBalance + optionBalance + couponBalance).toLocaleString()} USDC ({lotsCount.toFixed(3)} lots) */}
                   {(principalBalance + optionBalance + couponBalance).toLocaleString()} USDC
                 </span>
+              </div>
+
+              <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
+                <span className={"text-[#677079] text-[16px] leading-[16px]"}>Coupon Balance</span>
+                <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>{couponBalance.toLocaleString()} USDC</span>
+              </div>
+
+              <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
+                <span className={"text-[#677079] text-[16px] leading-[16px]"}>Option Profit Balance</span>
+                <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>{optionBalance.toLocaleString()} USDC</span>
               </div>
 
               <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
@@ -629,7 +640,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
                       }}
                     >
-                      CANCEL
+                      OK
                     </button>
                     {withdrawStatus !== WITHDRAW_STATUS.DONE && (
                       <button
