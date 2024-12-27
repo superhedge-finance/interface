@@ -60,10 +60,10 @@ const OptionPayout = () => {
         if (!signer) return;
         console.log("handleSignature")
         try {
-            const getoptionProfit = await productInstance.optionProfit();
-            console.log("optionProfit", getoptionProfit)
+            const optionProfit = await productInstance.optionProfit();
+            console.log("optionProfit", optionProfit)
 
-            const optionProfit = 45000000
+            // const optionProfit = 45000000
             console.log("mock optionProfit", optionProfit)
             // Calculate total balance
             const totalBalance = balance.reduce((sum, bal) => sum + Number(bal), 0);
