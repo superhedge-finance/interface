@@ -279,8 +279,13 @@ const ProductDetail = () => {
                   <RecapCard label={"Estimated APY"} value={product.issuanceCycle.apy} />
                 </div>
 
+                <div className={"mt-[80px] flex flex-col space-y-5"}>
+                  <TitleH3>Vault Strategy</TitleH3>
+                  <ParaLight16>{product.vaultStrategy}</ParaLight16>
+                </div>
+
                 <div className={"flex flex-col mt-[80px]"}>
-                  <TitleH3>Product Recap</TitleH3>
+                  <TitleH3>Parameters</TitleH3>
                   <div
                     className={"md:flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 space-y-3 md:space-y-0 mt-5"}
                   >
@@ -292,7 +297,11 @@ const ProductDetail = () => {
                       />}
                     />
                     <RecapCardMobile label={"Investment Duration"} value={investment_duration} />
-                    <RecapCardMobile label={"Coupon"} value={`${product.issuanceCycle.coupon / 100}% / WEEK`} />
+                    <RecapCard 
+                      label="Coupon" 
+                      value={`${product.issuanceCycle.coupon / 10000}% / WEEK`}
+                      tooltip="This is the weekly coupon rate for this product"
+                    />
                     <RecapCardMobile label={"Principal Protection"} value={"100%"} />
                   </div>
                   <div className={"grid md:grid-cols-4 grid-cols-2 gap-2 mt-2"}>
@@ -304,7 +313,7 @@ const ProductDetail = () => {
                 </div>
 
                 <div className={"mt-[80px]"}>
-                  <TitleH3>Product Returns</TitleH3>
+                  <TitleH3>Option Payoff</TitleH3>
                   <ReturnsChart
                     strikePrice1={product.issuanceCycle.strikePrice1}
                     strikePrice2={product.issuanceCycle.strikePrice2}
@@ -314,16 +323,12 @@ const ProductDetail = () => {
                   />
                 </div>
 
-                <div className={"mt-[80px] flex flex-col space-y-5"}>
-                  <TitleH3>Vault Strategy</TitleH3>
-                  <ParaLight16>{product.vaultStrategy}</ParaLight16>
-                </div>
+                
 
-                <div className={"mt-[80px] flex flex-col space-y-5"}>
+                {/* <div className={"mt-[80px] flex flex-col space-y-5"}>
                   <TitleH3>Product Lifecycle</TitleH3>
                   <Timeline issuance={product.issuanceCycle.issuanceDate} maturity={product.issuanceCycle.maturityDate} />
-                  {/*<img src={'/portfolio/product_lifecycle.svg'} alt={'lifecycle'} width={'100%'} />*/}
-                </div>
+                </div> */}
 
                 <div className={"mt-[80px] flex flex-col space-y-5"}>
                   <TitleH3>Risk</TitleH3>
@@ -335,12 +340,12 @@ const ProductDetail = () => {
                   <ParaLight16>{product.fees} </ParaLight16>
                 </div>
 
-                <div className={"mt-[80px] flex flex-col space-y-5"}>
+                {/* <div className={"mt-[80px] flex flex-col space-y-5"}>
                   <TitleH3>Counterparties</TitleH3>
                   <ParaLight16>{product.counterparties}</ParaLight16>
-                </div>
+                </div> */}
 
-                <div className={"mt-[80px] flex flex-col space-y-5"}>
+                {/* <div className={"mt-[80px] flex flex-col space-y-5"}>
                   <TitleH3>Deposit Activity</TitleH3>
                   <div className={"bg-white py-[30px] px-5 rounded-lg"}>
                     <ActivityHeader />
@@ -355,7 +360,7 @@ const ProductDetail = () => {
                       );
                     })}
                   </div>
-                </div>
+                </div> */}
               </div>
             )}
           </div>
