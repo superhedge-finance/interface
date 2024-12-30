@@ -7,6 +7,7 @@ interface Transaction {
     id: string;
     type: string;
     withdrawType: string;
+    eventName:string;
     amount: string;
     currency: string;
     timestamp: string;
@@ -15,16 +16,16 @@ interface Transaction {
 }
 
 const TRANSACTION_TYPES = [
-    "[User] Principal Deposit",
     "[SuperHedge] Coupon Credited",
-    "[User] Coupon Withdraw",
-    "[User] Early Withdraw - Confirm",
-    "[User] Early Withdraw - Principal (Market Price)",
     "[SuperHedge] Early Withdraw - Option Payout (Airdrop)",
     "[SuperHedge] Option Payout Credit",
     "[SuperHedge] Principal Credit",
     "[User] Option Payout Withdraw",
-    "[User] Principal Withdraw"
+    "[User] Principal Withdraw",    
+    "[User] Principal Deposit",
+    "[User] Coupon Withdraw",
+    "[User] Early Withdraw - Confirm",
+    "[User] Early Withdraw - Principal (Market Price)",
 ];
 
 const TransactionHistory = () => {
@@ -49,9 +50,10 @@ const TransactionHistory = () => {
                     id: transaction.txHash,
                     type: transaction.type,
                     withdrawType: transaction.withdrawType,
+                    eventName: transaction.eventName,
                     amount: parseFloat(transaction.amountInDecimal).toFixed(2),
                     currency: "USDC", // Assuming USDC, adjust if needed
-                    timestamp: transaction.createdAt,
+                    timestamp: transaction.eventTime,
                     txHash: transaction.txHash
                 }))
             }));
@@ -69,6 +71,18 @@ const TransactionHistory = () => {
             groups[entry.date].push(...entry.transactions);
             return groups;
         }, {});
+    };
+
+    const filterTransactions = (transactions: any[]) => {
+        return transactions.map(entry => ({
+            ...entry,
+            transactions: entry.transactions.filter((transaction: any) => {
+                const matchesType = selectedType === "All transactions" || transaction.eventName === selectedType;
+                const matchesSearch = searchQuery === "" || 
+                    transaction.eventName.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesType && matchesSearch;
+            })
+        })).filter(entry => entry.transactions.length > 0);
     };
 
     return (
@@ -153,7 +167,7 @@ const TransactionHistory = () => {
             </div>
 
             <div className="bg-white rounded-lg shadow">
-                {Object.entries(groupTransactionsByDate(transactions)).map(([date, transactions]) => (
+                {Object.entries(groupTransactionsByDate(filterTransactions(transactions))).map(([date, transactions]) => (
                     <div key={date} className="border-b last:border-b-0">
                         <div className="px-6 py-4 bg-gray-50">
                             <h2 className="font-semibold">{date}</h2>
@@ -166,8 +180,8 @@ const TransactionHistory = () => {
                                 <div className="flex items-center space-x-4 w-[260px]">
                                     <div className="flex flex-col w-[260px]">
                                         <div className="font-medium">
-                                            {transaction.type} 
-                                            {transaction.withdrawType && transaction.withdrawType !== "NONE" ? ` ${transaction.withdrawType}` : ''}
+                                            {transaction.eventName} 
+                                            {/* {transaction.withdrawType && transaction.withdrawType !== "NONE" ? ` ${transaction.withdrawType}` : ''} */}
                                         </div>
                                         <div className="text-sm text-gray-500">
                                             {new Date(transaction.timestamp).toLocaleTimeString('en-US', {
@@ -183,7 +197,7 @@ const TransactionHistory = () => {
                                         <img src="/currency/usdc.svg" alt="USDC" className="w-4 h-4 mr-2" />
                                         <span className="font-medium">
                                             {transaction.amount == 0 ? "Admin" : 
-                                                `${transaction.type.includes("DEPOSIT") ? "+ " : "- "} 
+                                                `${transaction.eventName.includes("Deposit") ? "+ " : "- "} 
                                                 ${transaction.amount / 10 ** 6} ${transaction.currency}`}
                                         </span>
                                     </div>
