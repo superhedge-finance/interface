@@ -302,13 +302,17 @@ const ProductDetail = () => {
                       value={`${product.issuanceCycle.coupon / 10000}% / WEEK`}
                       tooltip="This is the weekly coupon rate for this product"
                     />
-                    <RecapCardMobile label={"Principal Protection"} value={"100%"} />
+                    
                   </div>
-                  <div className={"grid md:grid-cols-4 grid-cols-2 gap-2 mt-2"}>
+                  {/* <div className={"grid md:grid-cols-4 grid-cols-2 gap-2 mt-2"}> */}
+                  <div
+                    className={"md:flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 space-y-3 md:space-y-0 mt-5"}
+                  >
+                    <RecapCard label={"Principal Protection"} value={"100%"} />
                     <RecapCard label={"Strike 1 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice1)} />
                     <RecapCard label={"Strike 2 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice2)} />
-                    <RecapCard label={"Strike 3 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice3)} />
-                    <RecapCard label={"Strike 4 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice4)} />
+                    {/* <RecapCard label={"Strike 3 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice3)} />
+                    <RecapCard label={"Strike 4 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice4)} /> */}
                   </div>
                 </div>
 

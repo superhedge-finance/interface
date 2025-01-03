@@ -169,7 +169,7 @@ const PositionDetail = () => {
                   <RecapCard label={"Coupon"} value={`${product.issuanceCycle.coupon / 10000}% / WEEK`} />
 
                   
-                  <RecapCard label={"Principal Protection"} value={"100%"} />
+                  
                 </div>
                 <div className={"flex items-center justify-between space-x-2 mt-2"}>
                   <RecapCard label={"Principal Amount"} value={`${principal.toLocaleString()} USDC`} />
@@ -179,8 +179,9 @@ const PositionDetail = () => {
                 <div className={"flex items-center justify-between space-x-2 mt-2"}>
                   <RecapCard label={"Strike 1 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice1)} />
                   <RecapCard label={"Strike 2 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice2)} />
-                  <RecapCard label={"Strike 3 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice3)} />
-                  <RecapCard label={"Strike 4 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice4)} />
+                  <RecapCard label={"Principal Protection"} value={"100%"} />
+                  {/* <RecapCard label={"Strike 3 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice3)} />
+                  <RecapCard label={"Strike 4 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice4)} /> */}
                 </div>
               </div>
 
