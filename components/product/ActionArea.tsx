@@ -47,6 +47,10 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   const [walletBalance, setWalletBalance] = useState(0)
   // const [imageURL, setImageURL] = useState("")
 
+  const [isCouponSelected, setIsCouponSelected] = useState(false);
+  const [isOptionSelected, setIsOptionSelected] = useState(false);
+  const [isPrincipalSelected, setIsPrincipalSelected] = useState(false);
+
   const onConnect = () => {
     if (!address && openConnectModal) {
       openConnectModal()
@@ -85,13 +89,10 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     if (tokenAddressInstance && productInstance) {
       try {
         if (status === 1) {
-          if (principalBalance > 0) {
+          if (isPrincipalSelected && principalBalance > 0) {
             // approve token
             console.log("Approve token")
             const decimal = await tokenAddressInstance.decimals()
-            // const parsedBalance = ethers.utils.parseUnits(withdrawableBalance.toFixed(decimal), decimal);
-        
-            // const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toString(), decimal)
             const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toFixed(decimal), decimal);
             console.log(requestBalance)
 
@@ -113,22 +114,21 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             const withdrawTx = await productInstance.withdrawPrincipal()
             await withdrawTx.wait()
           }
-          if (optionBalance > 0) {
+          if (isOptionSelected && optionBalance > 0) {
             const tx1 = await productInstance.withdrawOption()
             await tx1.wait()
           }
-          console.log(couponBalance)
-          if (couponBalance > 0) {
+          if (isCouponSelected && couponBalance > 0) {
             const tx2 = await productInstance.withdrawCoupon()
             await tx2.wait()
           }
           await setWithdrawStatus(WITHDRAW_STATUS.DONE)
         } else if (status >= 2) {
-          if (optionBalance > 0) {
+          if (isOptionSelected && optionBalance > 0) {
             const tx1 = await productInstance.withdrawOption()
             await tx1.wait()
           }
-          if (couponBalance > 0) {
+          if (isCouponSelected && couponBalance > 0) {
             const tx2 = await productInstance.withdrawCoupon()
             await tx2.wait()
           }
@@ -141,6 +141,10 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         console.log(e)
       } finally {
         console.log("Finally!")
+        // Reset selection states after withdrawal
+        setIsCouponSelected(false);
+        setIsOptionSelected(false);
+        setIsPrincipalSelected(false);
       }
     }
   }
@@ -251,6 +255,23 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     })()
   }, [productAddress, signer, address])
 
+  const hasSelectedItems = () => {
+    return isCouponSelected || isOptionSelected || isPrincipalSelected;
+  };
+
+  const getWithdrawButtonLabel = () => {
+    if (!hasSelectedItems()) {
+      return "SELECT ITEMS TO WITHDRAW";
+    }
+
+    const selectedItems = [];
+    if (isCouponSelected) selectedItems.push("COUPON");
+    if (isOptionSelected) selectedItems.push("OPTION");
+    if (isPrincipalSelected) selectedItems.push("PRINCIPAL");
+
+    return `WITHDRAW ${selectedItems.join(" + ")}`;
+  };
+
   return (
     <>
       <div
@@ -329,15 +350,18 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                   <span className={"ml-2"}>{(pricePerLot * lots).toLocaleString()} USDC</span> */}
                 </div>
                 <div className={"flex items-center"}>
-                  {/* <span className={"mr-2"}>1 lot -</span>
-                  <Image src={"/miniUSDC.svg"} alt={"miniUSDC"} width={20} height={20} />
-                  <span className={"ml-2"}>{pricePerLot.toLocaleString()} USDC</span> */}
                   <Image src={"/miniUSDC.svg"} alt={"miniUSDC"} width={20} height={20} />
                   <span className={"ml-2"}>{(pricePerLot * lots).toLocaleString()} USDC</span>
+                  <span 
+                    className={"ml-2 text-[#828A93] cursor-pointer"}
+                    onClick={() => setLots(maxLots)}
+                  >
+                    MAX
+                  </span>
                 </div>
               </div>
 
-              <div className={"mt-1 grid grid-cols-1 gap-2"}>
+              {/* <div className={"mt-1 grid grid-cols-1 gap-2"}>
 
                 <div
                   className={
@@ -347,13 +371,13 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 >
                   MAX
                 </div>
-              </div>
+              </div> */}
             </div>
 
             <div className="flex justify-between mt-5">
               <Switch.Group>
                 <div className="flex items-center">
-                  <Switch
+                  {/* <Switch
                     checked={enabled}
                     onChange={setEnabled}
                     className={`${enabled ? 'bg-blue-600' : 'bg-gray-400'
@@ -364,13 +388,13 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                         } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                     />
                   </Switch>
-                  <Switch.Label className="ml-3">Include profits</Switch.Label>
+                  <Switch.Label className="ml-3">Include profits</Switch.Label> */}
                 </div>
-                <div>
+              </Switch.Group>
+              <div>
                   <span className={"mr-1"}>Wallet Balance: </span>
                   <span className="font-medium">{walletBalance.toLocaleString()} USDC</span>
                 </div>
-              </Switch.Group>
             </div>
 
             <div className={`${expand ? "" : "hidden"} md:block mt-5`}>
@@ -397,14 +421,61 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 </span>
               </div>
 
-              <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
-                <span className={"text-[#677079] text-[16px] leading-[16px]"}>Coupon Balance</span>
-                <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>{couponBalance.toLocaleString()} USDC</span>
+              <div className="flex space-x-2 mt-[17px]">
+                <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex-1 flex flex-col items-center"}>
+                  <span className={"text-[#677079] text-[16px] leading-[16px]"}>Coupon Balance</span>
+                  <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
+                    {couponBalance.toLocaleString()} USDC
+                  </span>
+                </div>
+                {couponBalance > 0 && (
+                  <button 
+                    className={`bg-[#EBEBEB] p-5 rounded-[6px] text-sm flex items-center ${
+                      isCouponSelected ? 'text-black font-medium' : 'text-[#161717]'
+                    }`}
+                    onClick={() => setIsCouponSelected(!isCouponSelected)}
+                  >
+                    {isCouponSelected ? 'Selected' : 'Select'}
+                  </button>
+                )}
               </div>
 
-              <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
-                <span className={"text-[#677079] text-[16px] leading-[16px]"}>Option Profit Balance</span>
-                <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>{optionBalance.toLocaleString()} USDC</span>
+              <div className="flex space-x-2 mt-[17px]">
+                <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex-1 flex flex-col items-center"}>
+                  <span className={"text-[#677079] text-[16px] leading-[16px]"}>Option Profit Balance</span>
+                  <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
+                    {optionBalance.toLocaleString()} USDC
+                  </span>
+                </div>
+                {optionBalance > 0 && (
+                  <button 
+                    className={`bg-[#EBEBEB] p-5 rounded-[6px] text-sm flex items-center ${
+                      isOptionSelected ? 'text-black font-medium' : 'text-[#161717]'
+                    }`}
+                    onClick={() => setIsOptionSelected(!isOptionSelected)}
+                  >
+                    {isOptionSelected ? 'Selected' : 'Select'}
+                  </button>
+                )}
+              </div>
+
+              <div className="flex space-x-2 mt-[17px]">
+                <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex-1 flex flex-col items-center"}>
+                  <span className={"text-[#677079] text-[16px] leading-[16px]"}>Principal Balance</span>
+                  <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
+                    {principalBalance.toLocaleString()} USDC
+                  </span>
+                </div>
+                {principalBalance > 0 && status === 1 && (
+                  <button 
+                    className={`bg-[#EBEBEB] p-5 rounded-[6px] text-sm flex items-center ${
+                      isPrincipalSelected ? 'text-black font-medium' : 'text-[#161717]'
+                    }`}
+                    onClick={() => setIsPrincipalSelected(!isPrincipalSelected)}
+                  >
+                    {isPrincipalSelected ? 'Selected' : 'Select'}
+                  </button>
+                )}
               </div>
 
               <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
@@ -421,20 +492,15 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
               <div className={"mt-7"}>
                 <PrimaryButton
-                  label={withdrawableBalance === 0 ? "No Withdrawable Balance" : "INITIATE WITHDRAW"}
+                  label={
+                    withdrawableBalance === 0 
+                      ? "No Withdrawable Balance" 
+                      : getWithdrawButtonLabel()
+                  }
                   className={"uppercase"}
-                  disabled={withdrawableBalance === 0}
+                  disabled={withdrawableBalance === 0 || !hasSelectedItems()}
                   onClick={() => setIsOpenWithdraw(true)}
-                // onClick={() => setWithdrawStatus(WITHDRAW_STATUS.INITIATE)}
                 />
-
-                {/* {(status === 3 || status === 4) && (
-                  <SecondaryButton
-                    label={principalBalance > 0 ? "Request Withdrawal of Principal on Maturity" : "No principal to withdraw"}
-                    className='mt-4 uppercase'
-                    disabled={principalBalance === 0}
-                  />
-                )} */}
               </div>
             </div>
 
