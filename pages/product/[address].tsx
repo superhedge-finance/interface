@@ -305,12 +305,20 @@ const ProductDetail = () => {
                   <div
                     className={"md:flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 space-y-3 md:space-y-0 mt-5"}
                   >
-                    <RecapCardMobile label={product.status == 3 ? "Time to Maturity" : "Time to Issuance"} value={
+                    {/* <RecapCardMobile label={product.status == 3 ? "Time to Maturity" : "Time to Issuance"} value={
                       <Countdown 
                         intervalDelay={60000} 
                         date={(product.status == 3 ? product.issuanceCycle.maturityDate : product.issuanceCycle.issuanceDate) * 1000} 
                         renderer={issuance_date_renderer} 
                       />}
+                    /> */}
+                    <RecapCardMobile 
+                      label="Time to Issuance" 
+                      value={new Date(product.issuanceCycle.issuanceDate * 1000).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      })}
                     />
                     <RecapCardMobile label={"Investment Duration"} value={investment_duration} />
                     <RecapCard 
