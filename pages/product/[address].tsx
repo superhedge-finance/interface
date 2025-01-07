@@ -29,9 +29,9 @@ const issuance_date_renderer = ({
   completed: boolean;
 }) => {
   if (completed) {
-    return <span>{`${days}D : ${hours}H : ${minutes}M`}</span>;
+    return <span>{`${days}D : ${hours}H`}</span>;
   } else {
-    return <span>{`${days}D : ${hours}H : ${minutes}M`}</span>;
+    return <span>{`${days}D : ${hours}H`}</span>;
   }
 };
 
@@ -86,10 +86,26 @@ const ProductDetail = () => {
 
   const investment_duration = useMemo(() => {
     if (product) {
-      const duration = product.issuanceCycle.maturityDate - product.issuanceCycle.issuanceDate;
-      return formatDuration(duration);
+      const maturityDate = new Date(product.issuanceCycle.maturityDate * 1000);
+      const now = new Date();
+      
+      if (maturityDate < now) {
+        const diffTime = Math.abs(now.getTime() - maturityDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return `${maturityDate.toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        })} (${diffDays}D)`;
+      }
+      
+      return maturityDate.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
     }
-    return "0D : 0H";
+    return "N/A";
   }, [product]);
 
   useEffect(() => {
