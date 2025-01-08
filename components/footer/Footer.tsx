@@ -38,12 +38,12 @@ export default function Footer() {
             </svg>
             <span className='sr-only'>Medium</span>
           </Link>
-          <Link href='https://www.linkedin.com/company/superhedge' target="_blank" className='text-white border-[1px] border-white p-1.5 rounded-[6px]'>
+          {/* <Link href='https://www.linkedin.com/company/superhedge' target="_blank" className='text-white border-[1px] border-white p-1.5 rounded-[6px]'>
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path fillRule="evenodd" clipRule="evenodd" d="M6.6792 5.97541H9.30995V7.36291C9.68891 6.56491 10.6607 5.84791 12.1206 5.84791C14.9192 5.84791 15.5837 7.43641 15.5837 10.3509V15.7487H12.7503V11.0147C12.7503 9.35491 12.3714 8.41891 11.4066 8.41891C10.0686 8.41891 9.51253 9.42766 9.51253 11.0139V15.7487H6.6792V5.97541ZM1.82074 15.6212H4.65408V5.84791H1.82074V15.6212ZM5.05995 2.66116C5.06006 2.91261 5.01296 3.16158 4.92139 3.3936C4.82983 3.62561 4.69562 3.83604 4.52658 4.01266C4.18403 4.37313 3.72036 4.5749 3.23741 4.57366C2.75531 4.57331 2.29271 4.37206 1.94966 4.01341C1.78123 3.83619 1.64747 3.62553 1.55607 3.39348C1.46466 3.16144 1.4174 2.91258 1.41699 2.66116C1.41699 2.15341 1.60824 1.66741 1.95037 1.30891C2.29312 0.949776 2.75591 0.748433 3.23812 0.748657C3.7212 0.748657 4.18445 0.950407 4.52658 1.30891C4.86799 1.66741 5.05995 2.15341 5.05995 2.66116Z" fill="#F8F6F5"/>
             </svg>
             <span className='sr-only'>Linkedin</span>
-          </Link>
+          </Link> */}
           <Link href='https://github.com/superhedge-nft' target="_blank" className='text-white border-[1px] border-white p-1.5 rounded-[6px]'>
             <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 24 24'>
               <path
