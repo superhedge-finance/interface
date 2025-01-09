@@ -263,7 +263,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
           <Timeline issuance={position.issuanceCycle.issuanceDate} maturity={position.issuanceCycle.maturityDate} compact={true} />
         </div>
 
-        <PrimaryButton label={"SEE DETAILS"} className={"mt-6"} onClick={() => Router.push(`/portfolio/position/${position.address}`)} />
+        <PrimaryButton label={"SEE DETAILS"} className={"mt-6"} onClick={() => Router.push(`/product/${position.address}`)} />
 
         <div className="flex flex-col space-y-4 mt-6">
                     <div className="flex items-center space-x-4">

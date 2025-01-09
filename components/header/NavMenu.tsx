@@ -27,10 +27,10 @@ export default function NavMenu() {
         </li>
         <li>
           <Link
-            href='/transactions'
-            className={`block p-0 hover:text-white ${router.pathname === "/transaction-history" ? "text-white" : "text-[#f8f8f880]"}`}
+            href='/leaderboard'
+            className={`block p-0 hover:text-white ${router.pathname === "/leaderboard" ? "text-white" : "text-[#f8f8f880]"}`}
           >
-            TRANSACTIONS
+            LEADERBOARD
           </Link>
         </li>
       </ul>

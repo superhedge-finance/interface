@@ -88,56 +88,30 @@ const Leaderboard = () => {
   }
 
   return (
-    <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold mb-8">Leaderboard</h1>
+    <div className="max-w-[1200px] mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4">Leaderboard</h1>
       
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+      <div className="bg-white rounded-lg shadow">
+        <table className="min-w-full">
           <thead>
             <tr className="bg-gray-50">
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-              {/* <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avatar</th> */}
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              {/* <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th> */}
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
-              {/* <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETH Address</th> */}
-              {/* <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Connected Wallet</th> */}
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discord</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Twitter</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">XP</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Rank</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Address</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">XP</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {leaderboardData.map((user, index) => (
-              <tr key={user.userId} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">#{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                {/* <td className="px-4 py-4 whitespace-nowrap">
-                  {user.avatar && (
-                    <Image
-                      className="h-8 w-8 rounded-full"
-                      src={user.avatar}
-                      alt={user.name}
-                      width={32}
-                      height={32}
-                    />
-                  )}
-                </td> */}
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{user.name}</td>
-                {/* <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{user.userId}</td> */}
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{user.address}</td>
-                {/* <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{user.ethAddress}</td> */}
-                {/* <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{user.connectedWallet}</td> */}
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{user.discordHandle}</td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {user.twitterUsername && (
-                    <a href={`https://twitter.com/${user.twitterUsername}`} target="_blank" rel="noopener noreferrer">
-                      @{user.twitterUsername}
-                    </a>
-                  )}
+              <tr key={user.userId} className="hover:bg-gray-50">
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  #{(currentPage - 1) * itemsPerPage + index + 1}
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{user.xp.toLocaleString()}</td>
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  {user.address}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  {user.xp.toLocaleString()}
+                </td>
               </tr>
             ))}
           </tbody>
