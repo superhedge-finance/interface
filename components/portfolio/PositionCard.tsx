@@ -23,6 +23,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   const [principal, setPrincipal] = useState<number>(0);
   const [couponBalance, setCouponBalance] = useState<number>(0);
   const [optionBalance, setOptionBalance] = useState<number>(0);
+  
   const [imageURL, setImageURL] = useState("");
   const [isOpen, setIsOpen] = useState(false)
   const [expand, setExpand] = useState(false)
