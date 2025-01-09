@@ -21,6 +21,8 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   const { chain } = useNetwork();
 
   const [principal, setPrincipal] = useState<number>(0);
+  const [couponBalance, setCouponBalance] = useState<number>(0);
+  const [optionBalance, setOptionBalance] = useState<number>(0);
   const [imageURL, setImageURL] = useState("");
   const [isOpen, setIsOpen] = useState(false)
   const [expand, setExpand] = useState(false)
@@ -160,7 +162,11 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
     (async () => {
       if (productInstance && address) {
         const balance = await productInstance.principalBalance(address);
+        const couponBalance = await productInstance.couponBalance(address);
+        const optionBalance = await productInstance.optionBalance(address);
         setPrincipal(Number(ethers.utils.formatUnits(balance, DECIMAL[chainId])))
+        setCouponBalance(Number(ethers.utils.formatUnits(couponBalance, DECIMAL[chainId])))
+        setOptionBalance(Number(ethers.utils.formatUnits(optionBalance, DECIMAL[chainId])))
       }
     })();
   }, [productInstance, address, chainId]);
@@ -255,6 +261,22 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
           <p className='text-[12px] font-light text-gray-700'>Principal Amount</p>
           <h3 className='text-[20px] font-light text-black'>
             <span className={"bg-primary-gradient bg-clip-text text-transparent"}>{principal.toLocaleString()} USDC </span>
+            <span className={"ml-1"}></span>
+          </h3>
+        </div>
+
+        <div className='flex flex-col flex-1 items-center bg-[#0000000a] h-[66px] rounded-[7px] py-3 px-4 mt-6'>
+          <p className='text-[12px] font-light text-gray-700'>Coupon Amount</p>
+          <h3 className='text-[20px] font-light text-black'>
+            <span className={"bg-primary-gradient bg-clip-text text-transparent"}>{couponBalance.toLocaleString()} USDC </span>
+            <span className={"ml-1"}></span>
+          </h3>
+        </div>
+
+        <div className='flex flex-col flex-1 items-center bg-[#0000000a] h-[66px] rounded-[7px] py-3 px-4 mt-6'>
+          <p className='text-[12px] font-light text-gray-700'>Option Amount</p>
+          <h3 className='text-[20px] font-light text-black'>
+            <span className={"bg-primary-gradient bg-clip-text text-transparent"}>{optionBalance.toLocaleString()} USDC </span>
             <span className={"ml-1"}></span>
           </h3>
         </div>
