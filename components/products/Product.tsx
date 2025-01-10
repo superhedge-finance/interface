@@ -53,18 +53,43 @@ export default function Product({ product }: { product: IProduct }) {
     completed: boolean;
   }) => {
     if (completed) {
-      return <span>{`${days}D : ${hours}H : ${minutes}M`}</span>;
+      return <span>0D : 0H</span>;
     } else {
-      return <span>{`${days}D : ${hours}H : ${minutes}M`}</span>;
+      return <span>{`${days}D : ${hours}H`}</span>;
     }
   };
 
+  // const investment_duration = useMemo(() => {
+  //   if (product) {
+  //     const duration = product.issuanceCycle.maturityDate - product.issuanceCycle.issuanceDate;
+  //     return formatDuration(duration);
+  //   }
+  //   return "0D : 0H";
+  // }, [product]);
+
   const investment_duration = useMemo(() => {
     if (product) {
-      const duration = product.issuanceCycle.maturityDate - product.issuanceCycle.issuanceDate;
-      return formatDuration(duration);
+      const maturityDate = new Date(product.issuanceCycle.maturityDate * 1000);
+      const issuanceDate = new Date(product.issuanceCycle.issuanceDate * 1000);
+      const now = new Date();
+      
+      if (maturityDate > issuanceDate && product.status != 3) {
+        const diffTime = Math.abs(issuanceDate.getTime() - maturityDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return `${maturityDate.toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        })} (${diffDays}D)`;
+      }
+      
+      return maturityDate.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
     }
-    return "0D : 0H";
+    return "N/A";
   }, [product]);
 
   return (
@@ -166,14 +191,14 @@ export default function Product({ product }: { product: IProduct }) {
       </div>
 
       <div className={"flex-col md:flex-row md:flex space-y-3 md:space-y-0 md:space-x-2 items-center justify-between mt-3"}>
-        <RecapCardMobile label={product.status == 3 ? "Time to Maturiy" : "Time to Issuance"} value={
-          <Countdown
-            intervalDelay={60000}
-            date={(product.status == 3 ? product.issuanceCycle.maturityDate : product.issuanceCycle.issuanceDate) * 1000}
+        <RecapCardMobile label={"Time to Issuance"} value={
+          <Countdown 
+            intervalDelay={60000} 
+            date={Date.now() + ((product.issuanceCycle.issuanceDate * 1000) - Date.now())} 
             renderer={issuance_date_renderer}
           />
         }></RecapCardMobile>
-        <RecapCardMobile label={"Investment Duration"} value={investment_duration}></RecapCardMobile>
+        <RecapCardMobile label={"Maturity Date"} value={investment_duration}></RecapCardMobile>
         <RecapCardMobile label={"Principal Protection"} value={"100%"}></RecapCardMobile>
       </div>
 

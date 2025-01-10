@@ -14,8 +14,13 @@ export default function Footer() {
             </Link>
           </li>
           <li>
-            <Link href='https://docsend.com/view/p654g6zexs3wvdnm' target="_blank" className='text-[16px] leading-[16px] uppercase hover:underline'>
-              WHITE PAPER
+            <Link href='https://docs.superhedge.com/other-resources/privacy-policy' target="_blank" className='text-[16px] leading-[16px] uppercase hover:underline mr-0 md:mr-8'>
+              PRIVACY POLICY
+            </Link>
+          </li>
+          <li>
+            <Link href='https://docs.superhedge.com/other-resources/terms-of-use' target="_blank" className='text-[16px] leading-[16px] uppercase hover:underline mr-0 md:mr-8'>
+              TERMS OF USE
             </Link>
           </li>
         </ul>

@@ -29,7 +29,7 @@ const issuance_date_renderer = ({
   completed: boolean;
 }) => {
   if (completed) {
-    return <span>{`${days}D : ${hours}H`}</span>;
+    return <span>0D : 0H</span>;
   } else {
     return <span>{`${days}D : ${hours}H`}</span>;
   }
@@ -306,10 +306,10 @@ const ProductDetail = () => {
                   <div
                     className={"md:flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 space-y-3 md:space-y-0 mt-5"}
                   >
-                    <RecapCardMobile label={product.status == 3 ? "Time to Maturity" : "Time to Issuance"} value={
+                    <RecapCardMobile label={"Time to Issuance"} value={
                       <Countdown 
                         intervalDelay={60000} 
-                        date={(product.status == 3 ? product.issuanceCycle.maturityDate : product.issuanceCycle.issuanceDate) * 1000} 
+                        date={Date.now() + ((product.issuanceCycle.issuanceDate * 1000) - Date.now())} 
                         renderer={issuance_date_renderer} 
                       />}
                     />
@@ -339,6 +339,11 @@ const ProductDetail = () => {
                     {/* <RecapCard label={"Strike 3 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice3)} />
                     <RecapCard label={"Strike 4 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice4)} /> */}
                   </div>
+                </div>
+
+                <div className={"mt-[80px] flex flex-col space-y-5"}>
+                  <TitleH3>Block Size: {(product.issuanceCycle.optionMinOrderSize * product.issuanceCycle.underlyingSpotRef)/10}</TitleH3>
+                  
                 </div>
 
                 <div className={"mt-[80px]"}>
