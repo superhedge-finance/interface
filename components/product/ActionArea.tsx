@@ -189,9 +189,9 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       return "Please await unlock to deposit"
     }
     if (principalBalance > 0) {
-      return `TOP-UP ${depositAmount.toLocaleString()} USDC`
+      return `TOP-UP ${depositAmount.toLocaleString()} ${product.currencyName}`
     }
-    return `DEPOSIT ${depositAmount.toLocaleString()} USDC`
+    return `DEPOSIT ${depositAmount.toLocaleString()} ${product.currencyName}`
   }, [principalBalance, status, depositAmount])
 
   const isSticky = () => {
@@ -312,7 +312,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
               <span className={"text-[#677079] text-[16px] leading-[16px]"}>Total Balance</span>
               <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
-                {(principalBalance + optionBalance + couponBalance).toLocaleString()} USDC
+                {(principalBalance + optionBalance + couponBalance).toLocaleString()} {product.currencyName}
               </span>
             </div>
 
@@ -351,7 +351,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 </div>
                 <div className={"flex items-center"}>
                   <Image src={"/miniUSDC.svg"} alt={"miniUSDC"} width={20} height={20} />
-                  <span className={"ml-2"}>{(pricePerLot * lots).toLocaleString()} USDC</span>
+                  <span className={"ml-2"}>{(pricePerLot * lots).toLocaleString()} {product.currencyName}</span>
                   <span 
                     className={"ml-2 text-[#828A93] cursor-pointer"}
                     onClick={() => setLots(maxLots)}
@@ -393,7 +393,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               </Switch.Group>
               <div>
                   <span className={"mr-1"}>Wallet Balance: </span>
-                  <span className="font-medium">{walletBalance.toLocaleString()} USDC</span>
+                  <span className="font-medium">{walletBalance.toLocaleString()} {product.currencyName}</span>
                 </div>
             </div>
 
@@ -417,7 +417,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 <span className={"text-[#677079] text-[16px] leading-[16px]"}>Total Balance</span>
                 <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
                   {/* {(principalBalance + optionBalance + couponBalance).toLocaleString()} USDC ({lotsCount.toFixed(3)} lots) */}
-                  {(principalBalance + optionBalance + couponBalance).toLocaleString()} USDC
+                  {(principalBalance + optionBalance + couponBalance).toLocaleString()} {product.currencyName}
                 </span>
               </div>
 
@@ -425,7 +425,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex-1 flex flex-col items-center"}>
                   <span className={"text-[#677079] text-[16px] leading-[16px]"}>Coupon Balance</span>
                   <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
-                    {couponBalance.toLocaleString()} USDC
+                    {couponBalance.toLocaleString()} {product.currencyName}
                   </span>
                 </div>
                 {couponBalance > 0 && (
@@ -444,7 +444,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex-1 flex flex-col items-center"}>
                   <span className={"text-[#677079] text-[16px] leading-[16px]"}>Option Profit Balance</span>
                   <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
-                    {optionBalance.toLocaleString()} USDC
+                    {optionBalance.toLocaleString()} {product.currencyName}
                   </span>
                 </div>
                 {optionBalance > 0 && (
@@ -463,7 +463,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex-1 flex flex-col items-center"}>
                   <span className={"text-[#677079] text-[16px] leading-[16px]"}>Principal Balance</span>
                   <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
-                    {principalBalance.toLocaleString()} USDC
+                    {principalBalance.toLocaleString()} {product.currencyName}
                   </span>
                 </div>
                 {principalBalance > 0 && status === 1 && (
@@ -480,7 +480,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
               <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
                 <span className={"text-[#677079] text-[16px] leading-[16px]"}>Withdrawable Balance</span>
-                <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>{withdrawableBalance.toLocaleString()} USDC</span>
+                <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>{withdrawableBalance.toLocaleString()} {product.currencyName}</span>
               </div>
 
               <div className={"font-light text-[14px] leading-[20px] text-[#677079] mt-[44px]"}>
@@ -561,7 +561,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               >
                 <Dialog.Panel className='w-full max-w-[800px] transform overflow-hidden rounded-2xl bg-white py-[60px] px-[160px] text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title className='text-[32px] font-medium leading-[40px] text-[#161717] text-center'>
-                    {depositStatus <= DEPOSIT_STATUS.APPROVING ? "Step 1/2: Approve USDC spend from your wallet" : "Step 2/2: Deposit USDC"}
+                    {depositStatus <= DEPOSIT_STATUS.APPROVING ? "Step 1/2: Approve " + product.currencyName + " spend from your wallet" : "Step 2/2: Deposit " + product.currencyName}
                   </Dialog.Title>
                   <div className='mt-7 flex flex-col items-center'>
 
@@ -663,7 +663,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               >
                 <Dialog.Panel className='w-full max-w-[800px] transform overflow-hidden rounded-2xl bg-white py-[60px] px-[160px] text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title className='text-[32px] font-medium leading-[40px] text-[#161717] text-center'>
-                    {withdrawStatus <= WITHDRAW_STATUS.APPROVING ? "Step 1/2: Approve SH Token spend from your wallet" : "Step 2/2: Withdraw USDC"}
+                    {withdrawStatus <= WITHDRAW_STATUS.APPROVING ? "Step 1/2: Approve " + product.currencyName + " spend from your wallet" : "Step 2/2: Withdraw " + product.currencyName}
                   </Dialog.Title>
                   <div className='mt-7 flex flex-col items-center'>
 
@@ -686,7 +686,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
                         <div className='mt-7 flex flex-col items-center'>
                           <p className='text-sm text-gray-500'>Total amount to Withdraw</p>
-                          <p>{withdrawableBalance.toLocaleString()} USDC</p>
+                          <p>{withdrawableBalance.toLocaleString()} {product.currencyName}</p>
                         </div>
                       </>
                     )}
@@ -787,7 +787,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
                   <div className='mt-7 flex flex-col items-center'>
                     <p className='text-sm text-gray-500'>Total amount to Withdraw</p>
-                    <p>{withdrawableBalance.toLocaleString()} USDC</p>
+                    <p>{withdrawableBalance.toLocaleString()} {product.currencyName}</p>
                   </div>
 
                   {withdrawStatus === WITHDRAW_STATUS.DONE ? (

@@ -30,6 +30,7 @@ export interface IProduct {
   fees: string;
   counterparties: string;
   estimatedApy: string;
+  currencyName: string;
 }
 
 export type ProductDetailType = IProduct & {

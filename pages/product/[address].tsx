@@ -276,7 +276,7 @@ const ProductDetail = () => {
                 <div className={"flex flex-col flex-1"}>
                   <div className='flex justify-between my-1'>
                     <span className='text-sm text-gray-700'>Amount deposited</span>
-                    <span className='text-sm text-gray-700'>USDC {capacity.toLocaleString()}</span>
+                    <span className='text-sm text-gray-700'>{product.currencyName} {capacity.toLocaleString()}</span>
                   </div>
                   <div className='w-full bg-[#00000014] rounded my-1'>
                     <div
@@ -289,7 +289,7 @@ const ProductDetail = () => {
                   </div>
                   <div className='flex justify-between mb-2'>
                     <span className='text-sm text-gray-700'>Max</span>
-                    <span className='text-sm text-gray-700'>USDC {Number(product.maxCapacity.toString()).toLocaleString()}</span>
+                    <span className='text-sm text-gray-700'>{product.currencyName} {Number(product.maxCapacity.toString()).toLocaleString()}</span>
                   </div>
                 </div>
                 <div className={"block md:hidden"}>
@@ -342,7 +342,7 @@ const ProductDetail = () => {
                 </div>
 
                 <div className={"mt-[80px] flex flex-col space-y-5"}>
-                  <TitleH3>Block Size: {(product.issuanceCycle.optionMinOrderSize * product.issuanceCycle.underlyingSpotRef)/10}</TitleH3>
+                  <TitleH3>Block Size: {(product.issuanceCycle.optionMinOrderSize * product.issuanceCycle.underlyingSpotRef)/10} {product.currencyName}</TitleH3>
                   
                 </div>
 
