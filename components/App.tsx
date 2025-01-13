@@ -1,57 +1,57 @@
-import React from "react";
+import React, { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { Chain, RainbowKitProvider, getDefaultWallets } from "@rainbow-me/rainbowkit";
 import { configureChains, createClient, WagmiConfig } from "wagmi";
-import { goerli, moonbaseAlpha, arbitrumGoerli,arbitrum } from "wagmi/chains";
-import { alchemyProvider } from "wagmi/providers/alchemy";
+import { arbitrum } from "wagmi/chains";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import { publicProvider } from "wagmi/providers/public";
 import { Chart as ChartJS, Title, Tooltip, Legend, Filler, LineElement, CategoryScale, LinearScale, PointElement } from "chart.js";
 import Layout from "./Layout";
 import { ToastProvider } from "./providers/ToastProvider";
 
-ChartJS.register(Title, Tooltip, Legend, Filler, LineElement, CategoryScale, LinearScale, PointElement);
+interface CustomDisclaimerProps {
+  Text: React.FC<{ children: React.ReactNode }>;
+  Link: React.FC<{ children: React.ReactNode; href: string }>;
+}
 
-const mantleTestnet: Chain = {
-  id: 5_001,
-  name: 'Mantle Testnet',
-  network: 'mantleTestnet',
-  iconUrl: 'https://i.imgur.com/Q3oIdip.png',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Mantle Token',
-    symbol: 'MNT',
-  },
-  rpcUrls: {
-    public: { http: ['https://rpc.testnet.mantle.xyz/'] },
-    default: { http: ['https://rpc.testnet.mantle.xyz/'] },
-  },
-  blockExplorers: {
-    default: { name: 'Mantle Explorer', url: 'https://explorer.testnet.mantle.xyz/' },
-    etherscan: { name: 'Mantle Explorer', url: 'https://explorer.testnet.mantle.xyz/' },
-  },
-  contracts: {
-    multicall3: {
-      address: '0x4Af866539734dd29E921105fb1EbA521e77e8Eb4',
-      blockCreated: 3_501_011,
-    },
-  },
-  testnet: true,
+const CustomDisclaimer: React.FC<CustomDisclaimerProps> = ({ Text, Link }) => {
+  const [isChecked, setIsChecked] = useState(false);
+
+  const handleCheckboxChange = () => {
+    setIsChecked(!isChecked);
+  };
+
+  return (
+    <div className="p-4">
+      <div className="mt-4 flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <input 
+            type="checkbox" 
+            id="tosCheckbox" 
+            checked={isChecked} 
+            onChange={handleCheckboxChange}
+            className="h-4 w-4" 
+          />
+          <label htmlFor="tosCheckbox" className="text-sm text-gray-700">By connecting, you agree to the</label>
+        </div>
+        <div className="text-sm text-gray-700">
+          <Link href="https://docs.superhedge.com/other-resources/terms-of-use"><span className="text-blue-600 hover:underline">Terms of Service</span></Link> and <Link href="https://docs.superhedge.com/other-resources/privacy-policy"><span className="text-blue-600 hover:underline">Privacy Policy</span></Link>
+        </div>
+      </div>
+    </div>
+  );
 };
+
+ChartJS.register(Title, Tooltip, Legend, Filler, LineElement, CategoryScale, LinearScale, PointElement);
 
 const { chains, provider, webSocketProvider } = configureChains(
   [...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS == "true" ? [arbitrum] : [])],
   [
-    // alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_KEY_ARBITRUM || "" }),
-
     jsonRpcProvider({
-      rpc: () => {
-        return {
-          http: process.env.NEXT_PUBLIC_MORALIS_KEY_ARBITRUM || "",
-        };
-      },
+      rpc: () => ({
+        http: process.env.NEXT_PUBLIC_MORALIS_KEY_ARBITRUM || "",
+      }),
     }),
-
     publicProvider()
   ]
 );
@@ -63,7 +63,8 @@ const { connectors } = getDefaultWallets({
 });
 
 const demoAppInfo = {
-  appName: "Superhedge Demo"
+  appName: "Superhedge Demo",
+  disclaimer: CustomDisclaimer
 };
 
 const wagmiClient = createClient({
@@ -73,11 +74,7 @@ const wagmiClient = createClient({
   webSocketProvider
 });
 
-type AppProps = {
-  children?: React.ReactNode;
-};
-
-function App({ children }: AppProps) {
+function App({ children }: { children?: React.ReactNode }) {
   return (
     <WagmiConfig client={wagmiClient}>
       <RainbowKitProvider appInfo={demoAppInfo} chains={chains}>
