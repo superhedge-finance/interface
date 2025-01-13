@@ -113,13 +113,14 @@ export default function Product({ product }: { product: IProduct }) {
             </span>
           )}
         </div>
-        <div className={"hidden sm:block w-[40px] md:w-[60px] h-[36px] md:h-[54px]"}>
+        {/* <div className={"hidden sm:block w-[40px] md:w-[60px] h-[36px] md:h-[54px]"}>
           <img src={"/icons/social_logo.svg"} alt={"social logo"} width={"100%"} height={"100% "} />
-        </div>
+        </div> */}
       </div>
       <div className={"flex justify-between items-end my-5 md:my-4"}>
         <div className='flex flex-row'>
-          <div className={"relative flex items-center mr-[40px]"}>
+          {/* <div className={"relative flex items-center mr-[40px]"}> */}
+          <div className={"relative flex items-center justify-center"}>
             <img
               src={currency1}
               className='rounded-full w-[40px] md:w-[60px] h-[40px] md:h-[60px]'
@@ -127,13 +128,13 @@ export default function Product({ product }: { product: IProduct }) {
               width={"100%"}
               height={"100%"}
             />
-            <img
+            {/* <img
               src={currency2}
               className='rounded-full w-[40px] md:w-[60px] h-[40px] md:h-[60px] absolute left-[30px] md:left-[40px]'
               alt='Product Logo'
               width={"100%"}
               height={"100%"}
-            />
+            /> */}
           </div>
           <div className='flex flex-col justify-around ml-3'>
             <TitleH3 className='text-black'>{product.underlying}</TitleH3>
@@ -160,7 +161,7 @@ export default function Product({ product }: { product: IProduct }) {
       <div className={"flex flex-col"}>
         <div className='flex justify-between my-1'>
           <span className='text-sm text-gray-700'>Amount deposited</span>
-          <span className='text-sm text-gray-700'>USDC {capacity.toLocaleString()}</span>
+          <span className='text-sm text-gray-700'>{product.currencyName} {capacity.toLocaleString()}</span>
         </div>
         <div className='w-full bg-[#00000014] rounded my-1'>
           <div
@@ -187,22 +188,36 @@ export default function Product({ product }: { product: IProduct }) {
           strikePrice3={product.issuanceCycle.strikePrice3}
           tr1={product.issuanceCycle.tr1}
           tr2={product.issuanceCycle.tr2}
+          underlyingName={product.underlyingName}
         />
       </div>
 
       <div className={"flex-col md:flex-row md:flex space-y-3 md:space-y-0 md:space-x-2 items-center justify-between mt-3"}>
-        <RecapCardMobile label={"Time to Issuance"} value={
-          <Countdown 
-            intervalDelay={60000} 
-            date={Date.now() + ((product.issuanceCycle.issuanceDate * 1000) - Date.now())} 
-            renderer={issuance_date_renderer}
-          />
-        }></RecapCardMobile>
-        <RecapCardMobile label={"Maturity Date"} value={investment_duration}></RecapCardMobile>
-        <RecapCardMobile label={"Principal Protection"} value={"100%"}></RecapCardMobile>
+        <RecapCardMobile 
+          label={"Time to Issuance"} 
+          value={
+            <Countdown 
+              intervalDelay={60000} 
+              date={Date.now() + ((product.issuanceCycle.issuanceDate * 1000) - Date.now())} 
+              renderer={issuance_date_renderer}
+            />
+          }
+          className="whitespace-nowrap"
+        ></RecapCardMobile>
+        <RecapCardMobile 
+          label={"Maturity Date"} 
+          value={investment_duration}
+          className="whitespace-nowrap"
+        ></RecapCardMobile>
+        <RecapCard 
+          label="Coupon" 
+          value={`${product.issuanceCycle.coupon / 10000}% / WEEK`}
+          tooltip="This is the weekly coupon rate for this product"
+          className="whitespace-nowrap"
+        />
       </div>
 
-      <div className={"flex-row flex space-x-2 items-center justify-center mt-3"}>
+      {/* <div className={"flex-row flex space-x-2 items-center justify-center mt-3"}>
         <div className={"flex items-center w-[24px] md:w-[30px] h-[28px] md:h-[36px]"}>   
           <img src={"/products/" + 'aUSDC' + "_logo.svg"} alt={"social logo"} width={"100%"} height={"100%"} />
         </div>
@@ -213,7 +228,7 @@ export default function Product({ product }: { product: IProduct }) {
           <span className="text-sm font-normal text-gray-700 dark:text-gray-400">Principal-Protected by</span>&nbsp;
           <span className="text-sm font-bold">{YIELD_SOURCE[chainId]}</span>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

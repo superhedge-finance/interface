@@ -279,21 +279,34 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           } ${!address ? "justify-between space-y-[100px]" : ""} `}
       >
         {!expand ? (
-          <div className={"p-1 flex items-center bg-[#EBEBEB] rounded-[6px] h-[38px]"}>
-            <div
-              className={`${tab === 0 ? "bg-white" : "bg-transparent"
-                } cursor-pointer h-[30px] rounded-[6px] p-2 flex flex-1 items-center justify-center`}
-              onClick={() => setTab(0)}
-            >
-              DEPOSIT
+          <div className="flex items-center gap-3">
+            {/* Deposit/Withdraw tabs */}
+            <div className={"p-1 flex items-center bg-[#EBEBEB] rounded-[6px] h-[38px] flex-1"}>
+              <div
+                className={`${tab === 0 ? "bg-white" : "bg-transparent"
+                  } cursor-pointer h-[30px] rounded-[6px] p-2 flex flex-1 items-center justify-center`}
+                onClick={() => setTab(0)}
+              >
+                DEPOSIT
+              </div>
+              <div
+                className={`${tab === 1 ? "bg-white" : "bg-transparent"
+                  } cursor-pointer h-[30px] rounded-[6px] p-2 flex flex-1 items-center justify-center`}
+                onClick={() => setTab(1)}
+              >
+                WITHDRAW
+              </div>
             </div>
-            <div
-              className={`${tab === 1 ? "bg-white" : "bg-transparent"
-                } cursor-pointer h-[30px] rounded-[6px] p-2 flex flex-1 items-center justify-center`}
-              onClick={() => setTab(1)}
+
+            {/* Get currency link */}
+            <a 
+              href="https://app.ethena.fi/buy" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
             >
-              WITHDRAW
-            </div>
+              Get {product.currencyName} →
+            </a>
           </div>
         ) : (
           <div className={"flex items-center justify-end"}>

@@ -235,7 +235,8 @@ const ProductDetail = () => {
                 </div>
                 <div className={"flex justify-between items-end my-5"}>
                   <div className='flex flex-row'>
-                    <div className={"relative flex items-center mr-[40px]"}>
+                    {/* <div className={"relative flex items-center mr-[40px]"}> */}
+                    <div className={"relative flex items-center justify-center"}>
                       <img
                         src={currency1}
                         className='rounded-full w-[40px] md:w-[60px] h-[40px] md:h-[60px]'
@@ -243,13 +244,13 @@ const ProductDetail = () => {
                         width={"100%"}
                         height={"100%"}
                       />
-                      <img
+                      {/* <img
                         src={currency2}
                         className='rounded-full w-[40px] md:w-[60px] h-[40px] md:h-[60px] absolute left-[30px] md:left-[40px]'
                         alt='Product Logo'
                         width={"100%"}
                         height={"100%"}
-                      />
+                      /> */}
                     </div>
                     <div className='flex flex-col justify-around ml-3'>
                       <TitleH2 className='text-black'>{product.underlying}</TitleH2>
@@ -333,18 +334,27 @@ const ProductDetail = () => {
                   <div
                     className={"md:flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 space-y-3 md:space-y-0 mt-5"}
                   >
-                    <RecapCard label={"Principal Protection"} value={"100%"} />
-                    <RecapCard label={"Strike 1 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice1)} />
-                    <RecapCard label={"Strike 2 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice2)} />
+                    <RecapCard 
+                      label={"Block Size"} 
+                      value={`${(product.issuanceCycle.optionMinOrderSize * product.issuanceCycle.underlyingSpotRef) / 10} ${product.currencyName}`} 
+                    />
+                    <RecapCard 
+                      label={"Strike 1 price"} 
+                      value={formatStrikePrice(product.issuanceCycle.strikePrice1)} 
+                    />
+                    <RecapCard 
+                      label={"Strike 2 price"} 
+                      value={formatStrikePrice(product.issuanceCycle.strikePrice2)} 
+                    />
                     {/* <RecapCard label={"Strike 3 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice3)} />
                     <RecapCard label={"Strike 4 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice4)} /> */}
                   </div>
                 </div>
 
-                <div className={"mt-[80px] flex flex-col space-y-5"}>
+                {/* <div className={"mt-[80px] flex flex-col space-y-5"}>
                   <TitleH3>Block Size: {(product.issuanceCycle.optionMinOrderSize * product.issuanceCycle.underlyingSpotRef)/10} {product.currencyName}</TitleH3>
                   
-                </div>
+                </div> */}
 
                 <div className={"mt-[80px]"}>
                   <TitleH3>Option Payoff</TitleH3>
@@ -354,6 +364,7 @@ const ProductDetail = () => {
                     strikePrice3={product.issuanceCycle.strikePrice3}
                     tr1={product.issuanceCycle.tr1}
                     tr2={product.issuanceCycle.tr2}
+                    underlyingName={product.underlyingName}
                   />
                 </div>
 

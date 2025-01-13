@@ -31,6 +31,7 @@ export interface IProduct {
   counterparties: string;
   estimatedApy: string;
   currencyName: string;
+  underlyingName: string;
 }
 
 export type ProductDetailType = IProduct & {
