@@ -14,7 +14,7 @@ export default function NavMenu() {
               router.pathname.includes("product") || router.pathname === "/" ? "text-white" : "text-[#f8f8f880]"
             }`}
           >
-            Products
+            N-Vaults
           </Link>
         </li>
         <li>

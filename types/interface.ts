@@ -32,6 +32,7 @@ export interface IProduct {
   estimatedApy: string;
   currencyName: string;
   underlyingName: string;
+  couponTooltip: string;
 }
 
 export type ProductDetailType = IProduct & {

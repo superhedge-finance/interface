@@ -89,7 +89,17 @@ const Leaderboard = () => {
 
   return (
     <div className="max-w-[1200px] mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Leaderboard</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Leaderboard</h1>
+        <a 
+          href="https://zealy.io/cw/superhedgeseason1" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="text-lg font-bold text-black hover:underline"
+        >
+          Go to Zealy
+        </a>
+      </div>
       
       <div className="bg-white rounded-lg shadow">
         <table className="min-w-full">

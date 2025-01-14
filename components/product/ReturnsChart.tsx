@@ -43,7 +43,7 @@ export const ReturnsChart = ({
           plugins: {
             title: {
               display: true,
-              text: `APY %`,
+              text: `Est. APY %`,
               align: 'start',
               padding: {
                 bottom: 20

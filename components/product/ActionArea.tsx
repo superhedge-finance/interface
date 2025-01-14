@@ -186,7 +186,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
   const depositButtonLabel = useMemo(() => {
     if (status !== 1) {
-      return "Please await unlock to deposit"
+      return "Unavailable"
     }
     if (principalBalance > 0) {
       return `TOP-UP ${depositAmount.toLocaleString()} ${product.currencyName}`
@@ -496,12 +496,12 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>{withdrawableBalance.toLocaleString()} {product.currencyName}</span>
               </div>
 
-              <div className={"font-light text-[14px] leading-[20px] text-[#677079] mt-[44px]"}>
+              {/* <div className={"font-light text-[14px] leading-[20px] text-[#677079] mt-[44px]"}>
                 {status !== 1
                   ? "Your Deposit is locked, so you can initiate only Profit Withdraw right now or request\n" +
                   "withdraw All Amount at Maturity Date."
                   : "Vault is unlocked. You may deposits or withdraw funds at this time."}
-              </div>
+              </div> */}
 
               <div className={"mt-7"}>
                 <PrimaryButton
