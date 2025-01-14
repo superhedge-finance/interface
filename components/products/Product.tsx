@@ -212,7 +212,7 @@ export default function Product({ product }: { product: IProduct }) {
         <RecapCard 
           label="Coupon" 
           value={`${product.issuanceCycle.coupon / 10000}% / WEEK`}
-          tooltip="This is the weekly coupon rate for this product"
+          tooltip={product.couponTooltip}
           className="whitespace-nowrap"
         />
       </div>
