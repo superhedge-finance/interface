@@ -186,7 +186,7 @@ const ProductDetail = () => {
 
   return (
     <>
-      {isPopupVisible && (
+      {/* {isPopupVisible && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
           <div className="bg-white p-4 rounded shadow-lg">
             <h2 className="text-lg font-bold mb-2">Enter Access Code</h2>
@@ -216,8 +216,10 @@ const ProductDetail = () => {
             )}
           </div>
         </div>
-      )}
-      <div className={isBlurred ? 'filter blur-lg pointer-events-none' : ''}>
+      )} */}
+      {/* <div className={isBlurred ? 'filter blur-lg pointer-events-none' : ''}> */}
+      <div className={''}>
+        
         {isLoading && <SkeletonCard />}
         <div className={"grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-12 px-0 md:px-12 relative"}>
           <div className={"col-span-1"}>

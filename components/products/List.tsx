@@ -124,7 +124,7 @@ export default function ProductList() {
 
   return (
     <>
-      {isPopupVisible && (
+      {/* {isPopupVisible && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
           <div className="bg-white p-4 rounded shadow-lg">
             <h2 className="text-lg font-bold mb-2">Enter Access Code</h2>
@@ -154,9 +154,10 @@ export default function ProductList() {
             )}
           </div>
         </div>
-      )}
+      )} */}
 
-      <div className={`flex flex-col sm:items-center mt-16 ${isBlurred ? 'filter blur-lg pointer-events-none' : ''}`}>
+      {/* <div className={`flex flex-col sm:items-center mt-16 ${isBlurred ? 'filter blur-lg pointer-events-none' : ''}`}> */}
+      <div className={`flex flex-col sm:items-center mt-16`}>
         <div className='md:flex justify-center'>
           {/* <Tab.Group>
             <Tab.List className='flex space-x-1 rounded-xl bg-[#EBEBEB] p-1'>

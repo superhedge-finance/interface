@@ -24,8 +24,8 @@ export const ReturnsChart = ({
         data={{
           labels:
             strikePrice3 > 0
-              ? ["", strikePrice1 / 100, strikePrice2 / 100, strikePrice3 / 100, ""]
-              : ["", "", "", strikePrice1 / 100, strikePrice2 / 100, "", "", ""],
+              ? ["", strikePrice1 / 1000 , strikePrice2 / 1000, strikePrice3 / 1000, ""]
+              : ["", "", "", strikePrice1 / 1000, strikePrice2 / 1000, "", "", ""],
           datasets: [
             {
               data:
