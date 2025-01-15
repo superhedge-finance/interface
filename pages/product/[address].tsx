@@ -255,7 +255,8 @@ const ProductDetail = () => {
                       /> */}
                     </div>
                     <div className='flex flex-col justify-around ml-3'>
-                      <TitleH2 className='text-black'>{product.underlying}</TitleH2>
+                      {/* <TitleH2 className='text-black'>{product.underlying}</TitleH2> */}
+                      <TitleH2 className='text-black'>{product.currencyName}</TitleH2>
                       <SubtitleRegular20>{product.name}</SubtitleRegular20>
                     </div>
                   </div>

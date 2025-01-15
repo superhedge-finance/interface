@@ -137,7 +137,8 @@ export default function Product({ product }: { product: IProduct }) {
             /> */}
           </div>
           <div className='flex flex-col justify-around ml-3'>
-            <TitleH3 className='text-black'>{product.underlying}</TitleH3>
+            {/* <TitleH3 className='text-black'>{product.underlying}</TitleH3> */}
+            <TitleH3 className='text-black'>{product.currencyName}</TitleH3>
             <SubtitleRegular16>{product.name}</SubtitleRegular16>
           </div>
         </div>

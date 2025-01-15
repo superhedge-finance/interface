@@ -244,7 +244,8 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                     />
             </div>
             <div className='flex flex-col justify-around ml-3'>
-              <h5 className='text-[44px] leading-[44px] text-black'>{position.underlying}</h5>
+              {/* <h5 className='text-[44px] leading-[44px] text-black'>{position.underlying}</h5> */}
+              <h5 className='text-[44px] leading-[44px] text-black'>{position.currencyName}</h5>
               <span className='text-[20px] font-light text-gray-700'>{position.name}</span>
             </div>
           </div>
