@@ -44,8 +44,8 @@ export default function Footer() {
             <span className='sr-only'>Medium</span>
           </Link>
           <Link href='https://twitter.com/superhedgeio' target="_blank" className='text-white border-[1px] border-white p-1.5 rounded-[6px]'>
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 2L16 16M16 2L2 16" stroke="#F8F6F5" strokeWidth="2"/>
+            <svg width="18" height="18" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.74 2H21.048L13.821 10.26L22.323 21.5H15.665L10.451 14.683L4.485 21.5H1.175L8.905 12.665L0.75 2H7.575L12.288 8.231L17.738 2H17.74ZM16.579 19.52H18.412L6.58 3.876H4.613L16.579 19.52Z" fill="currentColor"/>
             </svg>
             <span className='sr-only'>Twitter</span>
           </Link>
