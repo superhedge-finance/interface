@@ -3,7 +3,7 @@ export const ProductStatus = [
   { label: "Indicative", className: "bg-indicative" },
   { label: "Indicative", className: "bg-indicative" },
   { label: "Active", className: "bg-active" },
-  { label: "Active", className: "bg-active" }
+  { label: "Matured", className: "bg-matured" }
 ];
 
 export const ProductSpreads = [

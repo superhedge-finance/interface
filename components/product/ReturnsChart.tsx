@@ -1,18 +1,22 @@
 import React from "react";
 import { Line } from "react-chartjs-2";
 
+
+
 export const ReturnsChart = ({
   tr1,
   tr2,
   strikePrice1,
   strikePrice2,
-  strikePrice3
+  strikePrice3,
+  underlyingName
 }: {
   tr1: number;
   tr2: number;
   strikePrice1: number;
   strikePrice2: number;
   strikePrice3: number;
+  underlyingName: string;
 }) => {
   return (
     <div className={"mt-4 w-100"}>
@@ -20,8 +24,8 @@ export const ReturnsChart = ({
         data={{
           labels:
             strikePrice3 > 0
-              ? ["", strikePrice1 / 100, strikePrice2 / 100, strikePrice3 / 100, ""]
-              : ["", "", "", strikePrice1 / 100, strikePrice2 / 100, "", "", ""],
+              ? ["", strikePrice1 / 1000 , strikePrice2 / 1000, strikePrice3 / 1000, ""]
+              : ["", "", "", strikePrice1 / 1000, strikePrice2 / 1000, "", "", ""],
           datasets: [
             {
               data:
@@ -39,7 +43,7 @@ export const ReturnsChart = ({
           plugins: {
             title: {
               display: true,
-              text: 'Total Returns(%)',
+              text: `Est. APY %`,
               align: 'start',
               padding: {
                 bottom: 20
@@ -61,7 +65,7 @@ export const ReturnsChart = ({
               title: {
                 display: true,
                 align: 'end',
-                text: "ETH (`00)"
+                text: `${underlyingName} ('000)`
               }
             }
           },

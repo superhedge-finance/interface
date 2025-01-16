@@ -52,8 +52,13 @@ export const PortfolioSummary = () => {
   }, [address, chain, tab]);
 
   return (
-    <div className={"bg-white w-full rounded-lg p-5"}>
-      <div>
+    <div className={"bg-white w-full rounded-lg p-5 relative"}>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="text-center text-gray-500">
+          Coming soon
+        </div>
+      </div>
+      <div className="filter blur-sm">
         <Line
           data={{
             labels: labels,
@@ -84,7 +89,7 @@ export const PortfolioSummary = () => {
         />
       </div>
 
-      <div className={"mt-5 p-1 flex items-center space-x-2 rounded-[6px] h-[38px]"}>
+      <div className={"mt-5 p-1 flex items-center space-x-2 rounded-[6px] h-[38px] filter blur-sm"}>
         <div
           className={`${
             tab === 0 ? "bg-[#EBEBEB]" : "bg-[rgba(0,0,0,0.04)]"

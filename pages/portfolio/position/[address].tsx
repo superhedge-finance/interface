@@ -154,7 +154,7 @@ const PositionDetail = () => {
               </div>
 
               <div className={"flex flex-col mt-[80px]"}>
-                <TitleH3>Product Recap</TitleH3>
+                <TitleH3>Parameters</TitleH3>
                 <div className={"flex items-center justify-between space-x-2 mt-5"}>
                   <div className={`flex flex-col flex-1 items-center bg-[#0000000a] h-[66px] rounded-[7px] py-3 px-4`}>
                     <p className='text-[12px] font-light text-gray-700'>{product.status == 3 ? "Time to Maturity" : "Time to Issuance"}</p>
@@ -166,8 +166,10 @@ const PositionDetail = () => {
                       />
                     </h3>
                   </div>
-                  <RecapCard label={"Coupon"} value={`${product.issuanceCycle.coupon / 100}% / WEEK`} />
-                  <RecapCard label={"Principal Protection"} value={"100%"} />
+                  <RecapCard label={"Coupon"} value={`${product.issuanceCycle.coupon / 10000}% / WEEK`} />
+
+                  
+                  
                 </div>
                 <div className={"flex items-center justify-between space-x-2 mt-2"}>
                   <RecapCard label={"Principal Amount"} value={`${principal.toLocaleString()} USDC`} />
@@ -177,15 +179,16 @@ const PositionDetail = () => {
                 <div className={"flex items-center justify-between space-x-2 mt-2"}>
                   <RecapCard label={"Strike 1 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice1)} />
                   <RecapCard label={"Strike 2 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice2)} />
-                  <RecapCard label={"Strike 3 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice3)} />
-                  <RecapCard label={"Strike 4 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice4)} />
+                  <RecapCard label={"Principal Protection"} value={"100%"} />
+                  {/* <RecapCard label={"Strike 3 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice3)} />
+                  <RecapCard label={"Strike 4 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice4)} /> */}
                 </div>
               </div>
 
-              <div className={"mt-[80px] flex flex-col space-y-5"}>
+              {/* <div className={"mt-[80px] flex flex-col space-y-5"}>
                 <TitleH3>Product Lifecycle</TitleH3>
                 <Timeline issuance={product.issuanceCycle.issuanceDate} maturity={product.issuanceCycle.maturityDate} />
-              </div>
+              </div> */}
 
               <div className={"mt-[80px] flex flex-col space-y-5"}>
                 <TitleH3>NFT Product</TitleH3>

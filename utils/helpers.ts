@@ -46,9 +46,9 @@ export const getTxErrorMessage = (error: any): string => {
     return "Not enough balance";
   }
 
-  const regex = /execution reverted: (?<target>[a-zA-Z0-9 ]+)/;
+  const regex = /execution reverted: ([a-zA-Z0-9 ]+)/;
   const result = errMessage.match(regex);
-  const reason = result?.groups?.target;
+  const reason = result ? result[1] : undefined;
 
   // will make some message translation here.
   if (reason === "Product is full") {

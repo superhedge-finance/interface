@@ -19,7 +19,7 @@ export default function NavMenuMobile() {
                     <ul className="uppercase flex flex-col flex-grow p-4 mt-4 font-light text-xl bg-transparent">
                         <li className="border-b-[1px] border-white border-opacity-30 py-5">
                             <Link href='/' className={`block p-0 hover:text-white ${(router.pathname.includes('product') || router.pathname === '/') ? 'text-white' : 'text-[#f8f8f880]'}`}>
-                                Products
+                                N-Vaults
                             </Link>
                         </li>
                         <li className="border-b-[1px] border-white border-opacity-30 py-5">
@@ -27,6 +27,14 @@ export default function NavMenuMobile() {
                                 Portfolio
                             </Link>
                         </li>
+                        <li>
+                            <Link
+                                href='/leaderboard'
+                                className={`block p-0 hover:text-white ${router.pathname === "/leaderboard" ? "text-white" : "text-[#f8f8f880]"}`}
+                            >
+                                LEADERBOARD
+                            </Link>
+                            </li>
                         <li className="md:hidden pt-10">
                             <WalletConnect isMobile={true} />
                         </li>

@@ -6,7 +6,8 @@ import { PortfolioSummary } from "../../components/portfolio/Summary";
 import { PortfolioPositions } from "../../components/portfolio/Positions";
 import { PortfolioTransactions } from "../../components/portfolio/Transactions";
 import { SuperHedgeTabs } from "../../components/commons/Tabs";
-import { PortfolioListings } from "../../components/portfolio/Listings";
+import { TableInvestment } from "../../components/portfolio/tableInvestment";
+// import { PortfolioListings } from "../../components/portfolio/Listings";
 
 const Portfolio = () => {
   const { address } = useAccount();
@@ -23,19 +24,24 @@ const Portfolio = () => {
 
           {tab === 0 && (
             <div className={"flex flex-col w-full space-y-[80px] mt-12"}>
-              <div className={"flex flex-col space-y-[20px]"}>
-                <TitleH3>Portfolio summary</TitleH3>
-                <PortfolioSummary />
-              </div>
+              
+              {/* <div className={"flex flex-col space-y-[20px]"}> */}
+                {/* <TitleH3>Portfolio summary</TitleH3> */}
+                {/* <PortfolioSummary /> */}
+                {/* <TableInvestment /> */}
+              {/* </div> */}
 
               <div className={"flex flex-col space-y-[20px]"}>
                 <div className={"flex items-center justify-between"}>
                   <TitleH3>Positions</TitleH3>
+                  <a href="/transactions" className="text-primary hover:opacity-80">
+                    Transactions
+                  </a>
                 </div>
                 <PortfolioPositions enabled={enabled} />
               </div>
 
-              <div className={"flex flex-col space-y-[20px]"}>
+              {/* <div className={"flex flex-col space-y-[20px]"}>
                 <div className={"flex items-center justify-between"}>
                   <TitleH3>Transaction History</TitleH3>
                   {address && (
@@ -48,13 +54,13 @@ const Portfolio = () => {
                   )}
                 </div>
                 <PortfolioTransactions order={historyOrder} />
-              </div>
+              </div> */}
             </div>
           )}
 
           {tab === 1 && (
             <div className={"flex flex-col sm:items-center mt-12"}>
-              <PortfolioListings />
+              {/* <PortfolioListings /> */}
             </div>
           )}
         </div>

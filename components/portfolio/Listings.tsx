@@ -1,3 +1,8 @@
+import React from "react";
+
+export default function Listings(){
+    return null
+}
 // import { useEffect, useMemo, useState } from "react";
 // import { useAccount, useNetwork } from "wagmi";
 // import Image from "next/image";

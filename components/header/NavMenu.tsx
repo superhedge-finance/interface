@@ -14,7 +14,7 @@ export default function NavMenu() {
               router.pathname.includes("product") || router.pathname === "/" ? "text-white" : "text-[#f8f8f880]"
             }`}
           >
-            Products
+            N-Vaults
           </Link>
         </li>
         <li>
@@ -23,6 +23,14 @@ export default function NavMenu() {
             className={`block p-0 hover:text-white ${router.pathname === "/portfolio" ? "text-white" : "text-[#f8f8f880]"}`}
           >
             Portfolio
+          </Link>
+        </li>
+        <li>
+          <Link
+            href='/leaderboard'
+            className={`block p-0 hover:text-white ${router.pathname === "/leaderboard" ? "text-white" : "text-[#f8f8f880]"}`}
+          >
+            LEADERBOARD
           </Link>
         </li>
       </ul>
