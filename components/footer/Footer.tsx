@@ -7,19 +7,19 @@ export default function Footer() {
         <Link href='/' className='flex items-center pt-1.5'>
           <img src={"/icons/logo.svg"} alt={"logo"} />
         </Link>
-        <ul className='flex flex-col md:flex-row items-center text-base text-[#f8f8f880] dark:text-gray-400 space-y-6 md:space-y-0 my-10 md:my-0'>
+        <ul className='flex flex-col md:flex-row items-center md:text-base text-[#f8f8f880] dark:text-gray-400 space-y-6 md:space-y-0 my-10 md:my-0'>
           <li>
-            <Link href='https://docs.superhedge.com/' target="_blank" className='text-[16px] leading-[16px] uppercase hover:underline mr-0 md:mr-8'>
+            <Link href='https://docs.superhedge.com/' target="_blank" className='block p-0 hover:text-white mr-0 md:mr-8'>
               DOCS
             </Link>
           </li>
           <li>
-            <Link href='https://docs.superhedge.com/other-resources/privacy-policy' target="_blank" className='text-[16px] leading-[16px] uppercase hover:underline mr-0 md:mr-8'>
+            <Link href='https://docs.superhedge.com/other-resources/privacy-policy' target="_blank" className='block p-0 hover:text-white mr-0 md:mr-8'>
               PRIVACY POLICY
             </Link>
           </li>
           <li>
-            <Link href='https://docs.superhedge.com/other-resources/terms-of-use' target="_blank" className='text-[16px] leading-[16px] uppercase hover:underline mr-0 md:mr-8'>
+            <Link href='https://docs.superhedge.com/other-resources/terms-of-use' target="_blank" className='block p-0 hover:text-white mr-0 md:mr-8'>
               TERMS OF USE
             </Link>
           </li>
