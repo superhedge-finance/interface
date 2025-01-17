@@ -47,7 +47,7 @@ const PositionDetail = () => {
 
   const chainId = useMemo(() => {
     if (chain) return chain.id;
-    return SUPPORT_CHAIN_IDS.ARBITRUM;
+    return SUPPORT_CHAIN_IDS.ETH;
   }, [chain]);
 
   const currency1 = useMemo(() => {

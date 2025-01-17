@@ -13,7 +13,7 @@ const OptionPayout = () => {
     const [inputCode, setInputCode] = useState<string>("");
     const [arrayData, setArrayData] = useState<any[]>([]);
     const { chain } = useNetwork();
-    const chainId = chain ? chain.id : SUPPORT_CHAIN_IDS.ARBITRUM;
+    const chainId = chain ? chain.id : SUPPORT_CHAIN_IDS.ETH;
     const [productInstance, setProductInstance] = useState<any>(null);
 
     useEffect(() => {
