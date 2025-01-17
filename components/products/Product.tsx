@@ -21,7 +21,7 @@ export default function Product({ product }: { product: IProduct }) {
 
   const chainId = useMemo(() => {
     if (chain) return chain.id;
-    return SUPPORT_CHAIN_IDS.ARBITRUM;
+    return SUPPORT_CHAIN_IDS.ETH;
   }, [chain]);
 
   const capacity = useMemo(() => {

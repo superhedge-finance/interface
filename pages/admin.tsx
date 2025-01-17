@@ -16,7 +16,7 @@ const Admin = () => {
     const [errorMessage, setErrorMessage] = useState("");
     const [expired, setExpired] = useState(false);
     const { chain } = useNetwork();
-    const chainId = chain ? chain.id : SUPPORT_CHAIN_IDS.ARBITRUM;
+    const chainId = chain ? chain.id : SUPPORT_CHAIN_IDS.ETH;
     const [holderList, setHolderList] = useState<string[]>([]);
     const [balanceList, setBalanceList] = useState<number[]>([]);
 

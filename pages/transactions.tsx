@@ -31,7 +31,7 @@ const TRANSACTION_TYPES = [
 const TransactionHistory = () => {
     const { address } = useAccount();
     const { chain } = useNetwork();
-    const chainId = chain ? chain.id : SUPPORT_CHAIN_IDS.ARBITRUM;
+    const chainId = chain ? chain.id : SUPPORT_CHAIN_IDS.ETH;
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -204,7 +204,7 @@ const TransactionHistory = () => {
                                 </div>
                                 <div className="flex items-center space-x-4 w-[100px]">
                                     <a 
-                                        href={transaction.txHash ? `https://arbiscan.io/tx/${transaction.txHash}` : '#'}
+                                        href={transaction.txHash ? `https://etherscan.io/tx/${transaction.txHash}` : '#'}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-blue-500 hover:text-blue-600"

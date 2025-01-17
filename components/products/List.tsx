@@ -33,7 +33,7 @@ export default function ProductList() {
   const chainId = useMemo(() => {
     console.log(address)
     if (chain) return chain.id;
-    return SUPPORT_CHAIN_IDS.ARBITRUM;
+    return SUPPORT_CHAIN_IDS.ETH;
   }, [chain]);
 
   useEffect(() => {
