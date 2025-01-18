@@ -343,7 +343,7 @@ const ProductDetail = () => {
                     <RecapCardMobile label={"Maturity Date"} value={investment_duration} />
                     <RecapCard 
                       label="Coupon" 
-                      value={`${product.issuanceCycle.coupon / 10000}% / WEEK`}
+                      value={`${product.issuanceCycle.coupon / 1000000}% / WEEK`}
                       tooltip={product.couponTooltip}
                     />
                     
