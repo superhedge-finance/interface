@@ -9,7 +9,8 @@ export const ReturnsChart = ({
   strikePrice1,
   strikePrice2,
   strikePrice3,
-  underlyingName
+  underlyingName,
+  apy
 }: {
   tr1: number;
   tr2: number;
@@ -17,6 +18,7 @@ export const ReturnsChart = ({
   strikePrice2: number;
   strikePrice3: number;
   underlyingName: string;
+  apy: string;
 }) => {
   return (
     <div className={"mt-4 w-100"}>

@@ -9,7 +9,7 @@ import { getProduct } from "../../service";
 import { ProductDetailType, ProductSpreads, ProductStatus } from "../../types";
 import { ActivityHeader, ActivityRow } from "../../components/commons/ActivityRow";
 import Timeline from "../../components/product/Timeline";
-import { getCurrencyIcon, formatStrikePrice, formatDuration } from "../../utils/helpers";
+import { getCurrencyIcon, formatStrikePrice, formatDuration, formatApy } from "../../utils/helpers";
 import { RecapCard } from "../../components/commons/RecapCard";
 import { RecapCardMobile } from "../../components/commons/RecapCardMobile";
 import { SUPPORT_CHAIN_IDS } from "../../utils/enums";
@@ -305,7 +305,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
                 <div className={"block md:hidden"}>
-                  <RecapCard label={"Est. APY"} value={product.issuanceCycle.apy} />
+                  <RecapCard label={"Est. APY"} value={formatApy(product.issuanceCycle.apy)} />
                 </div>
 
                 <div className={"mt-[80px] flex flex-col space-y-5"}>
@@ -343,7 +343,7 @@ const ProductDetail = () => {
                     <RecapCardMobile label={"Maturity Date"} value={investment_duration} />
                     <RecapCard 
                       label="Coupon" 
-                      value={`${product.issuanceCycle.coupon / 1000000}% / WEEK`}
+                      value={`${product.issuanceCycle.coupon / 1000000}%`}
                       tooltip={product.couponTooltip}
                     />
                     
@@ -383,6 +383,7 @@ const ProductDetail = () => {
                     tr1={product.issuanceCycle.tr1}
                     tr2={product.issuanceCycle.tr2}
                     underlyingName={product.underlyingName}
+                    apy={product.issuanceCycle.apy}
                   />
                 </div>
 
@@ -411,7 +412,7 @@ const ProductDetail = () => {
                   </p>
 
                   <p>
-                    <strong>Counterparty:</strong><br/>
+                    <strong>Counterparty</strong><br/>
                     Execution of option strategies through CEXs and/or market makers introduces risks, including liquidation due to insufficient collateral or adverse market conditions, as well as risks of insolvency, default, or exchange failure.
                   </p>
 
