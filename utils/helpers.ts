@@ -59,3 +59,8 @@ export const getTxErrorMessage = (error: any): string => {
 
   return `${reason}` || "Transaction reverted in some reason.";
 };
+
+
+export const formatApy = (apy: string): string => {
+  return apy.split('-')[0];
+};

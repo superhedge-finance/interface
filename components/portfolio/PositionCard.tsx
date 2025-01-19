@@ -13,6 +13,7 @@ import { DECIMAL } from "../../utils/constants";
 import axios from "../../service/axios";
 // import { Dialog, Transition, Switch } from "@headlessui/react"
 import IconLoading from "./IconLoading";
+import { formatApy } from "../../utils/helpers";
 
 export const PositionCard = ({ position, enabled }: { position: IProduct; enabled: boolean }) => {
   const Router = useRouter();
@@ -263,7 +264,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
               </div>
             </div>
             <span className='font-medium leading-tight text-3xl text-transparent bg-primary-gradient bg-clip-text'>
-              {position.issuanceCycle.apy}
+              {formatApy(position.issuanceCycle.apy)}
             </span>
           </div>
 

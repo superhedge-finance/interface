@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { ethers } from "ethers";
 import { ProductSpreads, ProductStatus, ProductCategoryList, IProduct } from "../../types";
 import { ReturnsChart } from "../product/ReturnsChart";
-import { getCurrencyIcon, formatDuration } from "../../utils/helpers";
+import { getCurrencyIcon, formatDuration, formatApy } from "../../utils/helpers";
 import { RecapCard } from "../commons/RecapCard";
 import { RecapCardMobile } from "../commons/RecapCardMobile";
 
@@ -155,7 +155,7 @@ export default function Product({ product }: { product: IProduct }) {
           </div>
         </div>
           <h3 className='font-medium leading-tight text-3xl bg-clip-text text-transparent bg-primary-gradient'>
-            {product.issuanceCycle.apy}
+            {formatApy(product.issuanceCycle.apy)}
           </h3>
         </div>
       </div>
@@ -179,7 +179,7 @@ export default function Product({ product }: { product: IProduct }) {
         </div> */}
       </div>
       <div className={"block md:hidden"}>
-        <RecapCard label={"Est. APY %"} value={product.issuanceCycle.apy} />
+        <RecapCard label={"Est. APY %"} value={formatApy(product.issuanceCycle.apy)} />
       </div>
 
       <div>
@@ -190,6 +190,7 @@ export default function Product({ product }: { product: IProduct }) {
           tr1={product.issuanceCycle.tr1}
           tr2={product.issuanceCycle.tr2}
           underlyingName={product.underlyingName}
+          apy={product.issuanceCycle.apy}
         />
       </div>
 
@@ -212,7 +213,7 @@ export default function Product({ product }: { product: IProduct }) {
         ></RecapCardMobile>
         <RecapCard 
           label="Coupon" 
-          value={`${product.issuanceCycle.coupon / 1000000}% / WEEK`}
+          value={`${product.issuanceCycle.coupon / 1000000}%`}
           tooltip={product.couponTooltip}
           className="whitespace-nowrap"
         />

@@ -46,6 +46,7 @@ export const NFTProductCard = ({ product, lots }: { product: IProduct; lots: num
           strikePrice2={product.issuanceCycle.strikePrice2}
           strikePrice3={product.issuanceCycle.strikePrice3}
           underlyingName={product.underlyingName}
+          apy={product.issuanceCycle.apy}
         />
       </div>
 
