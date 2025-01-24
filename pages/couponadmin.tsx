@@ -28,7 +28,7 @@ const CouponAdmin = () => {
         if (!productAddress) return;
         try {
             const response = await axios.post(`products/get-token-holder-list-final?chainId=${chainId}&productAddress=${productAddress}`);
-            console.log(response.data);
+            // console.log(response.data);
             setCode(response.data);
         } catch (error) {
             console.error("Error fetching code:", error);
@@ -70,8 +70,8 @@ const CouponAdmin = () => {
             );
             
             // console.log("Original balances:", balance);
-            console.log("Address", address)
-            console.log("Updated balances:", updatedBalances);
+            // console.log("Address", address)
+            // console.log("Updated balances:", updatedBalances);
 
             const tx = await productInstance.coupon(address, updatedBalances)
             await tx.wait()

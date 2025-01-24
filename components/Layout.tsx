@@ -12,7 +12,7 @@ const Layout = ({ children }: LayoutProps) => {
     <>
       <Head>
         <title>Superhedge</title>
-        <link rel='icon' href='/favicon.ico' key='favicon' />
+        <link rel='icon' href='/fav-32.svg' key='favicon' />
       </Head>
       <main className='w-full bg-[#F7F7F7]'>
         <Header />

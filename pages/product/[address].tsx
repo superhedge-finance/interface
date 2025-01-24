@@ -130,8 +130,8 @@ const ProductDetail = () => {
   // ref code function
   useEffect(() => {
     (async () => {
-      console.log("check address");
-      console.log(accountAddress);
+      // console.log("check address");
+      // console.log(accountAddress);
       let isVisible = false;
       let isBlurred = true;
 
@@ -160,12 +160,12 @@ const ProductDetail = () => {
   };
 
   const handleSubmit = async() => {
-    console.log(inputValue)
-    console.log(address)
+    // console.log(inputValue)
+    // console.log(address)
     if(inputValue && address)
     {
       const results = await axios.post(`/refcodes/signUp?refcode=${inputValue}&address=${address}`);
-      console.log(results.data)
+      // console.log(results.data)
       if (results.data)
       {
         setIsPopupVisible(false);
@@ -305,7 +305,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
                 <div className={"block md:hidden"}>
-                  <RecapCard label={"Est. APY"} value={(product.issuanceCycle.apy)} />
+                  <RecapCard label={"Est. APY"} value={(product.issuanceCycle.apy)} tooltip={"The APY range reflects guaranteed coupons and best-case option payouts net of fees."} />
                 </div>
 
                 <div className={"mt-[80px] flex flex-col space-y-5"}>

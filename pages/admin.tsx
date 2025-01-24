@@ -50,8 +50,8 @@ const Admin = () => {
         if (!productAddress) return;
         try {
             const response = await axios.post(`/products/get-token-holder-list-final?chainId=${chainId}&productAddress=${productAddress}`);
-            console.log("fetchCoupon");
-            console.log(response.data);
+            // console.log("fetchCoupon");
+            // console.log(response.data);
             setHolderList(response.data.ownerAddresses);
             setBalanceList(response.data.balance || []);
         } catch (error) {
