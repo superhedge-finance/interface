@@ -197,7 +197,7 @@ export default function Product({ product }: { product: IProduct }) {
 
       <div className={"flex-col md:flex-row md:flex space-y-3 md:space-y-0 md:space-x-2 items-center justify-between mt-3"}>
         <RecapCardMobile 
-          label={"Time to Issuance"} 
+          label={"Time until Live"} 
           value={
             <Countdown 
               intervalDelay={60000} 
