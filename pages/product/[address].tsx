@@ -319,7 +319,7 @@ const ProductDetail = () => {
                     and integrates a long Call-Spread options strategy with {product.underlyingName}/USD underlying. Fixed-rate coupons are distributed to users according to the predefined schedule. At maturity, only the principal deposits auto-roll into pre-deposits for the next epoch. 100% Principal-Protection of {product.currencyName} deposits is guaranteed only at maturity.
                   </ParaLight16> */}
                   <p>
-                    This N-Vault deploys {product.currencyName} deposits into{" "}
+                    This N-Vault deploys {product.currencyName} deposits into Pendle&apos;s {" "}
                     <a href={product.vaultStrategy} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
                       PT {product.currencyName} Market
                     </a>{" "}
@@ -332,7 +332,7 @@ const ProductDetail = () => {
                   <div
                     className={"md:flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 space-y-3 md:space-y-0 mt-5"}
                   >
-                    <RecapCardMobile label={"Time to Issuance"} value={
+                    <RecapCardMobile label={"Time until Live"} value={
                       <Countdown 
                         intervalDelay={60000} 
                         date={Date.now() + ((product.issuanceCycle.issuanceDate * 1000) - Date.now())} 
@@ -361,7 +361,7 @@ const ProductDetail = () => {
                   >
                     <RecapCard 
                       label={"Block Size"} 
-                      value={`${(product.issuanceCycle.optionMinOrderSize * product.issuanceCycle.underlyingSpotRef) / 10} ${product.currencyName}`} 
+                      value={`${((product.issuanceCycle.optionMinOrderSize * product.issuanceCycle.underlyingSpotRef) / 10).toLocaleString()} ${product.currencyName}`} 
                     />
                     <RecapCard 
                       label={"Strike 1 price"} 
