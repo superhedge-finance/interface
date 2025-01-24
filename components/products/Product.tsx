@@ -155,7 +155,8 @@ export default function Product({ product }: { product: IProduct }) {
           </div>
         </div>
           <h3 className='font-medium leading-tight text-3xl bg-clip-text text-transparent bg-primary-gradient'>
-            {formatApy(product.issuanceCycle.apy)}
+            {/* {formatApy(product.issuanceCycle.apy)} */}
+            {product.issuanceCycle.apy}
           </h3>
         </div>
       </div>
