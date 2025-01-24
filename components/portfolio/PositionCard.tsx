@@ -264,7 +264,8 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
               </div>
             </div>
             <span className='font-medium leading-tight text-3xl text-transparent bg-primary-gradient bg-clip-text'>
-              {formatApy(position.issuanceCycle.apy)}
+              {/* {formatApy(position.issuanceCycle.apy)} */}
+              {position.issuanceCycle.apy}
             </span>
           </div>
 

@@ -32,8 +32,8 @@ export const ReturnsChart = ({
             {
               data:
                 strikePrice3 > 0
-                  ? [tr2 / 100, tr2 / 100, tr1 / 100, tr2 / 100, tr2 / 100]
-                  : [tr2 / 100, tr2 / 100, tr2 / 100, tr2 / 100, tr1 / 100, tr1 / 100, tr1 / 100, tr1 / 100],
+                  ? [tr2 , tr2 , tr1 , tr2 , tr2 ]
+                  : [tr2 , tr2 , tr2 , tr2 , tr1 , tr1 , tr1 , tr1 ],
               borderColor: "#11CB79",
               fill: false,
               pointStyle: false
@@ -57,10 +57,10 @@ export const ReturnsChart = ({
           },
           scales: {
             y: {
-              min: tr1 > tr2 ? tr2 / 100 : tr1 / 100,
-              max: tr1 > tr2 ? tr1 / 100 : tr2 / 100,
+              min: tr1 > tr2 ? tr2  : tr1 ,
+              max: tr1 > tr2 ? tr1  : tr2 ,
               ticks: {
-                stepSize: (Math.abs(tr1 - tr2)) / 100
+                stepSize: (Math.abs(tr1 - tr2)) 
               }
             },
             x: {

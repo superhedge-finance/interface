@@ -311,13 +311,20 @@ const ProductDetail = () => {
                 <div className={"mt-[80px] flex flex-col space-y-5"}>
                   <TitleH3>Strategy</TitleH3>
                   {/* <ParaLight16>{product.vaultStrategy}</ParaLight16> */}
-                  <ParaLight16>
+                  {/* <ParaLight16>
                     This N-Vault deploys {product.currencyName} deposits into{" "}
                     <a href={product.vaultStrategy} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
                       PT {product.currencyName} Market
                     </a>{" "}
                     and integrates a long Call-Spread options strategy with {product.underlyingName}/USD underlying. Fixed-rate coupons are distributed to users according to the predefined schedule. At maturity, only the principal deposits auto-roll into pre-deposits for the next epoch. 100% Principal-Protection of {product.currencyName} deposits is guaranteed only at maturity.
-                  </ParaLight16>
+                  </ParaLight16> */}
+                  <p>
+                    This N-Vault deploys {product.currencyName} deposits into{" "}
+                    <a href={product.vaultStrategy} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
+                      PT {product.currencyName} Market
+                    </a>{" "}
+                    and integrates a long Call-Spread options strategy with {product.underlyingName}/USD underlying. Fixed-rate coupons are distributed to users according to the predefined schedule. At maturity, only the principal deposits auto-roll into pre-deposits for the next epoch. 100% Principal-Protection of {product.currencyName} deposits is guaranteed only at maturity.
+                  </p>
                 </div>
 
                 <div className={"flex flex-col mt-[80px]"}>
