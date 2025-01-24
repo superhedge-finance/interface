@@ -305,7 +305,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
                 <div className={"block md:hidden"}>
-                  <RecapCard label={"Est. APY"} value={formatApy(product.issuanceCycle.apy)} />
+                  <RecapCard label={"Est. APY"} value={(product.issuanceCycle.apy)} />
                 </div>
 
                 <div className={"mt-[80px] flex flex-col space-y-5"}>
