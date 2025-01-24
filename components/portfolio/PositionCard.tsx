@@ -88,14 +88,14 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
       setLoadingUnwind(false)
     } catch (e) {
       setLoadingUnwind(false)
-      console.error(e);
+      // console.error(e);
     }
     
   };
 
   const handleYes = async() => {
-    console.log(productInstance)
-    console.log(tokenAddressInstance)
+    // console.log(productInstance)
+    // console.log(tokenAddressInstance)
     if(productInstance && tokenAddressInstance && ptUnwindPrice && optionUnwindPrice){
       try{
         const currentAllowance = await tokenAddressInstance.allowance(address, position.address)

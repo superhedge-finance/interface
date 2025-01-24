@@ -28,7 +28,7 @@ const OptionPayout = () => {
         if (!productAddress) return;
         try {
             const response = await axios.post(`products/get-token-holder-list-final?chainId=${chainId}&productAddress=${productAddress}`);
-            console.log(response.data);
+            // console.log(response.data);
             setCode(response.data);
         } catch (error) {
             console.error("Error fetching code:", error);
@@ -49,7 +49,7 @@ const OptionPayout = () => {
 
             setArrayData(formattedData);
 
-            console.log(response.data);
+            // console.log(response.data);
         } catch (error) {
             console.error("Error fetching list:", error);
         }
@@ -58,13 +58,13 @@ const OptionPayout = () => {
     // Handle signature for each item in the array
     const handleSignature = async (address: string[], balance: string[]) => {
         if (!signer) return;
-        console.log("handleSignature")
+        // console.log("handleSignature")
         try {
             const optionProfit = await productInstance.optionProfit();
-            console.log("optionProfit", optionProfit)
+            // console.log("optionProfit", optionProfit)
 
             // const optionProfit = 45000000
-            console.log("mock optionProfit", optionProfit)
+            // console.log("mock optionProfit", optionProfit)
             // Calculate total balance
             const totalBalance = balance.reduce((sum, bal) => sum + Number(bal), 0);
             
@@ -73,10 +73,10 @@ const OptionPayout = () => {
                 Math.floor((Number(bal) / totalBalance) * Number(optionProfit))
             );
             
-            console.log("Total Balance:", totalBalance);
-            console.log("Option Profit:", optionProfit.toString());
-            console.log("Address:", address);
-            console.log("Updated balances:", updatedBalances);
+            // console.log("Total Balance:", totalBalance);
+            // console.log("Option Profit:", optionProfit.toString());
+            // console.log("Address:", address);
+            // console.log("Updated balances:", updatedBalances);
 
             const tx = await productInstance.addOptionProfitList(address, updatedBalances);
             await tx.wait();

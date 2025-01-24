@@ -40,7 +40,6 @@ export default function Product({ product }: { product: IProduct }) {
   }, [product]);
 
   const { currency1, currency2 } = getCurrencyIcon(product.underlying);
-  console.log(product);
   const issuance_date_renderer = ({
     days,
     hours,
@@ -91,7 +90,7 @@ export default function Product({ product }: { product: IProduct }) {
     }
     return "N/A";
   }, [product]);
-
+ 
   return (
     <div
       className='flex flex-col p-5 cursor-pointer m-[15px] rounded-[12px] bg-white w-[340px] sm:w-[470px] drop-shadow hover:outline outline-2 outline-[#11CB79]'
@@ -179,8 +178,9 @@ export default function Product({ product }: { product: IProduct }) {
           <span className='text-sm text-gray-700'>USDC {Number(product.maxCapacity.toString()).toLocaleString()}</span>
         </div> */}
       </div>
+      
       <div className={"block md:hidden"}>
-        <RecapCard label={"Est. APY %"} value={formatApy(product.issuanceCycle.apy)} />
+        <RecapCard label={"Est. APY %"} value={product.issuanceCycle.apy} tooltip={"The APY range reflects guaranteed coupons and best-case option payouts net of fees."} />
       </div>
 
       <div>

@@ -31,7 +31,7 @@ export default function ProductList() {
   }, [products, category]);
 
   const chainId = useMemo(() => {
-    console.log(address)
+    // console.log(address)
     if (chain) return chain.id;
     return SUPPORT_CHAIN_IDS.ETH;
   }, [chain]);
@@ -53,8 +53,8 @@ export default function ProductList() {
 
   useEffect(() => {
     (async () => {
-      console.log("check address");
-      console.log(address);
+      // console.log("check address");
+      // console.log(address);
       let isVisible = false;
       let isBlurred = true;
 

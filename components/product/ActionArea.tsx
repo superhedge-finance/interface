@@ -81,7 +81,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       toast.error(getTxErrorMessage(e))
       console.log(`Error while approve and deposit: ${e}`)
     } finally {
-      console.log("Finally!")
+      // console.log("Finally!")
     }
   }
 
@@ -91,18 +91,18 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         if (status === 1) {
           if (isPrincipalSelected && principalBalance > 0) {
             // approve token
-            console.log("Approve token")
+            // console.log("Approve token")
             const decimal = await tokenAddressInstance.decimals()
             const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toFixed(decimal), decimal);
-            console.log(requestBalance)
+            // console.log(requestBalance)
 
             const _currentCapacity = await productInstance.currentCapacity()
-            console.log(_currentCapacity)
+            // console.log(_currentCapacity)
             if (withdrawableBalance + Number(ethers.utils.formatUnits(_currentCapacity, decimal)) > Number(product.maxCapacity)) {
               return toast.error("Your withdraw results in excess of max capacity.")
             }
             const currentAllowance = await tokenAddressInstance.allowance(address, productAddress)
-            console.log(currentAllowance)
+            // console.log(currentAllowance)
             if (currentAllowance.lt(requestBalance)) {
               const tx = await tokenAddressInstance.approve(productAddress, requestBalance)
               await setWithdrawStatus(WITHDRAW_STATUS.APPROVING)
@@ -110,7 +110,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             }
             // withdraw
             await setWithdrawStatus(WITHDRAW_STATUS.WITHDRAW)
-            console.log("withdrawPrincipal")
+            // console.log("withdrawPrincipal")
             const withdrawTx = await productInstance.withdrawPrincipal()
             await withdrawTx.wait()
           }
@@ -140,7 +140,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         await setWithdrawStatus(WITHDRAW_STATUS.NONE)
         console.log(e)
       } finally {
-        console.log("Finally!")
+        // console.log("Finally!")
         // Reset selection states after withdrawal
         setIsCouponSelected(false);
         setIsOptionSelected(false);
@@ -211,8 +211,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     (async () => {
       if (signer && productAddress && address) {
         try {
-          console.log("productAddress")
-          console.log(productAddress)
+          // console.log("productAddress")
+          // console.log(productAddress)
           const _productInstance = new ethers.Contract(productAddress, ProductABI, signer)
           setProductInstance(_productInstance)
           const _status = await _productInstance.status()
@@ -316,7 +316,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
         {!address && (
           <div className={"text-[#161717] text-[18px] leading-[24px] px-10 text-center"}>
-            Please Connect your Wallet to have access to our Products.
+            Please connect your wallet for access.
           </div>
         )}
         
