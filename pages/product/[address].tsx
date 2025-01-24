@@ -425,7 +425,7 @@ const ProductDetail = () => {
 
                   <p>
                     <strong>Market</strong><br/>
-                    Fluctuations in the market price of the options strategy and Pendle Finance&apos;s Principal-Token, particularly before maturity, can impact returns. Users accepts that early withdrawals may result in receiving less than their initial principal deposits.
+                    Fluctuations in the market price of the options strategy and Pendle Finance&apos;s Principal-Token can impact returns. User accepts that in the indicative phase, parameters and est. APY may be updated ad hoc. Users accepts that early withdrawals may result in receiving less than their initial deposits.
                   </p>
 
                   <p>
