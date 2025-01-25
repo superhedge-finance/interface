@@ -60,14 +60,14 @@ export default function ProductList() {
 
       if (address) {
         try {
-          const results = await axios.post(`refcodes/check-whitelist?address=${address}`);
-          if (results.data) {
-            isVisible = false;
-            isBlurred = false;
-          }
-          else{
-            isVisible = true;
-          }
+          // const results = await axios.post(`refcodes/check-whitelist?address=${address}`);
+          // if (results.data) {
+          isVisible = false;
+          isBlurred = false;
+          // }
+          // else{
+          //   isVisible = true;
+          // }
         } catch (error) {
           console.error("Error checking whitelist:", error);
         }
@@ -83,23 +83,23 @@ export default function ProductList() {
   };
 
   const handleSubmit = async() => {
-    console.log(inputValue)
-    console.log(address)
-    if(inputValue && address)
-    {
-      const results = await axios.post(`/refcodes/signUp?refcode=${inputValue}&address=${address}`);
-      console.log(results.data)
-      if (results.data)
-      {
-        setIsPopupVisible(false);
-        setIsBlurred(false);
-        setWarningMessage("");
-        setInputValue("");
-      }
-      else {
-        setWarningMessage("Wrong Code");
-      }
-    }
+    // console.log(inputValue)
+    // console.log(address)
+    // if(inputValue && address)
+    // {
+    //   const results = await axios.post(`/refcodes/signUp?refcode=${inputValue}&address=${address}`);
+    //   // console.log(results.data)
+    //   if (results.data)
+    //   {
+    //     setIsPopupVisible(false);
+    //     setIsBlurred(false);
+    //     setWarningMessage("");
+    //     setInputValue("");
+    //   }
+    //   else {
+    //     setWarningMessage("Wrong Code");
+    //   }
+    // }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

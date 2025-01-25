@@ -14,8 +14,8 @@ const RefCodeHandler: React.FC<RefCodeHandlerProps> = ({ setIsPopupVisible, setI
 
   useEffect(() => {
     (async () => {
-      console.log("check address");
-      console.log(address);
+      // console.log("check address");
+      // console.log(address);
       let isVisible = true;
       let isBlurred = true;
 
@@ -41,11 +41,11 @@ const RefCodeHandler: React.FC<RefCodeHandlerProps> = ({ setIsPopupVisible, setI
   };
 
   const handleSubmit = async () => {
-    console.log(inputValue);
-    console.log(address);
+    // console.log(inputValue);
+    // console.log(address);
     if (inputValue && address) {
       const results = await axios.post(`/refcodes/signUp?refcode=${inputValue}&address=${address}`);
-      console.log(results.data);
+      // console.log(results.data);
       if (results.data) {
         setIsPopupVisible(false);
         setIsBlurred(false);

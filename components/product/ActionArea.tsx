@@ -61,19 +61,24 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     try {
       if (currencyInstance && productInstance) {
         const decimal = await currencyInstance.decimals()
-        const requestBalance = ethers.utils.parseUnits(depositAmount.toString(), decimal)
+        
+        // Convert to string with full precision before parsing
+        const depositAmountStr = depositAmount.toFixed(decimal) // Preserve all decimal places
+        const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal)
+
         const _currentCapacity = await productInstance.currentCapacity()
         if (depositAmount + Number(ethers.utils.formatUnits(_currentCapacity, decimal)) > Number(product.maxCapacity)) {
           return toast.error("Your deposit results in excess of max capacity.")
         }
+
         const currentAllowance = await currencyInstance.allowance(address, productAddress)
         if (currentAllowance.lt(requestBalance)) {
           const tx = await currencyInstance.approve(productAddress, requestBalance)
           await setDepositStatus(DEPOSIT_STATUS.APPROVING)
           await tx.wait()
         }
+        
         await setDepositStatus(DEPOSIT_STATUS.DEPOSIT)
-        // const depositTx = await productInstance.deposit(requestBalance, principalBalance > 0 && enabled == true)
         const depositTx = await productInstance.deposit(requestBalance)
         await depositTx.wait()
         await setDepositStatus(DEPOSIT_STATUS.DONE)
@@ -81,8 +86,6 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     } catch (e) {
       toast.error(getTxErrorMessage(e))
       console.log(`Error while approve and deposit: ${e}`)
-    } finally {
-      // console.log("Finally!")
     }
   }
 
@@ -594,7 +597,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                             <Image src={"/icons/external.svg"} alt={"external"} width={20} height={20} />
                           </a>
                         </div>
-                        <p className='text-[16px] text-gray-500 mt-7 flex flex-col items-center'>You&#39;ll receive this ERC20 token representing your deposit</p>
+                        {/* <p className='text-[16px] text-gray-500 mt-7 flex flex-col items-center'>You&#39;ll receive this ERC20 token representing your deposit</p> */}
                         {/* <img className={"mt-8"} src={imageURL || "/products/default_nft_image.png"} alt={"nft image"} /> */}
                       </>
                     )}
@@ -614,7 +617,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                         setDepositStatus(DEPOSIT_STATUS.NONE)
                       }}
                     >
-                      CANCEL
+                      DONE
                     </button>
                     {depositStatus !== DEPOSIT_STATUS.DONE && (
                       <button
@@ -677,14 +680,14 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               >
                 <Dialog.Panel className='w-full max-w-[800px] transform overflow-hidden rounded-2xl bg-white py-[60px] px-[160px] text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title className='text-[32px] font-medium leading-[40px] text-[#161717] text-center'>
-                    {withdrawStatus <= WITHDRAW_STATUS.APPROVING ? "Step 1/2: Approve " + product.currencyName + " spend from your wallet" : "Step 2/2: Withdraw " + product.currencyName}
+                    {withdrawStatus <= WITHDRAW_STATUS.APPROVING ? "Step 1/2: Approve " + "NT Token" + " spend from your wallet" : "Step 2/2: Withdraw " + product.currencyName}
                   </Dialog.Title>
                   <div className='mt-7 flex flex-col items-center'>
 
 
                     {withdrawStatus === WITHDRAW_STATUS.DONE ? (
                       <>
-                        <div>You successfully withdrawed your Deposit!</div>
+                        <div>Your withdrawal is successful.</div>
                       </>
                     ) : (
                       <>
@@ -720,7 +723,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
                       }}
                     >
-                      OK
+                      DONE
                     </button>
                     {withdrawStatus !== WITHDRAW_STATUS.DONE && (
                       <button
