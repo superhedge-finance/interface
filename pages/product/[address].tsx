@@ -119,9 +119,12 @@ const ProductDetail = () => {
 
   useEffect(() => {
     setIsLoading(true);
+
     getProduct(address as string, chainId)
       .then((product) => {
         setProduct(product);
+        console.log("product")
+        console.log(product)
       })
       .finally(() => setIsLoading(false));
   }, [address, chainId]);
@@ -132,23 +135,23 @@ const ProductDetail = () => {
     (async () => {
       // console.log("check address");
       // console.log(accountAddress);
-      let isVisible = false;
-      let isBlurred = true;
+      const isVisible = false;
+      const isBlurred = true;
 
-      if (accountAddress) {
-        try {
-          const results = await axios.post(`refcodes/check-whitelist?address=${accountAddress}`);
-          if (results.data) {
-            isVisible = false;
-            isBlurred = false;
-          }
-          else{
-            isVisible = true;
-          }
-        } catch (error) {
-          console.error("Error checking whitelist:", error);
-        }
-      }
+      // if (accountAddress) {
+      //   try {
+      //     const results = await axios.post(`refcodes/check-whitelist?address=${accountAddress}`);
+      //     if (results.data) {
+      //       isVisible = false;
+      //       isBlurred = false;
+      //     }
+      //     else{
+      //       isVisible = true;
+      //     }
+      //   } catch (error) {
+      //     console.error("Error checking whitelist:", error);
+      //   }
+      // }
 
       setIsPopupVisible(isVisible);
       setIsBlurred(isBlurred);
