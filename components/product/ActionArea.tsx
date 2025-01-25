@@ -73,7 +73,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           await tx.wait()
         }
         await setDepositStatus(DEPOSIT_STATUS.DEPOSIT)
-        const depositTx = await productInstance.deposit(requestBalance, principalBalance > 0 && enabled == true)
+        // const depositTx = await productInstance.deposit(requestBalance, principalBalance > 0 && enabled == true)
+        const depositTx = await productInstance.deposit(requestBalance)
         await depositTx.wait()
         await setDepositStatus(DEPOSIT_STATUS.DONE)
       }
@@ -228,20 +229,20 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           setTokenAddressInstance(_tokenAddressInstance)
           // const _tokenDecimals = await _tokenAddressInstance.decimals()
           const _tokenBalance = await _tokenAddressInstance.balanceOf(address)
-          console.log(Number(ethers.utils.formatUnits(_tokenBalance,0)))
+          // console.log(Number(ethers.utils.formatUnits(_tokenBalance,0)))
 
           // PT Token
           const _ptAddress = await _productInstance.PT()
           const _ptAddressInstance = new ethers.Contract(_ptAddress, PTTokenABI, signer)
           const _ptBalance = await _ptAddressInstance.balanceOf(productAddress)
-          console.log(Number(ethers.utils.formatUnits(_ptBalance,0)))
+          // console.log(Number(ethers.utils.formatUnits(_ptBalance,0)))
           const _couponBalance = await _productInstance.couponBalance(address)
           setCouponBalance(Number(ethers.utils.formatUnits(_couponBalance, _decimals)))
           const _optionBalance = await _productInstance.optionBalance(address)
           setOptionBalance(Number(ethers.utils.formatUnits(_optionBalance, _decimals)))
           const _principalBalance = await _productInstance.principalBalance(address)
-          console.log("_principalBalance")
-          console.log(_principalBalance)
+          // console.log("_principalBalance")
+          // console.log(_principalBalance)
           setPrincipalBalance(Number(ethers.utils.formatUnits(_principalBalance, _decimals)))
           // wallet balance
           const currencyBalance = await _currencyInstance.balanceOf(address)

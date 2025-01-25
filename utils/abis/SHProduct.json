@@ -206,6 +206,31 @@
 		{
 		  "indexed": true,
 		  "internalType": "address",
+		  "name": "token",
+		  "type": "address"
+		},
+		{
+		  "indexed": true,
+		  "internalType": "address",
+		  "name": "receiver",
+		  "type": "address"
+		},
+		{
+		  "indexed": false,
+		  "internalType": "uint256",
+		  "name": "amount",
+		  "type": "uint256"
+		}
+	  ],
+	  "name": "Recover",
+	  "type": "event"
+	},
+	{
+	  "anonymous": false,
+	  "inputs": [
+		{
+		  "indexed": true,
+		  "internalType": "address",
 		  "name": "from",
 		  "type": "address"
 		},
@@ -349,9 +374,9 @@
 		},
 		{
 		  "indexed": false,
-		  "internalType": "uint8",
+		  "internalType": "uint256",
 		  "name": "underlyingSpotRef",
-		  "type": "uint8"
+		  "type": "uint256"
 		}
 	  ],
 	  "name": "UpdateStructure",
@@ -649,11 +674,6 @@
 		  "internalType": "uint256",
 		  "name": "_amount",
 		  "type": "uint256"
-		},
-		{
-		  "internalType": "bool",
-		  "name": "_type",
-		  "type": "bool"
 		}
 	  ],
 	  "name": "deposit",
@@ -800,9 +820,9 @@
 		{
 		  "components": [
 			{
-			  "internalType": "uint8",
+			  "internalType": "uint256",
 			  "name": "coupon",
-			  "type": "uint8"
+			  "type": "uint256"
 			},
 			{
 			  "internalType": "uint256",
@@ -850,14 +870,14 @@
 			  "type": "string"
 			},
 			{
-			  "internalType": "uint8",
+			  "internalType": "uint256",
 			  "name": "underlyingSpotRef",
-			  "type": "uint8"
+			  "type": "uint256"
 			},
 			{
-			  "internalType": "uint8",
+			  "internalType": "uint256",
 			  "name": "optionMinOrderSize",
-			  "type": "uint8"
+			  "type": "uint256"
 			},
 			{
 			  "internalType": "string",
@@ -925,9 +945,9 @@
 	  "name": "issuanceCycle",
 	  "outputs": [
 		{
-		  "internalType": "uint8",
+		  "internalType": "uint256",
 		  "name": "coupon",
-		  "type": "uint8"
+		  "type": "uint256"
 		},
 		{
 		  "internalType": "uint256",
@@ -975,14 +995,14 @@
 		  "type": "string"
 		},
 		{
-		  "internalType": "uint8",
+		  "internalType": "uint256",
 		  "name": "underlyingSpotRef",
-		  "type": "uint8"
+		  "type": "uint256"
 		},
 		{
-		  "internalType": "uint8",
+		  "internalType": "uint256",
 		  "name": "optionMinOrderSize",
-		  "type": "uint8"
+		  "type": "uint256"
 		},
 		{
 		  "internalType": "string",
@@ -1306,9 +1326,9 @@
 	{
 	  "inputs": [
 		{
-		  "internalType": "uint8",
+		  "internalType": "uint256",
 		  "name": "_newCoupon",
-		  "type": "uint8"
+		  "type": "uint256"
 		}
 	  ],
 	  "name": "updateCoupon",
@@ -1326,9 +1346,9 @@
 		{
 		  "components": [
 			{
-			  "internalType": "uint8",
+			  "internalType": "uint256",
 			  "name": "coupon",
-			  "type": "uint8"
+			  "type": "uint256"
 			},
 			{
 			  "internalType": "uint256",
@@ -1376,14 +1396,14 @@
 			  "type": "string"
 			},
 			{
-			  "internalType": "uint8",
+			  "internalType": "uint256",
 			  "name": "underlyingSpotRef",
-			  "type": "uint8"
+			  "type": "uint256"
 			},
 			{
-			  "internalType": "uint8",
+			  "internalType": "uint256",
 			  "name": "optionMinOrderSize",
-			  "type": "uint8"
+			  "type": "uint256"
 			},
 			{
 			  "internalType": "string",
@@ -1454,9 +1474,9 @@
 		  "type": "string"
 		},
 		{
-		  "internalType": "uint8",
+		  "internalType": "uint256",
 		  "name": "_underlyingSpotRef",
-		  "type": "uint8"
+		  "type": "uint256"
 		}
 	  ],
 	  "name": "updateStructure",

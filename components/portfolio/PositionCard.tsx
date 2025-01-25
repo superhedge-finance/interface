@@ -104,21 +104,21 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
         // console.log(ptUnwindPrice** 10**(DECIMAL[chainId])
         // console.log(Math.round(early_withdraw_balance_user))
         if (currentAllowance.lt(ptUnwindPrice** 10**(DECIMAL[chainId]))) {
-          console.log("approve")
+          // console.log("approve")
           const approve_tx = await tokenAddressInstance.approve(position.address, Math.round(early_withdraw_balance_user))
           await approve_tx.wait()
         }
-        console.log("earlyWithdraw")
-        console.log(blocksToWithdraw)
+        // console.log("earlyWithdraw")
+        // console.log(blocksToWithdraw)
         const tx = await productInstance.earlyWithdraw(blocksToWithdraw)
         await tx.wait()
-        console.log(tx)
+        // console.log(tx)
         const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH)
         const receipt = await provider.getTransactionReceipt(tx.hash);
         if (receipt && receipt.status === 1) {
-          console.log("Transaction UI was successful");
-          console.log(optionUnwindPrice * 10 ** (DECIMAL[chainId]))
-          console.log(ptUnwindPrice * 10 **(DECIMAL[chainId]))
+          // console.log("Transaction UI was successful");
+          // console.log(optionUnwindPrice * 10 ** (DECIMAL[chainId]))
+          // console.log(ptUnwindPrice * 10 **(DECIMAL[chainId]))
 
           const data = {
             "chainId": chainId,
@@ -128,7 +128,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             "amountPtUnwindPrice": Math.round(ptUnwindPrice * 10 **(DECIMAL[chainId])),
             "amountOptionUnwindPrice": Math.round(optionUnwindPrice * 10 ** (DECIMAL[chainId]))
           }
-          console.log(data)
+          // console.log(data)
           const result = await axios.post('products/update-withdraw-request', data, {
             headers: {
               'Content-Type': 'application/json'},})

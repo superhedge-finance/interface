@@ -54,8 +54,8 @@ export const PortfolioTransactions = ({ order }: { order: number }) => {
         // fetch histories
         const histories = await getHistory(address, order, chainId);
         setHistories(histories);
-        console.log("histories");
-        console.log(histories);
+        // console.log("histories");
+        // console.log(histories);
       }
     })();
   }, [address, order, chainId]);
