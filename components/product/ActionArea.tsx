@@ -193,7 +193,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       return "Unavailable"
     }
     if (principalBalance > 0) {
-      return `TOP-UP ${depositAmount.toLocaleString()} ${product.currencyName}`
+      return `DEPOSIT ${depositAmount.toLocaleString()} ${product.currencyName}`
     }
     return `DEPOSIT ${depositAmount.toLocaleString()} ${product.currencyName}`
   }, [principalBalance, status, depositAmount])
