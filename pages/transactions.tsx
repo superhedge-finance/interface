@@ -13,6 +13,7 @@ interface Transaction {
     timestamp: string;
     status?: string;
     txHash?: string;
+    decimals?: number;
 }
 
 const TRANSACTION_TYPES = [
@@ -51,10 +52,12 @@ const TransactionHistory = () => {
                     type: transaction.type,
                     withdrawType: transaction.withdrawType,
                     eventName: transaction.eventName,
-                    amount: parseFloat(transaction.amountInDecimal).toFixed(2),
-                    currency: "USDC", // Assuming USDC, adjust if needed
+                    // amount: parseFloat(transaction.amountInDecimal).toFixed(2),
+                    amount: transaction.amountDecimal,
+                    currency: transaction.tokenSymbol, // Assuming USDC, adjust if needed
                     timestamp: transaction.eventTime,
-                    txHash: transaction.txHash
+                    txHash: transaction.txHash,
+                    decimals: transaction.decimals
                 }))
             }));
             setTransactions(data);
@@ -194,11 +197,11 @@ const TransactionHistory = () => {
                                 </div>
                                 <div className="flex justify-start items-center space-x-4 flex-1">
                                     <div className="flex items-center justify-center ">
-                                        <img src="/currency/usdc.svg" alt="USDC" className="w-4 h-4 mr-2" />
+                                        <img src={`/currency/${transaction.currency.toLowerCase()}.svg`} alt="USDC" className="w-4 h-4 mr-2" />
                                         <span className="font-medium">
                                             {transaction.amount == 0 ? "Admin" : 
                                                 `${transaction.eventName.includes("Deposit") ? "+ " : "- "} 
-                                                ${transaction.amount / 10 ** 6} ${transaction.currency}`}
+                                                ${(transaction.amount / 10 ** transaction.decimals).toFixed(2)} ${transaction.currency}`}
                                         </span>
                                     </div>
                                 </div>

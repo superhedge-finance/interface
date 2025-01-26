@@ -326,7 +326,10 @@ const ProductDetail = () => {
                     <a href={product.vaultStrategy} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
                       PT {product.currencyName} Market
                     </a>{" "}
-                    and integrates a long Call-Spread options strategy with {product.underlyingName}/USD underlying. Fixed-rate coupons are distributed to users according to the predefined schedule. At maturity, only the principal deposits auto-roll into pre-deposits for the next epoch. 100% Principal-Protection of {product.currencyName} deposits is guaranteed only at maturity.
+                    and integrates a long “out-of-the-money” call-spread options strategy based on {product.underlyingName}/USD underlying.
+                  </p>
+                  <p>
+                  Designed for users with a bullish view on {product.underlyingName}, the vault distributes fixed-rate coupons on a predefined schedule. At maturity, only the principal deposits are automatically rolled over into pre-deposits for the next epoch. 100% Principal-Protection of {product.currencyName} deposits is ensured only at maturity. Early withdrawals are permitted, subject to the minimum batch size.
                   </p>
                 </div>
 
