@@ -370,8 +370,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                   <Image src={"/miniUSDC.svg"} alt={"miniUSDC"} width={20} height={20} />
                   <span className={"ml-2"}>{(pricePerLot * lots).toLocaleString()} {product.currencyName}</span>
                   <span 
-                    className={"ml-2 text-[#828A93] cursor-pointer"}
-                    onClick={() => setLots(maxLots)}
+                    className={`ml-2 text-[#828A93] cursor-pointer ${walletBalance === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={() => walletBalance > 0 && setLots(maxLots)}
                   >
                     MAX
                   </span>
@@ -415,7 +415,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             </div>
 
             <div className={`${expand ? "" : "hidden"} md:block mt-5`}>
-              <PrimaryButton label={depositButtonLabel} disabled={status !== 1} onClick={() => setIsOpen(true)} />
+              <PrimaryButton label={depositButtonLabel} disabled={status !== 1 || walletBalance === 0} onClick={() => setIsOpen(true)} />
             </div>
 
             {!expand && (
