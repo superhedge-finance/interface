@@ -71,7 +71,7 @@ export default function WalletConnect({ isMobile }: { isMobile: boolean}) {
                     <Menu.Button as={"div"} className={"flex-1 text-center"}>
                       <div
                         className={
-                          "text-[#F8F6F5] uppercase text-lg md:text-[16px] font-medium bg-[#161717] border-[1px] border-[#CFD1D3] rounded-[8px] cursor-pointer py-[10px] px-6"
+                          "text-[#F8F6F5] uppercase text-lg md:text-[16px] font-medium bg-[#161717] border-[1px] border-[#CFD1D3] rounded-[8px] cursor-pointer py-[10px] px-2"
                         }
                       >
                         {account.displayName}
