@@ -25,7 +25,8 @@ export default function Product({ product }: { product: IProduct }) {
   }, [chain]);
 
   const capacity = useMemo(() => {
-    return Number(ethers.utils.formatUnits(product.currentCapacity, DECIMAL[chainId]));
+    // return Number(ethers.utils.formatUnits(product.currentCapacity, DECIMAL[chainId]));
+    return Math.round((Number(product.currentCapacity) / 10 ** DECIMAL[chainId]));
   }, [product, chainId]);
 
   const categoryIndex = useMemo(() => {
