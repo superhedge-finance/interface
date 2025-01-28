@@ -62,18 +62,18 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       if (currencyInstance && productInstance) {
         const decimal = await currencyInstance.decimals()
         
-        // Convert to string with full precision before parsing
-        const depositAmountStr = depositAmount.toFixed(decimal) // Preserve all decimal places
-        const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal)
 
+        const depositAmountStr = depositAmount.toFixed(decimal) 
+        const approveAmountStr = (depositAmount + depositAmount * 0.0000005).toFixed(decimal)
+        const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal)
+        const approveBalance = ethers.utils.parseUnits(approveAmountStr, decimal)
         const _currentCapacity = await productInstance.currentCapacity()
         if (depositAmount + Number(ethers.utils.formatUnits(_currentCapacity, decimal)) > Number(product.maxCapacity)) {
           return toast.error("Your deposit results in excess of max capacity.")
         }
-
         const currentAllowance = await currencyInstance.allowance(address, productAddress)
         if (currentAllowance.lt(requestBalance)) {
-          const tx = await currencyInstance.approve(productAddress, requestBalance)
+          const tx = await currencyInstance.approve(productAddress, approveBalance)
           await setDepositStatus(DEPOSIT_STATUS.APPROVING)
           await tx.wait()
         }
