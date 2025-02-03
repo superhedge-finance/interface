@@ -2,7 +2,8 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className='hidden md:block bg-blacknew-100 px-10 py-[20px] md:py-[35px] rounded-tl-[12px] rounded-tr-[12px]'>
+    // <footer className='hidden md:block bg-blacknew-100 px-10 py-[20px] md:py-[35px] rounded-tl-[12px] rounded-tr-[12px]'>
+    <footer className='bg-blacknew-100 px-10 py-[20px] md:py-[35px] rounded-tl-[12px] rounded-tr-[12px]'>
       <div className='container mx-auto flex flex-col md:flex-row items-center justify-between h-full'>
         
         <Link href='/' className='flex items-center pt-1.5 w-[320px]'>
