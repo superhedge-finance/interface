@@ -9,7 +9,8 @@ export default function Footer() {
         <Link href='/' className='flex items-center pt-1.5 w-[320px]'>
           <img src={"/icons/logo.svg"} alt={"logo"} />
         </Link>
-        <div className='flex-1 flex justify-center hidden w-full lg:flex lg:w-auto'>
+        {/* <div className='flex-1 flex justify-center hidden w-full lg:flex lg:w-auto'> */}
+        <div className='flex-1 flex justify-center w-full lg:flex lg:w-auto'>
           <ul className='w-[400px] uppercase flex flex-col p-4 mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-base md:font-medium bg-transparent'>
             <li>
               <Link href='https://docs.superhedge.com/' target="_blank" className='block p-0 hover:text-white text-[#f8f8f880]'>
