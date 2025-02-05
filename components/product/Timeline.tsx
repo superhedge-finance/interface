@@ -37,7 +37,7 @@ const Timeline = ({ issuance, maturity, compact = false }: { issuance: number; m
           {new Date(issuance * 1000).toLocaleDateString("default", { day: "numeric", month: "short" })}
         </SubtitleLight12>
         <Image className={""} src={"/products/issuance.svg"} alt={"issuance"} width={36} height={36} />
-        <SubtitleLight12 className={"text-blacknew-100 text-center"}>Issuance date</SubtitleLight12>
+        <SubtitleLight12 className={"text-blacknew-100 text-center"}>Live date</SubtitleLight12>
       </div>
       <div className={"z-10 flex flex-col items-center justify-center space-y-3"}>
         <SubtitleLight12 className={"text-blacknew-100"}>
