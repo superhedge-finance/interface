@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { ethers } from "ethers";
 import { ProductSpreads, ProductStatus, ProductCategoryList, IProduct } from "../../types";
@@ -9,14 +9,15 @@ import { RecapCardMobile } from "../commons/RecapCardMobile";
 
 import { SubtitleRegular16, TitleH3 } from "../basic";
 import Countdown from "react-countdown";
-import { useNetwork } from "wagmi";
+import { useNetwork, useSigner } from "wagmi";
 import { SUPPORT_CHAIN_IDS } from "../../utils/enums";
 import { DECIMAL, YIELD_SOURCE } from "../../utils/constants";
+import ProductABI from "../../utils/abis/SHProduct.json";
 
 export default function Product({ product }: { product: IProduct }) {
 
   const router = useRouter(); 
-
+  const { data: signer } = useSigner()
   const { chain } = useNetwork();
 
   const chainId = useMemo(() => {
@@ -24,10 +25,21 @@ export default function Product({ product }: { product: IProduct }) {
     return SUPPORT_CHAIN_IDS.ETH;
   }, [chain]);
 
-  const capacity = useMemo(() => {
-    // return Number(ethers.utils.formatUnits(product.currentCapacity, DECIMAL[chainId]));
-    return Math.round((Number(product.currentCapacity) / 10 ** DECIMAL[chainId]));
-  }, [product, chainId]);
+  const [capacity, setCapacity] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchCapacity = async () => {
+      if (signer && product.address) {
+        const productInstance = new ethers.Contract(product.address, ProductABI, signer);
+        const _currentCapacity = await productInstance.currentCapacity();
+        setCapacity(Math.round(Number(ethers.utils.formatUnits(_currentCapacity, DECIMAL[chainId]))));
+      } else {
+        setCapacity(Math.round((Number(product.currentCapacity) / 10 ** DECIMAL[chainId])));
+      }
+    };
+
+    fetchCapacity();
+  }, [product, chainId, signer]);
 
   const categoryIndex = useMemo(() => {
     if (product.name.toLowerCase().includes("bullish")) {
@@ -58,14 +70,6 @@ export default function Product({ product }: { product: IProduct }) {
       return <span>{`${days}D : ${hours}H`}</span>;
     }
   };
-
-  // const investment_duration = useMemo(() => {
-  //   if (product) {
-  //     const duration = product.issuanceCycle.maturityDate - product.issuanceCycle.issuanceDate;
-  //     return formatDuration(duration);
-  //   }
-  //   return "0D : 0H";
-  // }, [product]);
 
   const investment_duration = useMemo(() => {
     if (product) {
