@@ -15,7 +15,7 @@ import { DECIMAL, YIELD_SOURCE } from "../../utils/constants";
 import ProductABI from "../../utils/abis/SHProduct.json";
 
 export default function Product({ product }: { product: IProduct }) {
-
+  const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH);
   const router = useRouter(); 
   const { data: signer } = useSigner()
   const { chain } = useNetwork();
@@ -34,7 +34,10 @@ export default function Product({ product }: { product: IProduct }) {
         const _currentCapacity = await productInstance.currentCapacity();
         setCapacity(Math.round(Number(ethers.utils.formatUnits(_currentCapacity, DECIMAL[chainId]))));
       } else {
-        setCapacity(Math.round((Number(product.currentCapacity) / 10 ** DECIMAL[chainId])));
+        const productInstance = new ethers.Contract(product.address, ProductABI, provider);
+        const _currentCapacity = await productInstance.currentCapacity();
+        setCapacity(Math.round(Number(ethers.utils.formatUnits(_currentCapacity, DECIMAL[chainId]))));
+        // setCapacity(Math.round((Number(product.currentCapacity) / 10 ** DECIMAL[chainId])));
       }
     };
 
