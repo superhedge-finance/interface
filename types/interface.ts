@@ -33,6 +33,7 @@ export interface IProduct {
   currencyName: string;
   underlyingName: string;
   couponTooltip: string;
+  isExpired: boolean;
 }
 
 export type ProductDetailType = IProduct & {

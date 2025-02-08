@@ -98,7 +98,13 @@ export default function Product({ product }: { product: IProduct }) {
     }
     return "N/A";
   }, [product]);
- 
+
+  const timeUntilIssuance = (product.issuanceCycle.issuanceDate * 1000) - Date.now();
+  const timeLabel = timeUntilIssuance > 0 ? "Time until Live" : "Time to Maturity";
+  const countdownDate = timeUntilIssuance > 0 
+    ? Date.now() + timeUntilIssuance
+    : Date.now() + ((product.issuanceCycle.maturityDate * 1000) - Date.now());
+
   return (
     <div
       className='flex flex-col p-5 cursor-pointer m-[15px] rounded-[12px] bg-white w-[340px] sm:w-[470px] drop-shadow hover:outline outline-2 outline-[#11CB79]'
@@ -205,11 +211,11 @@ export default function Product({ product }: { product: IProduct }) {
 
       <div className={"flex-col md:flex-row md:flex space-y-3 md:space-y-0 md:space-x-2 items-center justify-between mt-3"}>
         <RecapCardMobile 
-          label={"Time until Live"} 
+          label={timeLabel} 
           value={
             <Countdown 
               intervalDelay={60000} 
-              date={Date.now() + ((product.issuanceCycle.issuanceDate * 1000) - Date.now())} 
+              date={countdownDate}
               renderer={issuance_date_renderer}
             />
           }

@@ -185,27 +185,16 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             const _tokenBalance = await _tokenAddressInstance.balanceOf(address)
             const _tokenDecimals = await _tokenAddressInstance.decimals()
             const tokenBalance = Number(ethers.utils.formatUnits(_tokenBalance,0))/(10**_tokenDecimals)
-            // console.log(position.address)
-            // console.log(position.issuanceCycle)
             const underlyingSpotRef = position.issuanceCycle.underlyingSpotRef
             const optionMinOrderSize = (position.issuanceCycle.optionMinOrderSize) / 10
             const withdrawBlockSize = underlyingSpotRef * optionMinOrderSize
-            // console.log(withdrawBlockSize)
             setwithdrawBlockSize(withdrawBlockSize)
-            // console.log("No of block")
-            // console.log(tokenBalance)
-            // console.log(withdrawBlockSize)
             setTotalBlocks(Math.round(tokenBalance/withdrawBlockSize))
             setLoadingBlock(false)
-            // console.log("setTotalBlocks")
-            // console.log(tokenBalance/withdrawBlockSize)
-
             const _currency = await productInstance.currency()
             const _currencyInstance = new ethers.Contract(_currency, ERC20ABI, signer)
             setCurrencyInstance(_currencyInstance)
-
-            const result = await axios.post(`products/get-product-expired?chainId=${chainId}&productAddress=${position.address}`);
-            setExpired(result.data.expiredFlag)
+            setExpired(position.isExpired)
           }
           catch (e){
             console.error(e)
