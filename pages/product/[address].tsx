@@ -48,6 +48,9 @@ const ProductDetail = () => {
   const [inputValue, setInputValue] = useState("");
   const [isBlurred, setIsBlurred] = useState(true);
   const [warningMessage, setWarningMessage] = useState("");
+  const [timeLabel, setTimeLabel] = useState("");
+  const [countdownDate, setCountdownDate] = useState<Date>(new Date());
+
   const chainId = useMemo(() => {
     if (chain) return chain.id;
     return SUPPORT_CHAIN_IDS.ETH;
@@ -125,6 +128,13 @@ const ProductDetail = () => {
         setProduct(product);
         console.log("product")
         console.log(product)
+        const timeUntilIssuance = (product?.issuanceCycle.issuanceDate * 1000) - Date.now();
+        const timeLabel = timeUntilIssuance > 0 ? "Time until Live" : "Time to Maturity";
+        const countdownDate = timeUntilIssuance > 0 
+          ? Date.now() + timeUntilIssuance
+          : Date.now() + ((product?.issuanceCycle.maturityDate * 1000) - Date.now());
+        setTimeLabel(timeLabel);
+        setCountdownDate(new Date(countdownDate));
       })
       .finally(() => setIsLoading(false));
   }, [address, chainId]);
@@ -338,12 +348,15 @@ const ProductDetail = () => {
                   <div
                     className={"md:flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 space-y-3 md:space-y-0 mt-5"}
                   >
-                    <RecapCardMobile label={"Time until Live"} value={
-                      <Countdown 
-                        intervalDelay={60000} 
-                        date={Date.now() + ((product.issuanceCycle.issuanceDate * 1000) - Date.now())} 
-                        renderer={issuance_date_renderer} 
-                      />}
+                    <RecapCardMobile 
+                      label={timeLabel} 
+                      value={
+                        <Countdown 
+                          intervalDelay={60000} 
+                          date={countdownDate}
+                          renderer={issuance_date_renderer}
+                        />
+                      }
                     />
                     {/* <RecapCardMobile 
                       label="Time to Issuance" 
