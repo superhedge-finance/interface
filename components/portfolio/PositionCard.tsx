@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { useAccount, useSigner, useNetwork } from "wagmi";
 import { PrimaryButton } from "../basic";
 import { IProduct } from "../../types";
@@ -18,6 +18,7 @@ import { formatApy } from "../../utils/helpers";
 export const PositionCard = ({ position, enabled }: { position: IProduct; enabled: boolean }) => {
   const Router = useRouter();
   const { address } = useAccount();
+  
   const { data: signer } = useSigner();
   const { chain } = useNetwork();
 
@@ -67,47 +68,59 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   const [loadingBlock, setLoadingBlock] = useState(true)
   const [loadingUnwind, setLoadingUnwind] = useState(false)
   const [expired, setExpired] = useState(false)
+  const [TotalPtOption, setTotalPtOption] = useState<number>(0)
 
   const handleUnwind = async () => {
-    // Calculate the unwind price based on blocksToWithdraw
     setLoadingUnwind(true)
     try {
-      const results = await axios.post(`products/get-pt-and-position?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}`);
+      const results = await axios.get(`products/get-pt-and-position?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}`);
+      
       const ptUnwindPrice = Number(results.data.amountToken)
-      setPtUnwindPrice(Number(ethers.utils.formatUnits(ptUnwindPrice, DECIMAL[chainId])));
-      // setPtUnwindPrice(ptUnwindPrice)
-      // ethers.utils.parseUnits(depositAmount.toString(), decimal)
+      setPtUnwindPrice(Number((ptUnwindPrice / (10 ** DECIMAL[chainId])).toFixed(2)));
 
-      const optionUnwindPrice = results.data.amountOption
-      setOptionUnwindPrice(Number(ethers.utils.formatUnits(optionUnwindPrice, DECIMAL[chainId])));
+      const optionUnwindPrice = Number(results.data.amountOption)
+      setOptionUnwindPrice(Number((optionUnwindPrice / (10 ** DECIMAL[chainId])).toFixed(2)));
+
+      const totalPtOption = Number(results.data.amountToken) + Number(results.data.amountOption)
+      setTotalPtOption(Number((totalPtOption / (10 ** DECIMAL[chainId])).toFixed(2)));
+
       setIsOpen(true);
       setShowPrices(true);
-      // Start countdown and show Confirm button
-      setCountdown(30);
+      setCountdown(3600);
       setShowConfirmButton(true);
       setLoadingUnwind(false)
     } catch (e) {
       setLoadingUnwind(false)
-      // console.error(e);
     }
-    
   };
 
   const handleYes = async() => {
     // console.log(productInstance)
     // console.log(tokenAddressInstance)
     if(productInstance && tokenAddressInstance && ptUnwindPrice && optionUnwindPrice){
+      // console.log("confirm button")
       try{
         const currentAllowance = await tokenAddressInstance.allowance(address, position.address)
         const early_withdraw_balance_user = (blocksToWithdraw * withdrawBlockSize) * 10**(DECIMAL[chainId])
         // console.log(ethers.utils.parseUnits(ptUnwindPrice.toString(), DECIMAL[chainId]))
         // console.log(ptUnwindPrice** 10**(DECIMAL[chainId])
         // console.log(Math.round(early_withdraw_balance_user))
-        if (currentAllowance.lt(ptUnwindPrice** 10**(DECIMAL[chainId]))) {
-          // console.log("approve")
-          const approve_tx = await tokenAddressInstance.approve(position.address, Math.round(early_withdraw_balance_user))
-          await approve_tx.wait()
-        }
+        // console.log(currentAllowance)
+        // console.log(ptUnwindPrice** 10**(DECIMAL[chainId]))
+        // console.log(Number(ptUnwindPrice * 10**(DECIMAL[chainId])))
+        
+        // if ((currentAllowance).lt(Number(ptUnwindPrice * 10**(DECIMAL[chainId])))) {
+        //   console.log("approve")
+        //   // const approve_tx = await tokenAddressInstance.approve(position.address, (ptUnwindPrice * 10**(DECIMAL[chainId]) + ptUnwindPrice * 10**(DECIMAL[chainId]) * 0.001))
+        //   const approve_tx = await tokenAddressInstance.approve(position.address, 100000000000000000000)
+        //   await approve_tx.wait()
+        // }
+
+        const approve_tx = await tokenAddressInstance.approve(
+          position.address, 
+          ethers.utils.parseUnits((ptUnwindPrice + ptUnwindPrice*0.001).toString(), DECIMAL[chainId])
+        );
+        await approve_tx.wait()
         // console.log("earlyWithdraw")
         // console.log(blocksToWithdraw)
         const tx = await productInstance.earlyWithdraw(blocksToWithdraw)
@@ -334,12 +347,17 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                 <>
                     {ptUnwindPrice !== null && (
                         <div className="mt-4">
-                            <p className="text-lg font-semibold">pT Unwind Price: {ptUnwindPrice} {position.currencyName}</p>
+                            <p className="text-lg font-semibold">PT Price: {ptUnwindPrice.toLocaleString()} {position.currencyName} ({(ptUnwindPrice/100).toFixed(2)}%)</p>
                         </div>
                     )}
                     {optionUnwindPrice !== null && (
                         <div className="mt-4">
-                            <p className="text-lg font-semibold">Option Unwind Price: {optionUnwindPrice} {position.currencyName}</p>
+                            <p className="text-lg font-semibold">Option Price: {optionUnwindPrice.toLocaleString()} {position.currencyName} ({(optionUnwindPrice/100).toFixed(2)}%)</p>
+                        </div>
+                    )}
+                    {TotalPtOption !== null && (
+                        <div className="mt-4">
+                            <p className="text-lg font-semibold">Total: {TotalPtOption.toLocaleString()} {position.currencyName} ({(TotalPtOption/100).toFixed(2)}%)</p>
                         </div>
                     )}
                     {/* Countdown Display */}
