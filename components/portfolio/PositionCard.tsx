@@ -206,8 +206,6 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             const _currency = await productInstance.currency()
             const _currencyInstance = new ethers.Contract(_currency, ERC20ABI, signer)
             setCurrencyInstance(_currencyInstance)
-            console.log(position)
-            console.log(position.isExpired)
             setExpired(position.isExpired)
           }
           catch (e){
@@ -344,7 +342,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                 {loadingUnwind ? (
                     <PrimaryButton label={"Loading..."} className={"mt-6"} />
                 ) : (
-                    <PrimaryButton label={"Get price"} className={"mt-6"} onClick={handleUnwind} disabled={expired} />
+                    <PrimaryButton label={"Get price"} className={"mt-6"} onClick={handleUnwind} disabled={!expired} />
                 )}
                 
                 {/* Info icon for disabled state */}
