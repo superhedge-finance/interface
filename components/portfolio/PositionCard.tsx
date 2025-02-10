@@ -17,8 +17,7 @@ import { formatApy } from "../../utils/helpers";
 
 export const PositionCard = ({ position, enabled }: { position: IProduct; enabled: boolean }) => {
   const Router = useRouter();
-  // const { address } = useAccount();
-  const address = "0xa15cd8Ead9eE58C1c02AC4C224523e9a38D95a1d"
+  const { address } = useAccount();
   const { data: signer } = useSigner();
   const { chain } = useNetwork();
 
@@ -202,8 +201,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             const optionMinOrderSize = (position.issuanceCycle.optionMinOrderSize) / 10
             const withdrawBlockSize = underlyingSpotRef * optionMinOrderSize
             setwithdrawBlockSize(withdrawBlockSize)
-            // setTotalBlocks(Math.round(tokenBalance/withdrawBlockSize))
-            setTotalBlocks(4)
+            setTotalBlocks(Math.round(tokenBalance/withdrawBlockSize))
             setLoadingBlock(false)
             const _currency = await productInstance.currency()
             const _currencyInstance = new ethers.Contract(_currency, ERC20ABI, signer)
