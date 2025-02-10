@@ -328,7 +328,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                         label={"Get price"} 
                         className={"mt-6"} 
                         onClick={handleUnwind} 
-                        disabled={!expired || totalBlocks === 0} 
+                        disabled={!expired || totalBlocks === 0 || blocksToWithdraw === 0} 
                     />
                 )}
                 
