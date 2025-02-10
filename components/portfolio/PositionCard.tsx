@@ -18,7 +18,6 @@ import { formatApy } from "../../utils/helpers";
 export const PositionCard = ({ position, enabled }: { position: IProduct; enabled: boolean }) => {
   const Router = useRouter();
   const { address } = useAccount();
-  
   const { data: signer } = useSigner();
   const { chain } = useNetwork();
 
@@ -86,7 +85,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
 
       setIsOpen(true);
       setShowPrices(true);
-      setCountdown(3600);
+      setCountdown(60);
       setShowConfirmButton(true);
       setLoadingUnwind(false)
     } catch (e) {
@@ -207,6 +206,8 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             const _currency = await productInstance.currency()
             const _currencyInstance = new ethers.Contract(_currency, ERC20ABI, signer)
             setCurrencyInstance(_currencyInstance)
+            console.log(position)
+            console.log(position.isExpired)
             setExpired(position.isExpired)
           }
           catch (e){
@@ -218,6 +219,20 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
       }
     })();
   }, [position,signer,productInstance]);
+
+  const handleBlocksChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow empty input
+    if (value === '') {
+      setBlocksToWithdraw(0);
+      return;
+    }
+    // Convert to integer and validate
+    const numValue = Math.floor(Number(value));
+    if (numValue >= 1 && numValue <= totalBlocks) {
+      setBlocksToWithdraw(numValue);
+    }
+  };
 
   return (
     <>
@@ -306,7 +321,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
         <div className="flex flex-col space-y-4 mt-6">
             <div className="flex items-center space-x-4">
                 {/* Blocks to Withdraw Input */}
-                <div className="flex flex-col">
+                <div className="flex flex-col w-1/2">
                     <label htmlFor="blocksToWithdraw" className="text-sm font-medium">
                     Total Blocks Balance: {totalBlocks}  
                     <br />
@@ -316,7 +331,10 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                         type="number"
                         id="blocksToWithdraw"
                         value={blocksToWithdraw}
-                        onChange={(e) => setBlocksToWithdraw(Number(e.target.value))}
+                        onChange={handleBlocksChange}
+                        min={1}
+                        max={totalBlocks}
+                        step={1}
                         className="border rounded px-2 py-1"
                         placeholder="Enter blocks to withdraw"
                     />
@@ -326,7 +344,7 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                 {loadingUnwind ? (
                     <PrimaryButton label={"Loading..."} className={"mt-6"} />
                 ) : (
-                    <PrimaryButton label={"Get price"} className={"mt-6"} onClick={handleUnwind} disabled={!expired} />
+                    <PrimaryButton label={"Get price"} className={"mt-6"} onClick={handleUnwind} disabled={expired} />
                 )}
                 
                 {/* Info icon for disabled state */}
