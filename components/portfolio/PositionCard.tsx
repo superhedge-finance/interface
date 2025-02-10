@@ -324,7 +324,12 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
                 {loadingUnwind ? (
                     <PrimaryButton label={"Loading..."} className={"mt-6"} />
                 ) : (
-                    <PrimaryButton label={"Get price"} className={"mt-6"} onClick={handleUnwind} disabled={!expired} />
+                    <PrimaryButton 
+                        label={"Get price"} 
+                        className={"mt-6"} 
+                        onClick={handleUnwind} 
+                        disabled={!expired || totalBlocks === 0} 
+                    />
                 )}
                 
                 {/* Info icon for disabled state */}
