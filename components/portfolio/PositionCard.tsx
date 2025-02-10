@@ -94,27 +94,9 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
   };
 
   const handleYes = async() => {
-    // console.log(productInstance)
-    // console.log(tokenAddressInstance)
     if(productInstance && tokenAddressInstance && ptUnwindPrice && optionUnwindPrice){
       // console.log("confirm button")
       try{
-        const currentAllowance = await tokenAddressInstance.allowance(address, position.address)
-        const early_withdraw_balance_user = (blocksToWithdraw * withdrawBlockSize) * 10**(DECIMAL[chainId])
-        // console.log(ethers.utils.parseUnits(ptUnwindPrice.toString(), DECIMAL[chainId]))
-        // console.log(ptUnwindPrice** 10**(DECIMAL[chainId])
-        // console.log(Math.round(early_withdraw_balance_user))
-        // console.log(currentAllowance)
-        // console.log(ptUnwindPrice** 10**(DECIMAL[chainId]))
-        // console.log(Number(ptUnwindPrice * 10**(DECIMAL[chainId])))
-        
-        // if ((currentAllowance).lt(Number(ptUnwindPrice * 10**(DECIMAL[chainId])))) {
-        //   console.log("approve")
-        //   // const approve_tx = await tokenAddressInstance.approve(position.address, (ptUnwindPrice * 10**(DECIMAL[chainId]) + ptUnwindPrice * 10**(DECIMAL[chainId]) * 0.001))
-        //   const approve_tx = await tokenAddressInstance.approve(position.address, 100000000000000000000)
-        //   await approve_tx.wait()
-        // }
-
         const approve_tx = await tokenAddressInstance.approve(
           position.address, 
           ethers.utils.parseUnits((ptUnwindPrice + ptUnwindPrice*0.001).toString(), DECIMAL[chainId])
@@ -137,8 +119,8 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
             "product": position.address,
             "address": address,
             "txid": tx.hash,
-            "amountPtUnwindPrice": Math.round(ptUnwindPrice * 10 **(DECIMAL[chainId])),
-            "amountOptionUnwindPrice": Math.round(optionUnwindPrice * 10 ** (DECIMAL[chainId]))
+            "amountPtUnwindPrice": (ptUnwindPrice * 10 **(DECIMAL[chainId])).toString(),
+            "amountOptionUnwindPrice": (optionUnwindPrice * 10 ** (DECIMAL[chainId])).toString()
           }
           // console.log(data)
           const result = await axios.post('products/update-withdraw-request', data, {
