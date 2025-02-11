@@ -15,3 +15,6 @@ export const ProductSpreads = [
 export const ProductUnderlyingList = ["All", "ETH/USDC", "BTC/USDC"];
 
 export const ProductCategoryList = ["All", "Bullish", "Bearish", "Range"];
+
+export const PrincipalProtection = [{label: "100% Principal-Protected", className: "bg-principalProtection"}];
+
