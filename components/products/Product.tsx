@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { ethers } from "ethers";
-import { ProductSpreads, ProductStatus, ProductCategoryList, IProduct } from "../../types";
+import { ProductSpreads, ProductStatus, ProductCategoryList, IProduct, PrincipalProtection } from "../../types";
 import { ReturnsChart } from "../product/ReturnsChart";
 import { getCurrencyIcon, formatDuration, formatApy } from "../../utils/helpers";
 import { RecapCard } from "../commons/RecapCard";
@@ -112,19 +112,24 @@ export default function Product({ product }: { product: IProduct }) {
     >
       <div className={"flex justify-between"}>
         <div className={"inline-block"}>
-          <span className={`text-white text-sm py-2 px-3 rounded-lg ${ProductStatus[product.status].className}`}>
-            {ProductStatus[product.status].label}
-          </span>
-          {categoryIndex >= 0 && (
-            <span className={`text-white text-sm ml-2 px-4 py-2 rounded-lg ${ProductSpreads[categoryIndex].className}`}>
-              {ProductSpreads[categoryIndex].label}
+          <div className="flex flex-wrap gap-1">
+            <span className={`text-white text-sm py-2 px-2 rounded-lg ${ProductStatus[product.status].className}`}>
+              {ProductStatus[product.status].label}
             </span>
-          )}
-          {categoryIndex >= 0 && (
-            <span className={`text-white text-sm ml-2 py-2 px-3 rounded-lg ${ProductSpreads[categoryIndex].className}`}>
-              {ProductCategoryList[categoryIndex + 1]}
+            <span className={`text-white text-sm py-2 px-2 rounded-lg ${PrincipalProtection[0].className}`}>
+              {PrincipalProtection[0].label}
             </span>
-          )}
+            {categoryIndex >= 0 && (
+              <span className={`text-white text-sm py-2 px-2 rounded-lg ${ProductSpreads[categoryIndex].className}`}>
+                {ProductSpreads[categoryIndex].label}
+              </span>
+            )}
+            {categoryIndex >= 0 && (
+              <span className={`text-white text-sm py-2 px-2 rounded-lg ${ProductSpreads[categoryIndex].className}`}>
+                {ProductCategoryList[categoryIndex + 1]}
+              </span>
+            )}
+          </div>
         </div>
         {/* <div className={"hidden sm:block w-[40px] md:w-[60px] h-[36px] md:h-[54px]"}>
           <img src={"/icons/social_logo.svg"} alt={"social logo"} width={"100%"} height={"100% "} />

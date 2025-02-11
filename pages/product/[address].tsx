@@ -6,7 +6,7 @@ import { ActionArea } from "../../components/product/ActionArea";
 import { ParaLight16, SkeletonCard, SubtitleRegular20, TitleH2, TitleH3 } from "../../components/basic";
 import { ReturnsChart } from "../../components/product/ReturnsChart";
 import { getProduct } from "../../service";
-import { ProductDetailType, ProductSpreads, ProductStatus } from "../../types";
+import { PrincipalProtection, ProductDetailType, ProductSpreads, ProductStatus } from "../../types";
 import { ActivityHeader, ActivityRow } from "../../components/commons/ActivityRow";
 import Timeline from "../../components/product/Timeline";
 import { getCurrencyIcon, formatStrikePrice, formatDuration, formatApy } from "../../utils/helpers";
@@ -247,11 +247,14 @@ const ProductDetail = () => {
             {!isLoading && product && (
               <div className='flex flex-col px-0 py-6 md:px-6'>
                 <div>
-                  <span className={`inline-block text-white text-sm py-2 px-3 rounded-lg ${ProductStatus[product.status].className}`}>
+                  <span className={`inline-block text-white text-sm px-4 py-3 rounded-lg ${ProductStatus[product.status].className}`}>
                     {ProductStatus[product.status].label}
                   </span>
+                  <span className={`inline-block text-white text-sm ml-3 px-4 py-3 rounded-lg ${PrincipalProtection[0].className}`}>
+                    {PrincipalProtection[0].label}
+                  </span>
                   {categoryIndex >= 0 && (
-                    <span className={`inline-block text-white text-sm ml-3 px-4 py-2 rounded-lg ${ProductSpreads[categoryIndex].className}`}>
+                    <span className={`inline-block text-white text-sm ml-3 px-4 py-3 rounded-lg ${ProductSpreads[categoryIndex].className}`}>
                       {ProductSpreads[categoryIndex].label}
                     </span>
                   )}
