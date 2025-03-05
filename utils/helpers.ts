@@ -40,10 +40,13 @@ export const formatDate = (dateString: Date) => {
 
 export const getTxErrorMessage = (error: any): string => {
   const errMessage = error?.data?.message || error?.message;
+
   if (error?.code === Logger.errors.ACTION_REJECTED) {
     return "User denied transaction";
   } else if (errMessage && /insufficient funds/.test(errMessage)) {
     return "Not enough balance";
+  } else if (errMessage && /Insufficient/.test(errMessage)) {
+    return errMessage;
   }
 
   const regex = /execution reverted: ([a-zA-Z0-9 ]+)/;

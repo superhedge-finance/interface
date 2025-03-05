@@ -61,6 +61,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   const [isOptionSelected, setIsOptionSelected] = useState(false);
   const [isPrincipalSelected, setIsPrincipalSelected] = useState(false);
 
+  const [isLoadingSwapAndDeposit, setIsLoadingSwapAndDeposit] = useState(false);
+
   const onConnect = () => {
     if (!address && openConnectModal) {
       openConnectModal()
@@ -72,7 +74,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       if (currencyInstance && productInstance) {
         const decimal = await currencyInstance.decimals()
 
-        const depositAmountStr = depositAmount.toFixed(decimal) 
+        const depositAmountStr = depositAmount.toFixed(decimal)
         const approveAmountStr = (depositAmount + depositAmount * 0.0000005).toFixed(decimal)
         const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal)
         const approveBalance = ethers.utils.parseUnits(approveAmountStr, decimal)
@@ -86,7 +88,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           await setDepositStatus(DEPOSIT_STATUS.APPROVING)
           await tx.wait()
         }
-        
+
         await setDepositStatus(DEPOSIT_STATUS.DEPOSIT)
         const depositTx = await productInstance.deposit(requestBalance)
         await depositTx.wait()
@@ -97,6 +99,108 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       console.log(`Error while approve and deposit: ${e}`)
     }
   }
+
+  const onSwapAndDeposit = async () => {
+    try {
+      // Only proceed if we have valid swap data and signer
+      if (!routeData?.success || !signer) {
+        return;
+      }
+
+      const swapData = routeData.data;
+      if (!swapData) {
+        throw new Error('Failed to get swap data');
+      }
+
+      setIsLoadingSwapAndDeposit(true)
+
+      // Get necessary swap parameters
+      const encodedSwapData = swapData.buildData.data;
+      const routerContract = swapData.buildData.routerAddress;
+      const amountIn = swapData.buildData.amountIn;
+      const signerAddress = await signer.getAddress();
+
+      // Check balances and handle approvals
+      if (swapData.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+        // Handle ERC20 token case
+        const tokenContract = new ethers.Contract(swapData.tokenIn, ERC20ABI, signer);
+        const decimals = await tokenContract.decimals();
+        const balance = await tokenContract.balanceOf(signerAddress);
+        const amountInBigInt = BigInt(amountIn);
+
+        if (balance < amountInBigInt) {
+          setIsLoadingSwapAndDeposit(false)
+          throw new Error(`Insufficient balance. Required: ${ethers.utils.formatUnits(amountInBigInt, decimals)} ${await tokenContract.symbol()}, Available: ${ethers.utils.formatUnits(balance, decimals)}`);
+        }
+
+        // Handle token approval
+        await getTokenApproval(swapData.tokenIn, routerContract, amountIn);
+      } else {
+        // Handle ETH case
+        const ethBalance = await getETHBalance(signerAddress);
+        const amountInBigInt = BigInt(amountIn);
+
+        if (Number(ethBalance) < Number(ethers.utils.formatUnits(amountInBigInt, 18))) {
+          setIsLoadingSwapAndDeposit(false)
+          throw new Error(`Insufficient ETH balance. Required: ${ethers.utils.formatUnits(amountInBigInt, 18)} ETH, Available: ${ethBalance}`);
+        }
+      }
+
+      // Prepare and execute swap transaction
+      const tx: any = {
+        data: encodedSwapData,
+        from: signerAddress,
+        to: routerContract,
+      };
+
+      if (swapData.tokenIn.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+        tx.value = BigInt(amountIn);
+      }
+
+      const executeSwapTx = await signer.sendTransaction(tx);
+      const executeSwapTxReceipt = await executeSwapTx.wait();
+
+      if (!executeSwapTxReceipt?.status) {
+        setIsLoadingSwapAndDeposit(false)
+        throw new Error('Swap transaction failed');
+      }
+
+      // After successful swap, proceed with deposit
+      if (currencyInstance && productInstance) {
+        const decimal = await currencyInstance.decimals();
+        const depositAmountStr = depositAmount.toFixed(decimal);
+        const approveAmountStr = (depositAmount + depositAmount * 0.0000005).toFixed(decimal);
+        const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal);
+        const approveBalance = ethers.utils.parseUnits(approveAmountStr, decimal);
+
+        // Check capacity
+        const _currentCapacity = await productInstance.currentCapacity();
+        if (depositAmount + Number(ethers.utils.formatUnits(_currentCapacity, decimal)) > Number(product.maxCapacity)) {
+          setIsLoadingSwapAndDeposit(false)
+          throw new Error("Your deposit results in excess of max capacity.");
+        }
+
+        // Handle deposit approval if needed
+        const currentAllowance = await currencyInstance.allowance(address, productAddress);
+        if (currentAllowance.lt(requestBalance)) {
+          setDepositStatus(DEPOSIT_STATUS.APPROVING);
+          const approveTx = await currencyInstance.approve(productAddress, approveBalance);
+          await approveTx.wait();
+        }
+
+        // Execute deposit
+        setDepositStatus(DEPOSIT_STATUS.DEPOSIT);
+        const depositTx = await productInstance.deposit(requestBalance);
+        await depositTx.wait();
+        setDepositStatus(DEPOSIT_STATUS.DONE);
+      }
+
+    } catch (error: any) {
+      setIsLoadingSwapAndDeposit(false)
+      console.error('Swap and deposit failed:', error);
+      toast.error(getTxErrorMessage(error));
+    }
+  };
 
   const onWithdraw = async () => {
     if (tokenAddressInstance && productInstance) {
@@ -220,11 +324,11 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     }
   })
 
-  useEffect(() => {
-    if (selectedAddressCurrency && currencyAddress) {
-      
-    }
-  }, [selectedAddressCurrency, currencyAddress])
+  // useEffect(() => {
+  //   if (selectedAddressCurrency && currencyAddress) {
+
+  //   }
+  // }, [selectedAddressCurrency, currencyAddress])
 
   useEffect(() => {
     (async () => {
@@ -265,7 +369,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           const currencyBalance = await _currencyInstance.balanceOf(address)
           setMaxLots(Number(ethers.utils.formatUnits(currencyBalance, _decimals)))
           setWalletBalance(Number(ethers.utils.formatUnits(currencyBalance, _decimals)))
-          
+
         } catch (e) {
           console.error(e)
         }
@@ -277,7 +381,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     const fetchRoute = async () => {
       if (selectedAddressCurrency && currencyAddress && lots > 0) {
         const KYBER_API = process.env.NEXT_PUBLIC_KYBER_API;
-        const CHAIN_ID = chainId 
+        const CHAIN_ID = chainId
         const CHAIN_NAME = 'ethereum';
         try {
           // 1. Get route first
@@ -315,7 +419,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           const buildResponse = await axios.post(buildUrl, {
             ...buildParams
           });
-          
+
 
           setRouteData({
             success: true,
@@ -369,7 +473,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, signer);
       const signerAddress = await signer.getAddress();
       const allowance = await tokenContract.allowance(signerAddress, spenderAddress);
-      
+
       if (allowance.lt(amount)) {
           const tx = await tokenContract.approve(spenderAddress, ethers.constants.MaxUint256);
           await tx.wait();
@@ -388,46 +492,46 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 error: 'Failed to get swap data',
               }
             }
-        
+
             const encodedSwapData = swapData.buildData.data;
             const routerContract = swapData.buildData.routerAddress;
             const amountIn = swapData.buildData.amountIn;
-        
+
             // Get signer
             // const signer = getSigner();
             const signerAddress = await signer?.getAddress();
-        
-        
+
+
             console.log({ tokenIn: swapData.tokenIn });
-        
+
             // Add balance check
-        
+
             console.log({
               tokenIn: swapData.tokenIn,
               tokenInLower: swapData.tokenIn.toLowerCase(),
             });
-        
+
             if (swapData.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
               const tokenContract = new ethers.Contract(swapData.tokenIn, ERC20ABI, signer);
               const decimals = await tokenContract.decimals();
               const balance = await tokenContract.balanceOf(signerAddress);
               const amountInBigInt = BigInt(amountIn);
-        
+
               console.log({
                 balance1: ethers.utils.formatUnits(balance, decimals),
                 required: ethers.utils.formatUnits(amountInBigInt, decimals),
                 address: signerAddress
               });
-        
+
               console.log("WETH Balance:", ethers.utils.formatUnits(balance, 18));
-        
+
               if (balance < amountInBigInt) {
                 return {
                   success: false,
                   error: `Insufficient balance. Required: ${ethers.utils.formatUnits(amountInBigInt, decimals)} ${await tokenContract.symbol()}, Available: ${ethers.utils.formatUnits(balance, decimals)}`,
                 };
               }
-        
+
               // Handle token approval if needed
               await getTokenApproval(
                 swapData.tokenIn,
@@ -438,13 +542,13 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               const ethBalance = await getETHBalance(signerAddress);
               const amountInBigInt = BigInt(amountIn);
               console.log("ETH Balance:", ethBalance);
-        
+
               console.log({
                 balance2: ethBalance,
                 required: ethers.utils.formatUnits(amountInBigInt, 18),
                 address: signerAddress
               });
-        
+
               if (Number(ethBalance) < Number(ethers.utils.formatUnits(amountInBigInt, 18))) {
                 return {
                   success: false,
@@ -452,7 +556,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 };
               }
             }
-        
+
             // Prepare transaction
             const tx: any = {
               data: encodedSwapData,
@@ -461,27 +565,27 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             //   maxFeePerGas: ethers.utils.parseUnits('0.1', 'gwei'),
             //   maxPriorityFeePerGas: ethers.utils.parseUnits('0.1', 'gwei')
             };
-        
+
             // Add value field if swapping ETH
             if (swapData.tokenIn.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
               tx.value = BigInt(amountIn);
             }
-        
+
             // Execute the swap transaction
             console.log(`Executing the swap tx on-chain: `);
             console.log({ txBody: tx });
-        
+
             const executeSwapTx = await signer.sendTransaction({
               ...tx,
               // gasLimit: BigInt('21000'),
             });
-        
+
             const executeSwapTxReceipt = await executeSwapTx.wait();
-        
+
             if (!executeSwapTxReceipt?.status) {
               throw new Error('Transaction failed');
             }
-        
+
             return {
               success: true,
               data: {
@@ -529,8 +633,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             </div>
 
             {/* Get currency link */}
-            <a 
-              href="https://app.ethena.fi/buy" 
+            <a
+              href="https://app.ethena.fi/buy"
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
@@ -549,7 +653,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             Please connect your wallet for access.
           </div>
         )}
-        
+
         {address && tab === 0 && (
           <div className={"flex flex-col justify-between w-full"}>
             <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
@@ -577,17 +681,17 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               <div className={"mt-8 text-[#494D51] text-[16px]"}>Amount</div>
 
               <div className={"relative flex items-center mt-2"}>
-                
+
                 <input
                   className={"w-full py-3 px-4 bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded focus:outline-none"}
                   value={lots}
                   onChange={(e) => setLots(Number(e.target.value))}
                   type='number'
-                  step='1.00' 
+                  step='1.00'
                 />
                 <select
                   className={"w-full py-3 px-4 bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded focus:outline-none"}
-                  
+
                   onChange={(e) => {
                     // const selectedCurrency = parseInt(e.target.value);
                     console.log(e.target);
@@ -602,18 +706,19 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 </select>
                 <span className={"absolute right-4 text-[#828A93]"}></span>
               </div>
-              
-              <div>
-                <span className={"text-[#828A93] text-[16px] leading-[16px]"}>Amount Out</span>
-                <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
-                  {amountOutUsd.toLocaleString()} {product.currencyName}
+
+              <div className={"mt-3"}>
+                <span className={"text-[#828A93] text-[16px] leading-[16px]"}>Amount Out:{' '}
+                  <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
+                    {amountOutUsd.toLocaleString()} {product.currencyName}
+                  </span>
                 </span>
               </div>
               <div>
-              <PrimaryButton
+              {/* <PrimaryButton
                 label="Swap"
                 onClick={handleSwap}
-              />
+              /> */}
               </div>
               <div className={"mt-3 flex justify-between items-center text-[#828A93]"}>
                 <div className={"flex items-center"}>
@@ -623,7 +728,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 <div className={"flex items-center"}>
                   <Image src={"/miniUSDC.svg"} alt={"miniUSDC"} width={20} height={20} />
                   <span className={"ml-2"}>{(pricePerLot * lots).toLocaleString()} {product.currencyName}</span>
-                  <span 
+                  <span
                     className={`ml-2 text-[#828A93] cursor-pointer ${walletBalance === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                     onClick={() => walletBalance > 0 && setLots(maxLots)}
                   >
@@ -663,18 +768,40 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 </div>
               </Switch.Group>
               <div>
-                  <span className={"mr-1"}>Wallet Balance: </span>
-                  <span className="font-medium">{walletBalance.toLocaleString()} {product.currencyName}</span>
-                </div>
+                <span className={"mr-1"}>Wallet Balance: </span>
+                <span className="font-medium">{walletBalance.toLocaleString()} {product.currencyName}</span>
+              </div>
             </div>
 
-            <div className={`${expand ? "" : "hidden"} md:block mt-5`}>
+            {/* <div className={`${expand ? "" : "hidden"} md:block mt-5`}>
               <PrimaryButton label={depositButtonLabel} disabled={status !== 1 || walletBalance === 0} onClick={() => setIsOpen(true)} />
+            </div> */}
+
+            <div className={`${expand ? "" : "hidden"} md:block mt-5`}>
+              <PrimaryButton
+                label={depositButtonLabel}
+                onClick={onSwapAndDeposit}
+                disabled={isLoadingSwapAndDeposit}
+                loading={isLoadingSwapAndDeposit}
+              />
             </div>
 
             {!expand && (
               <div className={"block md:hidden w-full pb-5"}>
-                <PrimaryButton label={"DEPOSIT"} onClick={() => setExpand(true)} />
+                <div className={"mt-2 mb-3"}>
+                  <span className={"text-[#828A93] text-[16px] leading-[16px]"}>Amount Out:{' '}
+                    <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
+                      {amountOutUsd.toLocaleString()} {product.currencyName}
+                    </span>
+                  </span>
+                </div>
+                {/* <PrimaryButton label={"DEPOSIT"} onClick={() => setExpand(true)} /> */}
+                <PrimaryButton
+                  label={depositButtonLabel}
+                  onClick={onSwapAndDeposit}
+                  disabled={isLoadingSwapAndDeposit}
+                  loading={isLoadingSwapAndDeposit}
+                />
               </div>
             )}
           </div>
@@ -700,7 +827,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                   </span>
                 </div>
                 {couponBalance > 0 && (
-                  <button 
+                  <button
                     className={`bg-[#EBEBEB] p-5 rounded-[6px] text-sm flex items-center ${
                       isCouponSelected ? 'text-black font-medium' : 'text-[#161717]'
                     }`}
@@ -719,7 +846,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                   </span>
                 </div>
                 {optionBalance > 0 && (
-                  <button 
+                  <button
                     className={`bg-[#EBEBEB] p-5 rounded-[6px] text-sm flex items-center ${
                       isOptionSelected ? 'text-black font-medium' : 'text-[#161717]'
                     }`}
@@ -738,7 +865,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                   </span>
                 </div>
                 {principalBalance > 0 && status === 1 && (
-                  <button 
+                  <button
                     className={`bg-[#EBEBEB] p-5 rounded-[6px] text-sm flex items-center ${
                       isPrincipalSelected ? 'text-black font-medium' : 'text-[#161717]'
                     }`}
@@ -764,8 +891,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               <div className={"mt-7"}>
                 <PrimaryButton
                   label={
-                    withdrawableBalance === 0 
-                      ? "No Withdrawable Balance" 
+                    withdrawableBalance === 0
+                      ? "No Withdrawable Balance"
                       : getWithdrawButtonLabel()
                   }
                   className={"uppercase"}
