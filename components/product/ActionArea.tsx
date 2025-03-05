@@ -13,6 +13,10 @@ import { SUPPORT_CHAIN_IDS } from "../../utils/enums"
 import { getTxErrorMessage, truncateAddress } from "../../utils/helpers"
 import PTTokenABI from "..//../utils/abis/PTToken.json"
 import { ParaRegular18, PrimaryButton, SecondaryButton, SubtitleRegular16 } from "../basic"
+import { tokenList } from "../../utils/tokenList"
+import axios from "axios"
+import Swap from "../../pages/swap"
+
 
 const pricePerLot = 1
 
@@ -36,6 +40,12 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   const [productInstance, setProductInstance] = useState<ethers.Contract | undefined>(undefined)
   const [currencyInstance, setCurrencyInstance] = useState<ethers.Contract | undefined>(undefined)
   const [tokenAddressInstance, setTokenAddressInstance] = useState<ethers.Contract | undefined>(undefined)
+  const [selectedAddressCurrency, setSelectedAddressCurrency] = useState(
+    tokenList.find(token => token.label === "ETH")?.value || tokenList[0].value
+  )
+  const [currencyAddress, setCurrencyAddress] = useState("")
+  const [amountOutUsd, setAmountOutUsd] = useState(0)
+  const [routeData, setRouteData] = useState<any>(null)
   const [maxLots, setMaxLots] = useState(0)
   // const [profit, setProfit] = useState(1);
   const [enabled, setEnabled] = useState(false)
@@ -61,7 +71,6 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     try {
       if (currencyInstance && productInstance) {
         const decimal = await currencyInstance.decimals()
-        
 
         const depositAmountStr = depositAmount.toFixed(decimal) 
         const approveAmountStr = (depositAmount + depositAmount * 0.0000005).toFixed(decimal)
@@ -212,16 +221,21 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   })
 
   useEffect(() => {
+    if (selectedAddressCurrency && currencyAddress) {
+      
+    }
+  }, [selectedAddressCurrency, currencyAddress])
+
+  useEffect(() => {
     (async () => {
       if (signer && productAddress && address) {
         try {
-          // console.log("productAddress")
-          // console.log(productAddress)
           const _productInstance = new ethers.Contract(productAddress, ProductABI, signer)
           setProductInstance(_productInstance)
           const _status = await _productInstance.status()
           setStatus(_status)
           const _currency = await _productInstance.currency()
+          setCurrencyAddress(_currency)
           const _currencyInstance = new ethers.Contract(_currency, ERC20ABI, signer)
           setCurrencyInstance(_currencyInstance)
           const _decimals = await _currencyInstance.decimals()
@@ -259,6 +273,74 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     })()
   }, [productAddress, signer, address])
 
+  useEffect(() => {
+    const fetchRoute = async () => {
+      if (selectedAddressCurrency && currencyAddress && lots > 0) {
+        const KYBER_API = process.env.NEXT_PUBLIC_KYBER_API;
+        const CHAIN_ID = chainId 
+        const CHAIN_NAME = 'ethereum';
+        try {
+          // 1. Get route first
+          const token = tokenList.find(token => token.value === selectedAddressCurrency);
+          const amountIn = lots * 10 ** (token?.decimals || 0);
+          const routeUrl = `${KYBER_API}/${CHAIN_NAME}/api/v1/routes`;
+          const routeParams = {
+            tokenIn: selectedAddressCurrency,
+            tokenOut: currencyAddress,
+            amountIn: amountIn.toString(), // Example amount
+            to: ethers.constants.AddressZero,
+            slippage: 100, // Example slippage
+            deadline: Math.floor(Date.now() / 1000) + 1800, // 30 minutes
+            chainId: CHAIN_ID,
+          };
+
+          const routeResponse = await axios.get(routeUrl, { params: routeParams });
+          const routeData: any = routeResponse.data;
+
+          // Get the signer's address
+          const signerAddress = await signer?.getAddress();
+
+          console.log("routeData")
+          console.log(routeData.data.routeSummary.amountOutUsd)
+
+          setAmountOutUsd(routeData.data.routeSummary.amountOutUsd)
+          // 2. Build route
+          const buildUrl = `${KYBER_API}/${CHAIN_NAME}/api/v1/route/build`;
+          const buildParams = {
+            routeSummary: routeData.data.routeSummary,
+            sender: signerAddress,
+            recipient: signerAddress,
+            slippageTolerance: 10 //0.1%
+          };
+          const buildResponse = await axios.post(buildUrl, {
+            ...buildParams
+          });
+          
+
+          setRouteData({
+            success: true,
+            data: {
+              routeData: {
+                ...routeData?.data
+              },
+              buildData: {
+                ...buildResponse.data?.data
+              },
+              tokenIn: selectedAddressCurrency
+            },
+          });
+        } catch (error: any) {
+          setRouteData({
+            success: false,
+            error: error?.message || 'Unknown error occurred',
+          });
+        }
+      }
+    };
+
+    fetchRoute();
+  }, [selectedAddressCurrency, currencyAddress, lots]);
+
   const hasSelectedItems = () => {
     return isCouponSelected || isOptionSelected || isPrincipalSelected;
   };
@@ -275,6 +357,150 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
     return `WITHDRAW ${selectedItems.join(" + ")}`;
   };
+
+  const getETHBalance = async (address: string) => {
+    const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH);
+    const balance = await provider.getBalance(address);
+    return ethers.utils.formatEther(balance);
+};
+
+  const getTokenApproval = async (tokenAddress: string, spenderAddress: string, amount: string) => {
+      if (!signer) return;
+      const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, signer);
+      const signerAddress = await signer.getAddress();
+      const allowance = await tokenContract.allowance(signerAddress, spenderAddress);
+      
+      if (allowance.lt(amount)) {
+          const tx = await tokenContract.approve(spenderAddress, ethers.constants.MaxUint256);
+          await tx.wait();
+      }
+  };
+
+  const handleSwap = async () => {
+    if(routeData.success && signer) {
+      const swapData = routeData.data;
+      // const swapData = response.data;
+        try {
+            console.log({ swapData });
+            if (!swapData) {
+              return {
+                success: false,
+                error: 'Failed to get swap data',
+              }
+            }
+        
+            const encodedSwapData = swapData.buildData.data;
+            const routerContract = swapData.buildData.routerAddress;
+            const amountIn = swapData.buildData.amountIn;
+        
+            // Get signer
+            // const signer = getSigner();
+            const signerAddress = await signer?.getAddress();
+        
+        
+            console.log({ tokenIn: swapData.tokenIn });
+        
+            // Add balance check
+        
+            console.log({
+              tokenIn: swapData.tokenIn,
+              tokenInLower: swapData.tokenIn.toLowerCase(),
+            });
+        
+            if (swapData.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+              const tokenContract = new ethers.Contract(swapData.tokenIn, ERC20ABI, signer);
+              const decimals = await tokenContract.decimals();
+              const balance = await tokenContract.balanceOf(signerAddress);
+              const amountInBigInt = BigInt(amountIn);
+        
+              console.log({
+                balance1: ethers.utils.formatUnits(balance, decimals),
+                required: ethers.utils.formatUnits(amountInBigInt, decimals),
+                address: signerAddress
+              });
+        
+              console.log("WETH Balance:", ethers.utils.formatUnits(balance, 18));
+        
+              if (balance < amountInBigInt) {
+                return {
+                  success: false,
+                  error: `Insufficient balance. Required: ${ethers.utils.formatUnits(amountInBigInt, decimals)} ${await tokenContract.symbol()}, Available: ${ethers.utils.formatUnits(balance, decimals)}`,
+                };
+              }
+        
+              // Handle token approval if needed
+              await getTokenApproval(
+                swapData.tokenIn,
+                routerContract,
+                amountIn
+              )
+            } else {
+              const ethBalance = await getETHBalance(signerAddress);
+              const amountInBigInt = BigInt(amountIn);
+              console.log("ETH Balance:", ethBalance);
+        
+              console.log({
+                balance2: ethBalance,
+                required: ethers.utils.formatUnits(amountInBigInt, 18),
+                address: signerAddress
+              });
+        
+              if (Number(ethBalance) < Number(ethers.utils.formatUnits(amountInBigInt, 18))) {
+                return {
+                  success: false,
+                  error: `Insufficient balance. Required: ${ethers.utils.formatUnits(amountInBigInt, 18)} ETH, Available: ${ethBalance}`,
+                };
+              }
+            }
+        
+            // Prepare transaction
+            const tx: any = {
+              data: encodedSwapData,
+              from: signerAddress,
+              to: routerContract,
+            //   maxFeePerGas: ethers.utils.parseUnits('0.1', 'gwei'),
+            //   maxPriorityFeePerGas: ethers.utils.parseUnits('0.1', 'gwei')
+            };
+        
+            // Add value field if swapping ETH
+            if (swapData.tokenIn.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+              tx.value = BigInt(amountIn);
+            }
+        
+            // Execute the swap transaction
+            console.log(`Executing the swap tx on-chain: `);
+            console.log({ txBody: tx });
+        
+            const executeSwapTx = await signer.sendTransaction({
+              ...tx,
+              // gasLimit: BigInt('21000'),
+            });
+        
+            const executeSwapTxReceipt = await executeSwapTx.wait();
+        
+            if (!executeSwapTxReceipt?.status) {
+              throw new Error('Transaction failed');
+            }
+        
+            return {
+              success: true,
+              data: {
+                hash: executeSwapTxReceipt.transactionHash
+              }
+            };
+          } catch (error: any) {
+            console.error('Swap transaction failed:', error);
+            return {
+              success: false,
+              error: error?.message || 'Failed to execute swap transaction'
+            };
+          }
+
+    }
+
+  };
+
+
 
   return (
     <>
@@ -351,6 +577,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               <div className={"mt-8 text-[#494D51] text-[16px]"}>Amount</div>
 
               <div className={"relative flex items-center mt-2"}>
+                
                 <input
                   className={"w-full py-3 px-4 bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded focus:outline-none"}
                   value={lots}
@@ -358,9 +585,36 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                   type='number'
                   step='1.00' 
                 />
+                <select
+                  className={"w-full py-3 px-4 bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded focus:outline-none"}
+                  
+                  onChange={(e) => {
+                    // const selectedCurrency = parseInt(e.target.value);
+                    console.log(e.target);
+                    setSelectedAddressCurrency(e.target.value);
+                  }}
+                >
+                  {tokenList.map((token) => (
+                    <option key={token.value} value={token.value}>
+                      {token.label}
+                    </option>
+                  ))}
+                </select>
                 <span className={"absolute right-4 text-[#828A93]"}></span>
               </div>
-
+              
+              <div>
+                <span className={"text-[#828A93] text-[16px] leading-[16px]"}>Amount Out</span>
+                <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
+                  {amountOutUsd.toLocaleString()} {product.currencyName}
+                </span>
+              </div>
+              <div>
+              <PrimaryButton
+                label="Swap"
+                onClick={handleSwap}
+              />
+              </div>
               <div className={"mt-3 flex justify-between items-center text-[#828A93]"}>
                 <div className={"flex items-center"}>
                   {/* <Image src={"/miniUSDC.svg"} alt={"miniUSDC"} width={20} height={20} />

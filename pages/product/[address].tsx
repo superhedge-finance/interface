@@ -126,8 +126,6 @@ const ProductDetail = () => {
     getProduct(address as string, chainId)
       .then((product) => {
         setProduct(product);
-        console.log("product")
-        console.log(product)
         const timeUntilIssuance = (product?.issuanceCycle.issuanceDate * 1000) - Date.now();
         const timeLabel = timeUntilIssuance > 0 ? "Time until Live" : "Time to Maturity";
         const countdownDate = timeUntilIssuance > 0 
