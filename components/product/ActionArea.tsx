@@ -677,53 +677,85 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               </div>
             )} */}
 
-            <div className={`${expand ? "" : "hidden"} md:block flex flex-col w-full`}>
-              <div className={"mt-8 text-[#494D51] text-[16px]"}>Amount</div>
+            <div className={`flex flex-col w-full`}>
+              <div className={"mt-8 flex items-center justify-between"}>
+                <div className={"text-[#494D51] text-[16px]"}>Input</div>
+                <div className={"flex items-center gap-1"}>
 
-              <div className={"relative flex items-center mt-2"}>
-
-                <input
-                  className={"w-full py-3 px-4 bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded focus:outline-none"}
-                  value={lots}
-                  onChange={(e) => setLots(Number(e.target.value))}
-                  type='number'
-                  step='1.00'
-                />
-                <select
-                  className={"w-full py-3 px-4 bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded focus:outline-none"}
-
-                  onChange={(e) => {
-                    // const selectedCurrency = parseInt(e.target.value);
-                    console.log(e.target);
-                    setSelectedAddressCurrency(e.target.value);
-                  }}
-                >
-                  {tokenList.map((token) => (
-                    <option key={token.value} value={token.value}>
-                      {token.label}
-                    </option>
-                  ))}
-                </select>
-                <span className={"absolute right-4 text-[#828A93]"}></span>
+                  <div>
+                    <span className={"mr-1"}>Balance: </span>
+                    <span className="font-medium">{walletBalance.toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span
+                      className={`ml-2 text-[#828A93] cursor-pointer ${walletBalance === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      onClick={() => walletBalance > 0 && setLots(maxLots)}
+                    >
+                      MAX
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className={"mt-3"}>
+              <div className={"relative flex items-center mt-2 h-[50px] overflow-hidden bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded"}>
+                <div className={"flex-1"}>
+                  <input
+                    className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB]  border-none focus:outline-none"}
+                    value={lots}
+                    onChange={(e) => {
+                      const value = Number(e.target.value);
+                      if (value >= 0) {
+                        setLots(value);
+                      }
+                    }}
+                    type='number'
+                    step='1.00'
+                    min={0}
+                  />
+                </div>
+                <div className={"flex items-center justify-end"}>
+                  <select
+                    className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none appearance-none"}
+                    onChange={(e) => {
+                      // const selectedCurrency = parseInt(e.target.value);
+                      console.log(e.target);
+                      setSelectedAddressCurrency(e.target.value);
+                    }}
+                  >
+                    {tokenList.map((token) => (
+                      <option key={token.value} value={token.value}>
+                        {token.label}
+                      </option>
+                    ))}
+                  </select>
+                  {/* <span className={"absolute right-4 text-[#828A93]"}></span> */}
+                </div>
+              </div>
+
+              <div className={"my-4 text-red-700 text-[10px] text-right"}>
+                From {lots} {tokenList.find(token => token.value === selectedAddressCurrency)?.label},
+                Swap via KyperSwap to get {Number(amountOutUsd.toLocaleString()).toFixed(2)} {product.currencyName}
+                <br />
+                Redeem {Number(amountOutUsd.toLocaleString()).toFixed(2)} {product.currencyName} at maturity
+              </div>
+
+              {/* <div className={"mt-3"}>
                 <span className={"text-[#828A93] text-[16px] leading-[16px]"}>Amount Out:{' '}
                   <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
                     {amountOutUsd.toLocaleString()} {product.currencyName}
                   </span>
                 </span>
-              </div>
+              </div> */}
               <div>
               {/* <PrimaryButton
                 label="Swap"
                 onClick={handleSwap}
               /> */}
               </div>
-              <div className={"mt-3 flex justify-between items-center text-[#828A93]"}>
+              {/* <div className={"mt-3 flex justify-between items-center text-[#828A93]"}>
                 <div className={"flex items-center"}>
-                  {/* <Image src={"/miniUSDC.svg"} alt={"miniUSDC"} width={20} height={20} />
-                  <span className={"ml-2"}>{(pricePerLot * lots).toLocaleString()} USDC</span> */}
+                  <Image src={"/miniUSDC.svg"} alt={"miniUSDC"} width={20} height={20} />
+                  <span className={"ml-2"}>{(pricePerLot * lots).toLocaleString()} USDC</span>
                 </div>
                 <div className={"flex items-center"}>
                   <Image src={"/miniUSDC.svg"} alt={"miniUSDC"} width={20} height={20} />
@@ -735,7 +767,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                     MAX
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               {/* <div className={"mt-1 grid grid-cols-1 gap-2"}>
 
@@ -750,10 +782,10 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               </div> */}
             </div>
 
-            <div className="flex justify-between mt-5">
+            {/* <div className="flex justify-between mt-5">
               <Switch.Group>
                 <div className="flex items-center">
-                  {/* <Switch
+                  <Switch
                     checked={enabled}
                     onChange={setEnabled}
                     className={`${enabled ? 'bg-blue-600' : 'bg-gray-400'
@@ -764,14 +796,14 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                         } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                     />
                   </Switch>
-                  <Switch.Label className="ml-3">Include profits</Switch.Label> */}
+                  <Switch.Label className="ml-3">Include profits</Switch.Label>
                 </div>
               </Switch.Group>
               <div>
-                <span className={"mr-1"}>Wallet Balance: </span>
-                <span className="font-medium">{walletBalance.toLocaleString()} {product.currencyName}</span>
+                <span className={"mr-1"}>Balance: </span>
+                <span className="font-medium">{walletBalance.toLocaleString()}</span>
               </div>
-            </div>
+            </div> */}
 
             {/* <div className={`${expand ? "" : "hidden"} md:block mt-5`}>
               <PrimaryButton label={depositButtonLabel} disabled={status !== 1 || walletBalance === 0} onClick={() => setIsOpen(true)} />
@@ -788,13 +820,13 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
             {!expand && (
               <div className={"block md:hidden w-full pb-5"}>
-                <div className={"mt-2 mb-3"}>
+                {/* <div className={"mt-2 mb-3"}>
                   <span className={"text-[#828A93] text-[16px] leading-[16px]"}>Amount Out:{' '}
                     <span className={"text-[#161717] text-[22px] leading-[22px] mt-3"}>
                       {amountOutUsd.toLocaleString()} {product.currencyName}
                     </span>
                   </span>
-                </div>
+                </div> */}
                 {/* <PrimaryButton label={"DEPOSIT"} onClick={() => setExpand(true)} /> */}
                 <PrimaryButton
                   label={depositButtonLabel}
@@ -915,7 +947,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           </>
         )}
         {address && (
-          <div className={"hidden md:flex mt-7 items-center justify-center"}>
+          <div className={"flex mt-2 md:mt-7 items-center justify-center"}>
             <span className={"text-[#677079] mr-2"}>Contract:</span>
             <span className={"mr-2 bg-clip-text text-transparent bg-primary-gradient"}>{truncateAddress(productAddress)}</span>
             <a href={`${EXPLORER[chainId]}/address/${productAddress}`} target={"_blank"} rel='noreferrer'>
