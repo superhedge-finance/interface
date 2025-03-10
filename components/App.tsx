@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { Chain, RainbowKitProvider, getDefaultWallets } from "@rainbow-me/rainbowkit";
 import { configureChains, createClient, WagmiConfig } from "wagmi";
-import { mainnet } from "wagmi/chains";
+// import { mainnet, base } from "wagmi/chains";
+
+import {mainnet} from "@wagmi/core/chains"
+import { base } from "../utils/chains"
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import { publicProvider } from "wagmi/providers/public";
 import { Chart as ChartJS, Title, Tooltip, Legend, Filler, LineElement, CategoryScale, LinearScale, PointElement } from "chart.js";
@@ -42,12 +45,34 @@ const CustomDisclaimer: React.FC<CustomDisclaimerProps> = ({ Text, Link }) => {
 
 ChartJS.register(Title, Tooltip, Legend, Filler, LineElement, CategoryScale, LinearScale, PointElement);
 
+// const { chains, provider, webSocketProvider } = configureChains(
+//   [...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS == "true" ? [mainnet,base] : [mainnet,base])],
+//   [
+//     jsonRpcProvider({
+//       rpc: () => ({
+//         http: process.env.NEXT_PUBLIC_MORALIS_KEY_ETH || "",
+//       }),
+//     }),
+//     jsonRpcProvider({
+//       rpc: () => ({
+//         http: process.env.NEXT_PUBLIC_MORALIS_KEY_BASE || "",
+//       }),
+//     }),
+//     publicProvider()
+//   ]
+// );
+
 const { chains, provider, webSocketProvider } = configureChains(
-  [...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS == "true" ? [mainnet] : [mainnet])],
+  [mainnet, base],
   [
     jsonRpcProvider({
       rpc: () => ({
         http: process.env.NEXT_PUBLIC_MORALIS_KEY_ETH || "",
+      }),
+    }),
+    jsonRpcProvider({
+      rpc: () => ({
+        http: process.env.NEXT_PUBLIC_MORALIS_KEY_BASE || "",
       }),
     }),
     publicProvider()

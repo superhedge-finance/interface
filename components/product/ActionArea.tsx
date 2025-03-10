@@ -13,7 +13,7 @@ import { SUPPORT_CHAIN_IDS } from "../../utils/enums"
 import { getTxErrorMessage, truncateAddress } from "../../utils/helpers"
 import PTTokenABI from "..//../utils/abis/PTToken.json"
 import { ParaRegular18, PrimaryButton, SecondaryButton, SubtitleRegular16 } from "../basic"
-import { tokenList } from "../../utils/tokenList"
+import { getTokensForChain } from "../../utils/tokenList"
 import axios from "axios"
 import Swap from "../../pages/swap"
 
@@ -40,9 +40,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   const [productInstance, setProductInstance] = useState<ethers.Contract | undefined>(undefined)
   const [currencyInstance, setCurrencyInstance] = useState<ethers.Contract | undefined>(undefined)
   const [tokenAddressInstance, setTokenAddressInstance] = useState<ethers.Contract | undefined>(undefined)
-  const [selectedAddressCurrency, setSelectedAddressCurrency] = useState(
-    tokenList.find(token => token.label === "ETH")?.value || tokenList[0].value
-  )
+  const [selectedAddressCurrency, setSelectedAddressCurrency] = useState("")
   const [currencyAddress, setCurrencyAddress] = useState("")
   const [amountOutUsd, setAmountOutUsd] = useState(0)
   const [routeData, setRouteData] = useState<any>(null)
@@ -271,6 +269,9 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     return SUPPORT_CHAIN_IDS.ETH
   }, [chain])
 
+  // Get the tokens for the current chain
+  const tokensForCurrentChain = getTokensForChain(chainId);
+
   // const lotsCount = useMemo(() => {
   //   return (principalBalance + optionBalance + couponBalance) / pricePerLot
   // }, [principalBalance, optionBalance, couponBalance])
@@ -382,10 +383,15 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       if (selectedAddressCurrency && currencyAddress && lots > 0) {
         const KYBER_API = process.env.NEXT_PUBLIC_KYBER_API;
         const CHAIN_ID = chainId
-        const CHAIN_NAME = 'ethereum';
+        let CHAIN_NAME = ""
+        if (CHAIN_ID === SUPPORT_CHAIN_IDS.ETH) {
+          CHAIN_NAME = "ethereum"
+        } else if (CHAIN_ID === SUPPORT_CHAIN_IDS.BASE) {
+          CHAIN_NAME = "base"
+        }
         try {
           // 1. Get route first
-          const token = tokenList.find(token => token.value === selectedAddressCurrency);
+          const token = tokensForCurrentChain.find(token => token.value === selectedAddressCurrency);
           const amountIn = lots * 10 ** (token?.decimals || 0);
           const routeUrl = `${KYBER_API}/${CHAIN_NAME}/api/v1/routes`;
           const routeParams = {
@@ -463,7 +469,12 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   };
 
   const getETHBalance = async (address: string) => {
-    const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH);
+    const provider = useMemo(() => {
+      if (chainId === SUPPORT_CHAIN_IDS.BASE) {
+        return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_BASE);
+      }
+      return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH);
+    }, [chainId]);
     const balance = await provider.getBalance(address);
     return ethers.utils.formatEther(balance);
 };
@@ -604,7 +615,14 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
   };
 
-
+  // Update when chainId changes
+  useEffect(() => {
+    // Get tokens for the current chain
+    const tokens = getTokensForChain(chainId)
+    // Set selected currency to ETH on the current chain or first available token
+    const ethToken = tokens.find(token => token.label === "ETH")?.value
+    setSelectedAddressCurrency(ethToken || tokens[0].value)
+  }, [chainId])
 
   return (
     <>
@@ -722,7 +740,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                       setSelectedAddressCurrency(e.target.value);
                     }}
                   >
-                    {tokenList.map((token) => (
+                    {tokensForCurrentChain.map((token) => (
                       <option key={token.value} value={token.value}>
                         {token.label}
                       </option>
@@ -733,7 +751,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               </div>
 
               <div className={"my-4 text-red-700 text-[10px] text-right"}>
-                From {lots} {tokenList.find(token => token.value === selectedAddressCurrency)?.label},
+                From {lots} {tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label},
                 Swap via KyperSwap to get {Number(amountOutUsd.toLocaleString()).toFixed(2)} {product.currencyName}
                 <br />
                 Redeem {Number(amountOutUsd.toLocaleString()).toFixed(2)} {product.currencyName} at maturity
