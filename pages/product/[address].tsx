@@ -93,7 +93,7 @@ const ProductDetail = () => {
       const maturityDate = new Date(product.issuanceCycle.maturityDate * 1000);
       const issuanceDate = new Date(product.issuanceCycle.issuanceDate * 1000);
       const now = new Date();
-      
+
       if (maturityDate > issuanceDate && product.status != 3) {
         const diffTime = Math.abs(issuanceDate.getTime() - maturityDate.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -103,7 +103,7 @@ const ProductDetail = () => {
           year: 'numeric'
         })} (${diffDays}D)`;
       }
-      
+
       return maturityDate.toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'short',
@@ -126,11 +126,11 @@ const ProductDetail = () => {
     getProduct(address as string, chainId)
       .then((product) => {
         setProduct(product);
-        const timeUntilIssuance = (product?.issuanceCycle.issuanceDate * 1000) - Date.now();
+        const timeUntilIssuance = (product?.issuanceCycle?.issuanceDate * 1000) - Date.now();
         const timeLabel = timeUntilIssuance > 0 ? "Time until Live" : "Time to Maturity";
-        const countdownDate = timeUntilIssuance > 0 
+        const countdownDate = timeUntilIssuance > 0
           ? Date.now() + timeUntilIssuance
-          : Date.now() + ((product?.issuanceCycle.maturityDate * 1000) - Date.now());
+          : Date.now() + ((product?.issuanceCycle?.maturityDate * 1000) - Date.now());
         setTimeLabel(timeLabel);
         setCountdownDate(new Date(countdownDate));
       })
@@ -238,7 +238,7 @@ const ProductDetail = () => {
       )} */}
       {/* <div className={isBlurred ? 'filter blur-lg pointer-events-none' : ''}> */}
       <div className={''}>
-        
+
         {isLoading && <SkeletonCard />}
         <div className={"grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-12 px-0 md:px-12 relative"}>
           <div className={"col-span-1"}>
@@ -349,18 +349,18 @@ const ProductDetail = () => {
                   <div
                     className={"md:flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 space-y-3 md:space-y-0 mt-5"}
                   >
-                    <RecapCardMobile 
-                      label={timeLabel} 
+                    <RecapCardMobile
+                      label={timeLabel}
                       value={
-                        <Countdown 
-                          intervalDelay={60000} 
+                        <Countdown
+                          intervalDelay={60000}
                           date={countdownDate}
                           renderer={issuance_date_renderer}
                         />
                       }
                     />
-                    {/* <RecapCardMobile 
-                      label="Time to Issuance" 
+                    {/* <RecapCardMobile
+                      label="Time to Issuance"
                       value={new Date(product.issuanceCycle.issuanceDate * 1000).toLocaleDateString('en-GB', {
                         day: 'numeric',
                         month: 'short',
@@ -368,28 +368,28 @@ const ProductDetail = () => {
                       })}
                     /> */}
                     <RecapCardMobile label={"Maturity Date"} value={investment_duration} />
-                    <RecapCard 
-                      label="Coupon" 
+                    <RecapCard
+                      label="Coupon"
                       value={`${product.issuanceCycle.coupon / 1000000}%`}
                       tooltip={product.couponTooltip}
                     />
-                    
+
                   </div>
                   {/* <div className={"grid md:grid-cols-4 grid-cols-2 gap-2 mt-2"}> */}
                   <div
                     className={"md:flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 space-y-3 md:space-y-0 mt-5"}
                   >
-                    <RecapCard 
-                      label={"Block Size"} 
-                      value={`${((product.issuanceCycle.optionMinOrderSize * product.issuanceCycle.underlyingSpotRef) / 10).toLocaleString()} ${product.currencyName}`} 
+                    <RecapCard
+                      label={"Block Size"}
+                      value={`${((product.issuanceCycle.optionMinOrderSize * product.issuanceCycle.underlyingSpotRef) / 10).toLocaleString()} ${product.currencyName}`}
                     />
-                    <RecapCard 
-                      label={"Strike 1 price"} 
-                      value={formatStrikePrice(product.issuanceCycle.strikePrice1)} 
+                    <RecapCard
+                      label={"Strike 1 price"}
+                      value={formatStrikePrice(product.issuanceCycle.strikePrice1)}
                     />
-                    <RecapCard 
-                      label={"Strike 2 price"} 
-                      value={formatStrikePrice(product.issuanceCycle.strikePrice2)} 
+                    <RecapCard
+                      label={"Strike 2 price"}
+                      value={formatStrikePrice(product.issuanceCycle.strikePrice2)}
                     />
                     {/* <RecapCard label={"Strike 3 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice3)} />
                     <RecapCard label={"Strike 4 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice4)} /> */}
@@ -398,7 +398,7 @@ const ProductDetail = () => {
 
                 {/* <div className={"mt-[80px] flex flex-col space-y-5"}>
                   <TitleH3>Block Size: {(product.issuanceCycle.optionMinOrderSize * product.issuanceCycle.underlyingSpotRef)/10} {product.currencyName}</TitleH3>
-                  
+
                 </div> */}
 
                 <div className={"mt-[80px]"}>
@@ -414,7 +414,7 @@ const ProductDetail = () => {
                   />
                 </div>
 
-                
+
 
                 {/* <div className={"mt-[80px] flex flex-col space-y-5"}>
                   <TitleH3>Product Lifecycle</TitleH3>

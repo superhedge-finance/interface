@@ -47,6 +47,12 @@ export const getTxErrorMessage = (error: any): string => {
     return "Not enough balance";
   } else if (errMessage && /Insufficient/.test(errMessage)) {
     return errMessage;
+  } else if (errMessage && /exceeds max/.test(errMessage)) {
+    return "Deposit exceeds max capacity.";
+  } else if (errMessage && /revert/.test(errMessage)) {
+    return "Transaction reverted in some reason.";
+  } else if (errMessage && /rejected/.test(errMessage)) {
+    return "Transaction rejected.";
   }
 
   const regex = /execution reverted: ([a-zA-Z0-9 ]+)/;

@@ -100,68 +100,71 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
   const onSwapAndDeposit = async () => {
     try {
-      // Only proceed if we have valid swap data and signer
-      if (!routeData?.success || !signer) {
-        return;
-      }
-
-      const swapData = routeData.data;
-      if (!swapData) {
-        throw new Error('Failed to get swap data');
-      }
-
       setIsLoadingSwapAndDeposit(true)
-
-      // Get necessary swap parameters
-      const encodedSwapData = swapData.buildData.data;
-      const routerContract = swapData.buildData.routerAddress;
-      const amountIn = swapData.buildData.amountIn;
-      const signerAddress = await signer.getAddress();
-
-      // Check balances and handle approvals
-      if (swapData.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
-        // Handle ERC20 token case
-        const tokenContract = new ethers.Contract(swapData.tokenIn, ERC20ABI, signer);
-        const decimals = await tokenContract.decimals();
-        const balance = await tokenContract.balanceOf(signerAddress);
-        const amountInBigInt = BigInt(amountIn);
-
-        if (balance < amountInBigInt) {
-          setIsLoadingSwapAndDeposit(false)
-          throw new Error(`Insufficient balance. Required: ${ethers.utils.formatUnits(amountInBigInt, decimals)} ${await tokenContract.symbol()}, Available: ${ethers.utils.formatUnits(balance, decimals)}`);
+      // Only swap if product.currencyName is not the same as the selected currency
+      if (selectedAddressCurrency !== '' && product?.currencyName.toLowerCase() !== tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label.toLowerCase()) {
+        // Only proceed if we have valid swap data and signer
+        if (!routeData?.success || !signer) {
+          return;
         }
 
-        // Handle token approval
-        await getTokenApproval(swapData.tokenIn, routerContract, amountIn);
-      } else {
-        // Handle ETH case
-        const ethBalance = await getETHBalance(signerAddress);
-        const amountInBigInt = BigInt(amountIn);
+        const swapData = routeData.data;
+        if (!swapData) {
+          throw new Error('Failed to get swap data');
+        }
 
-        if (Number(ethBalance) < Number(ethers.utils.formatUnits(amountInBigInt, 18))) {
+        // Get necessary swap parameters
+        const encodedSwapData = swapData.buildData.data;
+        const routerContract = swapData.buildData.routerAddress;
+        const amountIn = swapData.buildData.amountIn;
+        const signerAddress = await signer.getAddress();
+
+        // Check balances and handle approvals
+        if (swapData.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+          // Handle ERC20 token case
+          const tokenContract = new ethers.Contract(swapData.tokenIn, ERC20ABI, signer);
+          const decimals = await tokenContract.decimals();
+          const balance = await tokenContract.balanceOf(signerAddress);
+          const amountInBigInt = BigInt(amountIn);
+
+          if (balance < amountInBigInt) {
+            setIsLoadingSwapAndDeposit(false)
+            throw new Error(`Insufficient balance. Required: ${ethers.utils.formatUnits(amountInBigInt, decimals)} ${await tokenContract.symbol()}, Available: ${ethers.utils.formatUnits(balance, decimals)}`);
+          }
+
+          // Handle token approval
+          await getTokenApproval(swapData.tokenIn, routerContract, amountIn);
+        } else {
+          // Handle ETH case
+          const ethBalance = await getETHBalance(signerAddress);
+          const amountInBigInt = BigInt(amountIn);
+
+          if (Number(ethBalance) < Number(ethers.utils.formatUnits(amountInBigInt, 18))) {
+            setIsLoadingSwapAndDeposit(false)
+            throw new Error(`Insufficient ETH balance. Required: ${ethers.utils.formatUnits(amountInBigInt, 18)} ETH, Available: ${ethBalance}`);
+          }
+        }
+
+        // Prepare and execute swap transaction
+        const tx: any = {
+          data: encodedSwapData,
+          from: signerAddress,
+          to: routerContract,
+        };
+
+        if (swapData.tokenIn.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+          tx.value = BigInt(amountIn);
+        }
+
+        const executeSwapTx = await signer.sendTransaction(tx);
+        const executeSwapTxReceipt = await executeSwapTx.wait();
+
+        if (!executeSwapTxReceipt?.status) {
           setIsLoadingSwapAndDeposit(false)
-          throw new Error(`Insufficient ETH balance. Required: ${ethers.utils.formatUnits(amountInBigInt, 18)} ETH, Available: ${ethBalance}`);
+          throw new Error('Swap transaction failed');
         }
       }
 
-      // Prepare and execute swap transaction
-      const tx: any = {
-        data: encodedSwapData,
-        from: signerAddress,
-        to: routerContract,
-      };
-
-      if (swapData.tokenIn.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
-        tx.value = BigInt(amountIn);
-      }
-
-      const executeSwapTx = await signer.sendTransaction(tx);
-      const executeSwapTxReceipt = await executeSwapTx.wait();
-
-      if (!executeSwapTxReceipt?.status) {
-        setIsLoadingSwapAndDeposit(false)
-        throw new Error('Swap transaction failed');
-      }
 
       // After successful swap, proceed with deposit
       if (currencyInstance && productInstance) {
@@ -307,10 +310,10 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       return "Unavailable"
     }
     if (principalBalance > 0) {
-      return `DEPOSIT ${depositAmount.toLocaleString()} ${product.currencyName}`
+      return `DEPOSIT ${Number.isInteger(depositAmount) ? depositAmount : Number(depositAmount.toFixed(4))} ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label}`
     }
-    return `DEPOSIT ${depositAmount.toLocaleString()} ${product.currencyName}`
-  }, [principalBalance, status, depositAmount])
+    return `DEPOSIT ${Number.isInteger(depositAmount) ? depositAmount : Number(depositAmount.toFixed(4))} ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label}`
+  }, [principalBalance, status, depositAmount, selectedAddressCurrency])
 
   const isSticky = () => {
     const scrollTop = window.scrollY
@@ -448,8 +451,11 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       }
     };
 
-    fetchRoute();
-  }, [selectedAddressCurrency, currencyAddress, lots]);
+    // Only fetch route if product.currencyName is not the same as the selected currency
+    if (selectedAddressCurrency !== '' && product?.currencyName.toLowerCase() !== tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label.toLowerCase()) {
+      fetchRoute();
+    }
+  }, [selectedAddressCurrency, currencyAddress, lots, product.currencyName]);
 
   const hasSelectedItems = () => {
     return isCouponSelected || isOptionSelected || isPrincipalSelected;
@@ -468,13 +474,14 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     return `WITHDRAW ${selectedItems.join(" + ")}`;
   };
 
+  const provider = useMemo(() => {
+    if (chainId === SUPPORT_CHAIN_IDS.BASE) {
+      return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_BASE);
+    }
+    return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH);
+  }, [chainId]);
+
   const getETHBalance = async (address: string) => {
-    const provider = useMemo(() => {
-      if (chainId === SUPPORT_CHAIN_IDS.BASE) {
-        return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_BASE);
-      }
-      return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH);
-    }, [chainId]);
     const balance = await provider.getBalance(address);
     return ethers.utils.formatEther(balance);
 };
@@ -619,10 +626,50 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   useEffect(() => {
     // Get tokens for the current chain
     const tokens = getTokensForChain(chainId)
-    // Set selected currency to ETH on the current chain or first available token
-    const ethToken = tokens.find(token => token.label === "ETH")?.value
-    setSelectedAddressCurrency(ethToken || tokens[0].value)
-  }, [chainId])
+    // Find token matching product.currencyName or default to first token
+    const matchingToken = tokens.find(token => token.label === product.currencyName)
+    setSelectedAddressCurrency(matchingToken?.value || tokens[0].value)
+  }, [chainId, product.currencyName])
+
+  const formatBalanceForCurrency = (balance: number, currencyName: string) => {
+    // Get tokens for current chain
+    const tokens = getTokensForChain(chainId);
+    // Find matching token by label
+    const token = tokens.find(t => t.label === currencyName);
+
+    if (token) {
+      // Use the token's decimals to format the balance
+      return balance.toLocaleString(undefined, {
+        minimumFractionDigits: token.decimals > 8 ? 4 : Math.min(token.decimals, 6),
+        maximumFractionDigits: token.decimals > 8 ? 4 : Math.min(token.decimals, 6)
+      });
+    }
+
+    // Default formatting if token not found
+    return balance.toLocaleString();
+  }
+
+  useEffect(() => {
+    (async () => {
+      if (signer && address && selectedAddressCurrency) {
+        try {
+          // If it's ETH/native token
+          if (selectedAddressCurrency.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+            const balance = await provider.getBalance(address);
+            setWalletBalance(Number(ethers.utils.formatEther(balance)));
+          } else {
+            // For other ERC20 tokens
+            const tokenContract = new ethers.Contract(selectedAddressCurrency, ERC20ABI, signer);
+            const decimals = await tokenContract.decimals();
+            const balance = await tokenContract.balanceOf(address);
+            setWalletBalance(Number(ethers.utils.formatUnits(balance, decimals)));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    })();
+  }, [signer, address, selectedAddressCurrency, provider]);
 
   return (
     <>
@@ -702,12 +749,14 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
                   <div>
                     <span className={"mr-1"}>Balance: </span>
-                    <span className="font-medium">{walletBalance.toLocaleString()}</span>
+                    <span className="font-medium">
+                      {formatBalanceForCurrency(walletBalance, product.currencyName)}
+                    </span>
                   </div>
                   <div>
                     <span
                       className={`ml-2 text-[#828A93] cursor-pointer ${walletBalance === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      onClick={() => walletBalance > 0 && setLots(maxLots)}
+                      onClick={() => walletBalance > 0 && setLots(parseFloat(maxLots.toFixed(4)))}
                     >
                       MAX
                     </span>
@@ -723,7 +772,12 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                     onChange={(e) => {
                       const value = Number(e.target.value);
                       if (value >= 0) {
-                        setLots(value);
+                        // If value is a whole number, don't show decimals
+                        if (Number.isInteger(value)) {
+                          setLots(value);
+                        } else {
+                          setLots(Number(value.toFixed(4)));
+                        }
                       }
                     }}
                     type='number'
@@ -732,30 +786,32 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                   />
                 </div>
                 <div className={"flex items-center justify-end"}>
-                  <select
-                    className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none appearance-none"}
-                    onChange={(e) => {
-                      // const selectedCurrency = parseInt(e.target.value);
-                      console.log(e.target);
-                      setSelectedAddressCurrency(e.target.value);
-                    }}
-                  >
-                    {tokensForCurrentChain.map((token) => (
-                      <option key={token.value} value={token.value}>
-                        {token.label}
-                      </option>
-                    ))}
-                  </select>
+                  {selectedAddressCurrency !== "" && (
+                    <select
+                      className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none appearance-none"}
+                      onChange={(e) => {
+                        setSelectedAddressCurrency(e.target.value);
+                      }}
+                      defaultValue={selectedAddressCurrency}
+                    >
+                      {tokensForCurrentChain.map((token) => (
+                        <option key={token.value} value={token.value}>
+                          {token.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   {/* <span className={"absolute right-4 text-[#828A93]"}></span> */}
                 </div>
               </div>
-
-              <div className={"my-4 text-red-700 text-[10px] text-right"}>
-                From {lots} {tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label},
-                Swap via KyperSwap to get {Number(amountOutUsd.toLocaleString()).toFixed(2)} {product.currencyName}
-                <br />
-                Redeem {Number(amountOutUsd.toLocaleString()).toFixed(2)} {product.currencyName} at maturity
-              </div>
+              {product?.currencyName.toLowerCase() !== tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label.toLowerCase() && (
+                <div className={"my-4 text-red-700 text-[10px] text-right"}>
+                  From {lots} {tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label},
+                  Swap via KyperSwap to get {Number(amountOutUsd.toLocaleString()).toFixed(2)} {product.currencyName}
+                  <br />
+                  Redeem {Number(amountOutUsd.toLocaleString()).toFixed(2)} {product.currencyName} at maturity
+                </div>
+              )}
 
               {/* <div className={"mt-3"}>
                 <span className={"text-[#828A93] text-[16px] leading-[16px]"}>Amount Out:{' '}
