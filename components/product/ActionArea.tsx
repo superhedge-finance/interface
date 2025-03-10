@@ -5,7 +5,7 @@ import Image from "next/image"
 import { Fragment, useEffect, useMemo, useState } from "react"
 import toast from "react-hot-toast"
 import { useAccount, useNetwork, useSigner } from "wagmi"
-import { DEPOSIT_STATUS, IProduct, WITHDRAW_STATUS } from "../../types"
+import { DEPOSIT_STATUS, IProduct, WITHDRAW_STATUS, SWAP_AND_DEPOSIT_STATUS } from "../../types"
 import ERC20ABI from "../../utils/abis/ERC20.json"
 import ProductABI from "../../utils/abis/SHProduct.json"
 import { EXPLORER } from "../../utils/constants"
@@ -37,10 +37,12 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   const [couponBalance, setCouponBalance] = useState(0)
   const [depositStatus, setDepositStatus] = useState(DEPOSIT_STATUS.NONE)
   const [withdrawStatus, setWithdrawStatus] = useState(WITHDRAW_STATUS.NONE)
+  const [swapAndDepositStatus, setSwapAndDepositStatus] = useState(SWAP_AND_DEPOSIT_STATUS.NONE)
   const [productInstance, setProductInstance] = useState<ethers.Contract | undefined>(undefined)
   const [currencyInstance, setCurrencyInstance] = useState<ethers.Contract | undefined>(undefined)
   const [tokenAddressInstance, setTokenAddressInstance] = useState<ethers.Contract | undefined>(undefined)
   const [selectedAddressCurrency, setSelectedAddressCurrency] = useState("")
+  const [loadingSelectedAddressCurrency, setLoadingSelectedAddressCurrency] = useState(false)
   const [currencyAddress, setCurrencyAddress] = useState("")
   const [amountOutUsd, setAmountOutUsd] = useState(0)
   const [routeData, setRouteData] = useState<any>(null)
@@ -105,12 +107,16 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       if (selectedAddressCurrency !== '' && product?.currencyName.toLowerCase() !== tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label.toLowerCase()) {
         // Only proceed if we have valid swap data and signer
         if (!routeData?.success || !signer) {
+          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
+          setIsOpen(false)
           return;
         }
 
         const swapData = routeData.data;
         if (!swapData) {
-          throw new Error('Failed to get swap data');
+          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
+          setIsOpen(false)
+          return;
         }
 
         // Get necessary swap parameters
@@ -120,6 +126,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         const signerAddress = await signer.getAddress();
 
         // Check balances and handle approvals
+        setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.SWAP)
+        setIsOpen(true)
         if (swapData.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
           // Handle ERC20 token case
           const tokenContract = new ethers.Contract(swapData.tokenIn, ERC20ABI, signer);
@@ -128,11 +136,15 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           const amountInBigInt = BigInt(amountIn);
 
           if (balance < amountInBigInt) {
+            setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
             setIsLoadingSwapAndDeposit(false)
+            setIsOpen(false)
             throw new Error(`Insufficient balance. Required: ${ethers.utils.formatUnits(amountInBigInt, decimals)} ${await tokenContract.symbol()}, Available: ${ethers.utils.formatUnits(balance, decimals)}`);
           }
 
           // Handle token approval
+          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.SWAP_APPROVE)
+          setIsOpen(true)
           await getTokenApproval(swapData.tokenIn, routerContract, amountIn);
         } else {
           // Handle ETH case
@@ -140,7 +152,9 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           const amountInBigInt = BigInt(amountIn);
 
           if (Number(ethBalance) < Number(ethers.utils.formatUnits(amountInBigInt, 18))) {
+            setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
             setIsLoadingSwapAndDeposit(false)
+            setIsOpen(false)
             throw new Error(`Insufficient ETH balance. Required: ${ethers.utils.formatUnits(amountInBigInt, 18)} ETH, Available: ${ethBalance}`);
           }
         }
@@ -156,16 +170,21 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           tx.value = BigInt(amountIn);
         }
 
+        setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.SWAPPING)
+        setIsOpen(true)
         const executeSwapTx = await signer.sendTransaction(tx);
         const executeSwapTxReceipt = await executeSwapTx.wait();
 
         if (!executeSwapTxReceipt?.status) {
           setIsLoadingSwapAndDeposit(false)
+          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
+          setIsOpen(false)
           throw new Error('Swap transaction failed');
         }
       }
 
-
+      setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSIT)
+      setIsOpen(true)
       // After successful swap, proceed with deposit
       if (currencyInstance && productInstance) {
         const decimal = await currencyInstance.decimals();
@@ -177,27 +196,38 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         // Check capacity
         const _currentCapacity = await productInstance.currentCapacity();
         if (depositAmount + Number(ethers.utils.formatUnits(_currentCapacity, decimal)) > Number(product.maxCapacity)) {
+          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
           setIsLoadingSwapAndDeposit(false)
+          setIsOpen(false)
           throw new Error("Your deposit results in excess of max capacity.");
         }
 
         // Handle deposit approval if needed
         const currentAllowance = await currencyInstance.allowance(address, productAddress);
         if (currentAllowance.lt(requestBalance)) {
-          setDepositStatus(DEPOSIT_STATUS.APPROVING);
+          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE)
+          setIsOpen(true)
           const approveTx = await currencyInstance.approve(productAddress, approveBalance);
           await approveTx.wait();
         }
 
         // Execute deposit
-        setDepositStatus(DEPOSIT_STATUS.DEPOSIT);
+        setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSITING)
+        setIsOpen(true)
         const depositTx = await productInstance.deposit(requestBalance);
         await depositTx.wait();
-        setDepositStatus(DEPOSIT_STATUS.DONE);
+        setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DONE);
+        setTimeout(() => {
+          setIsLoadingSwapAndDeposit(false)
+          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
+          setIsOpen(false)
+        }, 1500);
       }
 
     } catch (error: any) {
       setIsLoadingSwapAndDeposit(false)
+      setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
+      setIsOpen(false)
       console.error('Swap and deposit failed:', error);
       toast.error(getTxErrorMessage(error));
     }
@@ -310,9 +340,9 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       return "Unavailable"
     }
     if (principalBalance > 0) {
-      return `DEPOSIT ${Number.isInteger(depositAmount) ? depositAmount : Number(depositAmount.toFixed(4))} ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label}`
+      return `DEPOSIT ${Number.isInteger(depositAmount) ? depositAmount : Number(depositAmount.toFixed(8))} ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label}`
     }
-    return `DEPOSIT ${Number.isInteger(depositAmount) ? depositAmount : Number(depositAmount.toFixed(4))} ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label}`
+    return `DEPOSIT ${Number.isInteger(depositAmount) ? depositAmount : Number(depositAmount.toFixed(8))} ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label}`
   }, [principalBalance, status, depositAmount, selectedAddressCurrency])
 
   const isSticky = () => {
@@ -656,13 +686,25 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           // If it's ETH/native token
           if (selectedAddressCurrency.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
             const balance = await provider.getBalance(address);
-            setWalletBalance(Number(ethers.utils.formatEther(balance)));
+            const _walletBalance = Number(ethers.utils.formatEther(balance));
+            setWalletBalance(_walletBalance);
+            setMaxLots(_walletBalance);
+            if (lots > _walletBalance) {
+              setLots(Number.isInteger(_walletBalance) ? _walletBalance : Number(_walletBalance.toFixed(4)));
+            }
+            setLoadingSelectedAddressCurrency(false);
           } else {
             // For other ERC20 tokens
             const tokenContract = new ethers.Contract(selectedAddressCurrency, ERC20ABI, signer);
             const decimals = await tokenContract.decimals();
             const balance = await tokenContract.balanceOf(address);
-            setWalletBalance(Number(ethers.utils.formatUnits(balance, decimals)));
+            const _walletBalance = Number(ethers.utils.formatUnits(balance, decimals));
+            setWalletBalance(_walletBalance);
+            setMaxLots(_walletBalance);
+            if (lots > _walletBalance) {
+              setLots(Number.isInteger(_walletBalance) ? _walletBalance : Number(_walletBalance.toFixed(4)));
+            }
+            setLoadingSelectedAddressCurrency(false);
           }
         } catch (e) {
           console.error(e);
@@ -756,7 +798,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                   <div>
                     <span
                       className={`ml-2 text-[#828A93] cursor-pointer ${walletBalance === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      onClick={() => walletBalance > 0 && setLots(parseFloat(maxLots.toFixed(4)))}
+                      onClick={() => walletBalance > 0 && setLots(maxLots)}
                     >
                       MAX
                     </span>
@@ -772,17 +814,19 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                     onChange={(e) => {
                       const value = Number(e.target.value);
                       if (value >= 0) {
-                        // If value is a whole number, don't show decimals
-                        if (Number.isInteger(value)) {
-                          setLots(value);
+                        // If value >= maxLots, set maxLots
+                        if (value >= maxLots) {
+                          setLots(Number.isInteger(maxLots) ? maxLots : Number(maxLots.toFixed(4)));
                         } else {
-                          setLots(Number(value.toFixed(4)));
+                          setLots(value);
                         }
                       }
                     }}
                     type='number'
                     step='1.00'
                     min={0}
+                    max={maxLots}
+                    disabled={loadingSelectedAddressCurrency}
                   />
                 </div>
                 <div className={"flex items-center justify-end"}>
@@ -791,6 +835,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                       className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none appearance-none"}
                       onChange={(e) => {
                         setSelectedAddressCurrency(e.target.value);
+                        setLoadingSelectedAddressCurrency(true);
                       }}
                       defaultValue={selectedAddressCurrency}
                     >
@@ -887,7 +932,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               <PrimaryButton
                 label={depositButtonLabel}
                 onClick={onSwapAndDeposit}
-                disabled={isLoadingSwapAndDeposit}
+                disabled={isLoadingSwapAndDeposit || loadingSelectedAddressCurrency}
                 loading={isLoadingSwapAndDeposit}
               />
             </div>
@@ -1037,8 +1082,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         )}
       </div>
 
-      {/* DEPOSIT */}
-      <Transition appear show={isOpen} as={Fragment}>
+      {/* OLD DEPOSIT */}
+      <Transition appear show={false} as={Fragment}>
         <Dialog as='div' className='relative z-50' onClose={() => setIsOpen(false)}>
           <Transition.Child
             as={Fragment}
@@ -1129,6 +1174,121 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                           </svg>
                         )}
                         {depositStatus === DEPOSIT_STATUS.DEPOSIT ? "DEPOSIT" : "APPROVE"}
+                      </button>
+                    )}
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* DEPOSIT */}
+      <Transition appear show={isOpen} as={Fragment}>
+        <Dialog as='div' className='relative z-50' onClose={() => setIsOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter='ease-out duration-300'
+            enterFrom='opacity-0'
+            enterTo='opacity-100'
+            leave='ease-in duration-200'
+            leaveFrom='opacity-100'
+            leaveTo='opacity-0'
+          >
+            <div className='fixed inset-0 bg-black bg-opacity-25' />
+          </Transition.Child>
+
+          <div className='fixed inset-0 overflow-y-auto'>
+            <div className='flex min-h-full items-center justify-center p-4 text-center'>
+              <Transition.Child
+                as={Fragment}
+                enter='ease-out duration-300'
+                enterFrom='opacity-0 scale-95'
+                enterTo='opacity-100 scale-100'
+                leave='ease-in duration-200'
+                leaveFrom='opacity-100 scale-100'
+                leaveTo='opacity-0 scale-95'
+              >
+                <Dialog.Panel className='w-full max-w-[800px] transform overflow-hidden rounded-2xl bg-white py-[60px] px-[160px] text-left align-middle shadow-xl transition-all'>
+                  <Dialog.Title className='text-[32px] font-medium leading-[40px] text-[#161717] text-center'>
+                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.NONE && "Prepare for deposit"}
+                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAP && "Step 1/7: Swap "}
+                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAP_APPROVE && "Step 2/7: Approve " + tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label + " spend from your wallet for swap"}
+                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAPPING && "Step 3/7: Swapping " + tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label + " to " + product.currencyName}
+                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSIT && "Step 4/7: Deposit " + product.currencyName}
+                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE && "Step 5/7: Approve " + product.currencyName + " spend from your wallet for deposit"}
+                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSITING && "Step 6/7: Depositing " + product.currencyName}
+                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DONE && "Deposit Successful"}
+                  </Dialog.Title>
+                  <div className='mt-7 flex flex-col items-center'>
+
+                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DONE ? (
+                      <>
+                        <div className='text-[16px] text-gray-500'>You have successfully deposited!</div>
+                      </>
+                    ) : (
+                      <>
+                        <p className='text-[16px] text-gray-500'>Smart contract link</p>
+                        <div className={"flex items-center mt-4"}>
+                          <span className={"bg-primary-gradient text-transparent bg-clip-text text-[20px]"}>
+                            {truncateAddress(productAddress)}
+                          </span>
+                          <a href={`${EXPLORER[chainId]}/address/${productAddress}`} target={"_blank"} rel='noreferrer'>
+                            <Image src={"/icons/external.svg"} alt={"external"} width={20} height={20} />
+                          </a>
+                        </div>
+                        {/* <p className='text-[16px] text-gray-500 mt-7 flex flex-col items-center'>You&#39;ll receive this ERC20 token representing your deposit</p> */}
+                        {/* <img className={"mt-8"} src={imageURL || "/products/default_nft_image.png"} alt={"nft image"} /> */}
+                      </>
+                    )}
+                  </div>
+
+
+                  <div className='mt-8 flex items-center justify-between space-x-8 h-[50px]'>
+                    <button
+                      type='button'
+                      className='flex flex-1 items-center justify-center border-[#4B4B4B] border-[1px] px-4 py-2 text-sm font-medium text-black rounded-[8px] h-full'
+                      onClick={() => {
+                        // Reload page
+                        // if (depositStatus === DEPOSIT_STATUS.DONE) {
+                        //   window.location.reload()
+                        // }
+                        setIsOpen(false)
+                        setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
+                      }}
+                    >
+                      DONE
+                    </button>
+                    {depositStatus !== DEPOSIT_STATUS.DONE && (
+                      <button
+                        type='button'
+                        className={`opacity-50 cursor-not-allowed flex flex-1 items-center justify-center border border-transparent bg-[#292929] px-4 py-2 text-sm font-medium text-white rounded-[8px] h-full
+                        `}
+                        // onClick={onApprove}
+                        disabled
+                      >
+                        <svg
+                          className='animate-spin -ml-1 mr-3 h-5 w-5 text-white'
+                          xmlns='http://www.w3.org/2000/svg'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                        >
+                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                          <path
+                            className='opacity-75'
+                            fill='currentColor'
+                            d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                          ></path>
+                        </svg>
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAP && "SWAP"}
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSIT && "DEPOSIT"}
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAPPING && "SWAPPING"}
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSITING && "DEPOSITING"}
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DONE && "SUCCESS"}
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.NONE && "PREPARING..."}
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAP_APPROVE && "APPROVE FOR SWAP"}
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE && "APPROVE FOR DEPOSIT"}
                       </button>
                     )}
                   </div>
