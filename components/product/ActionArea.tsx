@@ -100,136 +100,163 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     }
   }
 
+  const chainId = useMemo(() => {
+    if (chain) return chain.id
+    return SUPPORT_CHAIN_IDS.ETH
+  }, [chain])
+
+  // Get the tokens for the current chain
+  const tokensForCurrentChain = getTokensForChain(chainId);
+
+  const needsSwap = useMemo(() => {
+    return selectedAddressCurrency !== '' &&
+      product?.currencyName.toLowerCase() !==
+      tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label.toLowerCase();
+  }, [selectedAddressCurrency, product?.currencyName, tokensForCurrentChain]);
+
   const onSwapAndDeposit = async () => {
     try {
-      setIsLoadingSwapAndDeposit(true)
-      // Only swap if product.currencyName is not the same as the selected currency
-      if (selectedAddressCurrency !== '' && product?.currencyName.toLowerCase() !== tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label.toLowerCase()) {
-        // Only proceed if we have valid swap data and signer
+      setIsLoadingSwapAndDeposit(true);
+
+      if (!currencyInstance || !productInstance) {
+        throw new Error("Contract instances not initialized");
+      }
+
+      const decimal = await currencyInstance.decimals();
+      let depositAmountStr;
+      let approveAmountStr;
+
+      // Check if we need to swap first
+
+      // Handle swap if needed
+      if (needsSwap) {
         if (!routeData?.success || !signer) {
-          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
-          setIsOpen(false)
-          return;
+          throw new Error("Swap route data or signer not available");
         }
 
         const swapData = routeData.data;
         if (!swapData) {
-          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
-          setIsOpen(false)
-          return;
+          throw new Error("Swap data not available");
         }
 
-        // Get necessary swap parameters
-        const encodedSwapData = swapData.buildData.data;
-        const routerContract = swapData.buildData.routerAddress;
-        const amountIn = swapData.buildData.amountIn;
-        const signerAddress = await signer.getAddress();
+        // Execute swap
+        setIsOpen(true);
+        await executeSwap(swapData);
 
-        // Check balances and handle approvals
-        setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.SWAP)
-        setIsOpen(true)
-        if (swapData.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
-          // Handle ERC20 token case
-          const tokenContract = new ethers.Contract(swapData.tokenIn, ERC20ABI, signer);
-          const decimals = await tokenContract.decimals();
-          const balance = await tokenContract.balanceOf(signerAddress);
-          const amountInBigInt = BigInt(amountIn);
-
-          if (balance < amountInBigInt) {
-            setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
-            setIsLoadingSwapAndDeposit(false)
-            setIsOpen(false)
-            throw new Error(`Insufficient balance. Required: ${ethers.utils.formatUnits(amountInBigInt, decimals)} ${await tokenContract.symbol()}, Available: ${ethers.utils.formatUnits(balance, decimals)}`);
-          }
-
-          // Handle token approval
-          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.SWAP_APPROVE)
-          setIsOpen(true)
-          await getTokenApproval(swapData.tokenIn, routerContract, amountIn);
-        } else {
-          // Handle ETH case
-          const ethBalance = await getETHBalance(signerAddress);
-          const amountInBigInt = BigInt(amountIn);
-
-          if (Number(ethBalance) < Number(ethers.utils.formatUnits(amountInBigInt, 18))) {
-            setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
-            setIsLoadingSwapAndDeposit(false)
-            setIsOpen(false)
-            throw new Error(`Insufficient ETH balance. Required: ${ethers.utils.formatUnits(amountInBigInt, 18)} ETH, Available: ${ethBalance}`);
-          }
-        }
-
-        // Prepare and execute swap transaction
-        const tx: any = {
-          data: encodedSwapData,
-          from: signerAddress,
-          to: routerContract,
-        };
-
-        if (swapData.tokenIn.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
-          tx.value = BigInt(amountIn);
-        }
-
-        setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.SWAPPING)
-        setIsOpen(true)
-        const executeSwapTx = await signer.sendTransaction(tx);
-        const executeSwapTxReceipt = await executeSwapTx.wait();
-
-        if (!executeSwapTxReceipt?.status) {
-          setIsLoadingSwapAndDeposit(false)
-          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
-          setIsOpen(false)
-          throw new Error('Swap transaction failed');
-        }
+        // Use swap output amount
+        depositAmountStr = ethers.utils.formatUnits(swapData.buildData.amountOut, decimal);
+        approveAmountStr = ethers.utils.formatUnits(
+          BigInt(swapData.buildData.amountOut) + (BigInt(swapData.buildData.amountOut) * BigInt(5) / BigInt(10000000)),
+          decimal
+        );
+      } else {
+        // Direct deposit without swap
+        depositAmountStr = depositAmount.toFixed(decimal);
+        approveAmountStr = (depositAmount + depositAmount * 0.0000005).toFixed(decimal);
       }
 
-      setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSIT)
-      setIsOpen(true)
-      // After successful swap, proceed with deposit
-      if (currencyInstance && productInstance) {
-        const decimal = await currencyInstance.decimals();
-        const depositAmountStr = depositAmount.toFixed(decimal);
-        const approveAmountStr = (depositAmount + depositAmount * 0.0000005).toFixed(decimal);
-        const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal);
-        const approveBalance = ethers.utils.parseUnits(approveAmountStr, decimal);
+      // Convert amounts to proper units
+      const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal);
+      const approveBalance = ethers.utils.parseUnits(approveAmountStr, decimal);
 
-        // Check capacity
-        const _currentCapacity = await productInstance.currentCapacity();
-        if (depositAmount + Number(ethers.utils.formatUnits(_currentCapacity, decimal)) > Number(product.maxCapacity)) {
-          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
-          setIsLoadingSwapAndDeposit(false)
-          setIsOpen(false)
-          throw new Error("Your deposit results in excess of max capacity.");
-        }
-
-        // Handle deposit approval if needed
-        const currentAllowance = await currencyInstance.allowance(address, productAddress);
-        if (currentAllowance.lt(requestBalance)) {
-          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE)
-          setIsOpen(true)
-          const approveTx = await currencyInstance.approve(productAddress, approveBalance);
-          await approveTx.wait();
-        }
-
-        // Execute deposit
-        setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSITING)
-        setIsOpen(true)
-        const depositTx = await productInstance.deposit(requestBalance);
-        await depositTx.wait();
-        setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DONE);
-        setTimeout(() => {
-          setIsLoadingSwapAndDeposit(false)
-          setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
-          setIsOpen(false)
-        }, 1500);
+      // Check capacity
+      const currentCapacity = await productInstance.currentCapacity();
+      const totalAfterDeposit = Number(depositAmountStr) + Number(ethers.utils.formatUnits(currentCapacity, decimal));
+      if (totalAfterDeposit > Number(product.maxCapacity)) {
+        throw new Error("Your deposit results in excess of max capacity.");
       }
+
+      // Handle deposit approval
+      const currentAllowance = await currencyInstance.allowance(address, productAddress);
+      console.log("currentAllowance: ", currentAllowance)
+      console.log("requestBalance:", requestBalance)
+      if (currentAllowance.lt(requestBalance)) {
+        setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE);
+        setIsOpen(true);
+        const approveTx = await currencyInstance.approve(productAddress, approveBalance);
+        await approveTx.wait();
+      }
+
+      // Execute deposit
+      setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSITING);
+      setIsOpen(true);
+      const depositTx = await productInstance.deposit(requestBalance);
+      await depositTx.wait();
+
+      // Handle success
+      setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DONE);
+      setTimeout(() => {
+        setIsLoadingSwapAndDeposit(false);
+        setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE);
+        setIsOpen(false);
+      }, 1500);
 
     } catch (error: any) {
-      setIsLoadingSwapAndDeposit(false)
-      setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE)
-      setIsOpen(false)
       console.error('Swap and deposit failed:', error);
+      setIsLoadingSwapAndDeposit(false);
+      setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.NONE);
+      setIsOpen(false);
       toast.error(getTxErrorMessage(error));
+    }
+  };
+
+
+  // Helper function to execute swap
+  const executeSwap = async (swapData: any) => {
+    const encodedSwapData = swapData.buildData.data;
+    const routerContract = swapData.buildData.routerAddress;
+    const amountIn = swapData.buildData.amountIn;
+    const signerAddress = await signer?.getAddress();
+
+    setIsOpen(true)
+
+    // Handle token approvals and balance checks
+    if(routeData.success && signer) {
+      if (swapData.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+        const tokenContract = new ethers.Contract(swapData.tokenIn, ERC20ABI, signer);
+        const decimals = await tokenContract.decimals();
+        const balance = await tokenContract.balanceOf(signerAddress);
+        const amountInBigInt = BigInt(amountIn);
+
+        if (balance < amountInBigInt) {
+          throw new Error(`Insufficient balance. Required: ${ethers.utils.formatUnits(amountInBigInt, decimals)} ${await tokenContract.symbol()}, Available: ${ethers.utils.formatUnits(balance, decimals)}`);
+        }
+
+        // Handle token approval if needed
+        await getTokenApproval(
+          swapData.tokenIn,
+          routerContract,
+          amountIn
+        );
+      } else {
+        const ethBalance = await getETHBalance(signerAddress || "");
+        const amountInBigInt = BigInt(amountIn);
+
+        if (Number(ethBalance) < Number(ethers.utils.formatUnits(amountInBigInt, 18))) {
+          throw new Error(`Insufficient balance. Required: ${ethers.utils.formatUnits(amountInBigInt, 18)} ETH, Available: ${ethBalance}`);
+        }
+      }
+    }
+
+    // Execute swap transaction
+    setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.SWAPPING)
+    setIsOpen(true)
+
+    const tx: any = {
+      data: encodedSwapData,
+      from: signerAddress,
+      to: routerContract,
+    };
+
+    if (swapData.tokenIn.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+      tx.value = BigInt(amountIn);
+    }
+
+    const executeSwapTx = await signer?.sendTransaction(tx);
+    const executeSwapTxReceipt = await executeSwapTx?.wait();
+
+    if (!executeSwapTxReceipt?.status) {
+      throw new Error('Swap transaction failed');
     }
   };
 
@@ -296,14 +323,6 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       }
     }
   }
-
-  const chainId = useMemo(() => {
-    if (chain) return chain.id
-    return SUPPORT_CHAIN_IDS.ETH
-  }, [chain])
-
-  // Get the tokens for the current chain
-  const tokensForCurrentChain = getTokensForChain(chainId);
 
   // const lotsCount = useMemo(() => {
   //   return (principalBalance + optionBalance + couponBalance) / pricePerLot
@@ -1212,13 +1231,36 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               >
                 <Dialog.Panel className='w-full max-w-[800px] transform overflow-hidden rounded-2xl bg-white py-[60px] px-[160px] text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title className='text-[32px] font-medium leading-[40px] text-[#161717] text-center'>
-                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.NONE && "Prepare for deposit"}
-                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAP && "Step 1/7: Swap "}
-                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAP_APPROVE && "Step 2/7: Approve " + tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label + " spend from your wallet for swap"}
-                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAPPING && "Step 3/7: Swapping " + tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label + " to " + product.currencyName}
-                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSIT && "Step 4/7: Deposit " + product.currencyName}
-                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE && "Step 5/7: Approve " + product.currencyName + " spend from your wallet for deposit"}
-                    {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSITING && "Step 6/7: Depositing " + product.currencyName}
+                    {/* Case 1: Need to swap first - 3 steps */}
+                    {needsSwap && (
+                      <>
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.NONE && "Prepare for deposit"}
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAPPING &&
+                          `Step 1/3: Swapping ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label} to ${product.currencyName}`
+                        }
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE &&
+                          `Step 2/3: Approve ${product.currencyName} spend from your wallet`
+                        }
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSITING &&
+                          `Step 3/3: Depositing ${product.currencyName}`
+                        }
+                      </>
+                    )}
+
+                    {/* Case 2: Direct deposit - 2 steps */}
+                    {!needsSwap && (
+                      <>
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.NONE && "Prepare for deposit"}
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE &&
+                          `Step 1/2: Approve ${product.currencyName} spend from your wallet`
+                        }
+                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSITING &&
+                          `Step 2/2: Depositing ${product.currencyName}`
+                        }
+                      </>
+                    )}
+
+                    {/* Common status */}
                     {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DONE && "Deposit Successful"}
                   </Dialog.Title>
                   <div className='mt-7 flex flex-col items-center'>
@@ -1281,7 +1323,6 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                             d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
                           ></path>
                         </svg>
-                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAP && "SWAP"}
                         {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSIT && "DEPOSIT"}
                         {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAPPING && "SWAPPING"}
                         {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSITING && "DEPOSITING"}
