@@ -126,8 +126,6 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       let depositAmountStr;
       let approveAmountStr;
 
-      // Check if we need to swap first
-
       // Handle swap if needed
       if (needsSwap) {
         if (!routeData?.success || !signer) {
@@ -137,6 +135,23 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         const swapData = routeData.data;
         if (!swapData) {
           throw new Error("Swap data not available");
+        }
+
+        // Check and approve source token if needed (for non-ETH tokens)
+        if (swapData.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+          const tokenContract = new ethers.Contract(swapData.tokenIn, ERC20ABI, signer);
+          const signerAddress = await signer.getAddress();
+          const currentAllowance = await tokenContract.allowance(signerAddress, swapData.buildData.routerAddress);
+
+          if (currentAllowance.lt(swapData.buildData.amountIn)) {
+            setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.SWAP_APPROVE);
+            setIsOpen(true);
+            const approveTx = await tokenContract.approve(
+              swapData.buildData.routerAddress,
+              ethers.constants.MaxUint256
+            );
+            await approveTx.wait();
+          }
         }
 
         // Execute swap
@@ -1235,15 +1250,34 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                     {needsSwap && (
                       <>
                         {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.NONE && "Prepare for deposit"}
-                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAPPING &&
-                          `Step 1/3: Swapping ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label} to ${product.currencyName}`
-                        }
-                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE &&
-                          `Step 2/3: Approve ${product.currencyName} spend from your wallet`
-                        }
-                        {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSITING &&
-                          `Step 3/3: Depositing ${product.currencyName}`
-                        }
+                        {routeData?.data?.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' ? (
+                          <>
+                          {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAP_APPROVE &&
+                            `Step 1/4: Approve ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label} spend from your wallet for swap`
+                          }
+                          {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAPPING &&
+                            `Step 2/4: Swapping ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label} to ${product.currencyName}`
+                          }
+                          {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE &&
+                            `Step 3/4: Approve ${product.currencyName} spend from your wallet`
+                          }
+                          {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSITING &&
+                            `Step 3/4: Depositing ${product.currencyName}`
+                          }
+                          </>
+                        ) : (
+                          <>
+                            {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.SWAPPING &&
+                              `Step 1/3: Swapping ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label} to ${product.currencyName}`
+                            }
+                            {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE &&
+                              `Step 2/3: Approve ${product.currencyName} spend from your wallet`
+                            }
+                            {swapAndDepositStatus === SWAP_AND_DEPOSIT_STATUS.DEPOSITING &&
+                              `Step 3/3: Depositing ${product.currencyName}`
+                            }
+                          </>
+                        )}
                       </>
                     )}
 
