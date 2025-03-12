@@ -125,14 +125,19 @@ const ProductDetail = () => {
 
     getProduct(address as string, chainId)
       .then((product) => {
-        setProduct(product);
-        const timeUntilIssuance = (product?.issuanceCycle?.issuanceDate * 1000) - Date.now();
-        const timeLabel = timeUntilIssuance > 0 ? "Time until Live" : "Time to Maturity";
-        const countdownDate = timeUntilIssuance > 0
-          ? Date.now() + timeUntilIssuance
-          : Date.now() + ((product?.issuanceCycle?.maturityDate * 1000) - Date.now());
-        setTimeLabel(timeLabel);
-        setCountdownDate(new Date(countdownDate));
+        console.log("product", product);
+        if (!product) {
+          window.location.href = "/";
+        } else {
+          setProduct(product);
+          const timeUntilIssuance = (product?.issuanceCycle?.issuanceDate * 1000) - Date.now();
+          const timeLabel = timeUntilIssuance > 0 ? "Time until Live" : "Time to Maturity";
+          const countdownDate = timeUntilIssuance > 0
+            ? Date.now() + timeUntilIssuance
+            : Date.now() + ((product?.issuanceCycle?.maturityDate * 1000) - Date.now());
+          setTimeLabel(timeLabel);
+          setCountdownDate(new Date(countdownDate));
+        }
       })
       .finally(() => setIsLoading(false));
   }, [address, chainId]);
