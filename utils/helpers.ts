@@ -53,11 +53,15 @@ export const getTxErrorMessage = (error: any): string => {
     return "Transaction reverted in some reason.";
   } else if (errMessage && /rejected/.test(errMessage)) {
     return "Transaction rejected.";
+  } else if (errMessage && /invalid decimal value/.test(errMessage)) {
+    return "Invalid decimal value.";
   }
 
   const regex = /execution reverted: ([a-zA-Z0-9 ]+)/;
   const result = errMessage.match(regex);
   const reason = result ? result[1] : undefined;
+
+  console.log("reason: ", reason)
 
   // will make some message translation here.
   if (reason === "Product is full") {

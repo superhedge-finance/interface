@@ -1,6 +1,6 @@
 import { Dialog, Switch, Transition } from "@headlessui/react"
 import { useConnectModal } from "@rainbow-me/rainbowkit"
-import { ethers } from "ethers"
+import { BigNumber, ethers } from "ethers"
 import Image from "next/image"
 import { Fragment, useEffect, useMemo, useState } from "react"
 import toast from "react-hot-toast"
@@ -28,7 +28,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
   const [, setScrollY] = useState(0)
   const [tab, setTab] = useState(0)
-  const [lots, setLots] = useState(1)
+  const [lots, setLots] = useState("1")
   const [isOpen, setIsOpen] = useState(false)
   const [isOpenWithdraw, setIsOpenWithdraw] = useState(false)
   const [status, setStatus] = useState(0)
@@ -46,7 +46,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   const [currencyAddress, setCurrencyAddress] = useState("")
   const [amountOutUsd, setAmountOutUsd] = useState(0)
   const [routeData, setRouteData] = useState<any>(null)
-  const [maxLots, setMaxLots] = useState(0)
+  const [maxLots, setMaxLots] = useState("0")
   // const [profit, setProfit] = useState(1);
   const [enabled, setEnabled] = useState(false)
   // following state is for deposit modal
@@ -74,12 +74,16 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       if (currencyInstance && productInstance) {
         const decimal = await currencyInstance.decimals()
 
-        const depositAmountStr = depositAmount.toFixed(decimal)
-        const approveAmountStr = (depositAmount + depositAmount * 0.0000005).toFixed(decimal)
+        const depositAmountStr = ethers.utils.formatUnits(depositAmount, decimal)
+        const approveAmountStr = ethers.utils.formatUnits(
+          depositAmount.add(depositAmount.mul(5).div(10000000)),
+          decimal
+        )
         const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal)
         const approveBalance = ethers.utils.parseUnits(approveAmountStr, decimal)
         const _currentCapacity = await productInstance.currentCapacity()
-        if (depositAmount + Number(ethers.utils.formatUnits(_currentCapacity, decimal)) > Number(product.maxCapacity)) {
+        if (depositAmount.add(ethers.utils.parseUnits(ethers.utils.formatUnits(_currentCapacity, decimal), decimal))
+            .gt(ethers.utils.parseUnits(product.maxCapacity.toString(), decimal))) {
           return toast.error("Your deposit results in excess of max capacity.")
         }
         const currentAllowance = await currencyInstance.allowance(address, productAddress)
@@ -166,8 +170,11 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         );
       } else {
         // Direct deposit without swap
-        depositAmountStr = depositAmount.toFixed(decimal);
-        approveAmountStr = (depositAmount + depositAmount * 0.0000005).toFixed(decimal);
+        depositAmountStr = ethers.utils.formatUnits(depositAmount, decimal);
+        approveAmountStr = ethers.utils.formatUnits(
+          depositAmount.add(depositAmount.mul(5).div(10000000)),
+          decimal
+        );
       }
 
       // Convert amounts to proper units
@@ -176,15 +183,17 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
       // Check capacity
       const currentCapacity = await productInstance.currentCapacity();
-      const totalAfterDeposit = Number(depositAmountStr) + Number(ethers.utils.formatUnits(currentCapacity, decimal));
-      if (totalAfterDeposit > Number(product.maxCapacity)) {
+      const totalDeposit = requestBalance.add(currentCapacity);
+      const maxCapacityInWei = ethers.utils.parseUnits(product.maxCapacity.toString(), decimal);
+
+      if (totalDeposit.gt(maxCapacityInWei)) {
         throw new Error("Your deposit results in excess of max capacity.");
       }
 
       // Handle deposit approval
       const currentAllowance = await currencyInstance.allowance(address, productAddress);
       console.log("currentAllowance: ", currentAllowance)
-      console.log("requestBalance:", requestBalance)
+      console.log("requestBalance:", ethers.utils.formatUnits(requestBalance, decimal))
       if (currentAllowance.lt(requestBalance)) {
         setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE);
         setIsOpen(true);
@@ -354,19 +363,35 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
   const depositAmount = useMemo(() => {
     if (status !== 1) {
-      return 0
+      return BigNumber.from(0)
     }
-    if (principalBalance > 0) {
-      if (enabled == true) {
-        if (pricePerLot * lots > optionBalance + couponBalance) {
-          return pricePerLot * lots - (optionBalance + couponBalance)
-        }
-        return 0
+
+    // Convert lots to BigNumber with 18 decimals
+    let lotsInWei;
+    try {
+      if (lots) {
+        lotsInWei = ethers.utils.parseEther(lots)
       } else {
-        return pricePerLot * lots
+        lotsInWei = ethers.utils.parseEther('0')
+      }
+    } catch (e) {
+      console.error("Error converting lots to BigNumber:", e)
+      lotsInWei = ethers.utils.parseEther(`${Number(lots).toFixed(18)}`)
+    }
+
+    if (principalBalance > 0) {
+      if (enabled === true) {
+        const lotsAmount = BigNumber.from(pricePerLot).mul(lotsInWei).div(ethers.constants.WeiPerEther)
+        const profitAmount = BigNumber.from(optionBalance).add(BigNumber.from(couponBalance))
+        if (lotsAmount.gt(profitAmount)) {
+          return lotsAmount.sub(profitAmount)
+        }
+        return BigNumber.from(0)
+      } else {
+        return BigNumber.from(pricePerLot).mul(lotsInWei)
       }
     }
-    return pricePerLot * lots
+    return BigNumber.from(pricePerLot).mul(lotsInWei)
   }, [principalBalance, status, lots, enabled, optionBalance, couponBalance])
 
   const depositButtonLabel = useMemo(() => {
@@ -374,9 +399,9 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       return "Unavailable"
     }
     if (principalBalance > 0) {
-      return `DEPOSIT ${Number.isInteger(depositAmount) ? depositAmount : Number(depositAmount.toFixed(8))} ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label}`
+      return `DEPOSIT ${ethers.utils.formatUnits(depositAmount)} ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label}`
     }
-    return `DEPOSIT ${Number.isInteger(depositAmount) ? depositAmount : Number(depositAmount.toFixed(8))} ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label}`
+    return `DEPOSIT ${ethers.utils.formatUnits(depositAmount)} ${tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label}`
   }, [principalBalance, status, depositAmount, selectedAddressCurrency])
 
   const isSticky = () => {
@@ -435,7 +460,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           setPrincipalBalance(Number(ethers.utils.formatUnits(_principalBalance, _decimals)))
           // wallet balance
           const currencyBalance = await _currencyInstance.balanceOf(address)
-          setMaxLots(Number(ethers.utils.formatUnits(currencyBalance, _decimals)))
+          setMaxLots(ethers.utils.formatUnits(currencyBalance, _decimals))
           setWalletBalance(Number(ethers.utils.formatUnits(currencyBalance, _decimals)))
 
         } catch (e) {
@@ -447,7 +472,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
   useEffect(() => {
     const fetchRoute = async () => {
-      if (selectedAddressCurrency && currencyAddress && lots > 0) {
+      if (selectedAddressCurrency && currencyAddress && BigNumber.from(lots).gt(BigNumber.from(0))) {
         const KYBER_API = process.env.NEXT_PUBLIC_KYBER_API;
         const CHAIN_ID = chainId
         let CHAIN_NAME = ""
@@ -459,7 +484,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         try {
           // 1. Get route first
           const token = tokensForCurrentChain.find(token => token.value === selectedAddressCurrency);
-          const amountIn = lots * 10 ** (token?.decimals || 0);
+          const amountIn = BigInt(lots) * BigInt(10 ** (token?.decimals || 0));
           const routeUrl = `${KYBER_API}/${CHAIN_NAME}/api/v1/routes`;
           const routeParams = {
             tokenIn: selectedAddressCurrency,
@@ -720,11 +745,11 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           // If it's ETH/native token
           if (selectedAddressCurrency.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
             const balance = await provider.getBalance(address);
-            const _walletBalance = Number(ethers.utils.formatEther(balance));
-            setWalletBalance(_walletBalance);
+            const _walletBalance = ethers.utils.formatEther(balance);
+            setWalletBalance(Number(_walletBalance));
             setMaxLots(_walletBalance);
             if (lots > _walletBalance) {
-              setLots(Number.isInteger(_walletBalance) ? _walletBalance : Number(_walletBalance.toFixed(4)));
+              setLots(_walletBalance);
             }
             setLoadingSelectedAddressCurrency(false);
           } else {
@@ -732,11 +757,11 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             const tokenContract = new ethers.Contract(selectedAddressCurrency, ERC20ABI, signer);
             const decimals = await tokenContract.decimals();
             const balance = await tokenContract.balanceOf(address);
-            const _walletBalance = Number(ethers.utils.formatUnits(balance, decimals));
-            setWalletBalance(_walletBalance);
+            const _walletBalance = ethers.utils.formatUnits(balance, decimals);
+            setWalletBalance(Number(_walletBalance));
             setMaxLots(_walletBalance);
             if (lots > _walletBalance) {
-              setLots(Number.isInteger(_walletBalance) ? _walletBalance : Number(_walletBalance.toFixed(4)));
+              setLots(_walletBalance);
             }
             setLoadingSelectedAddressCurrency(false);
           }
@@ -849,10 +874,10 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                       const value = Number(e.target.value);
                       if (value >= 0) {
                         // If value >= maxLots, set maxLots
-                        if (value >= maxLots) {
-                          setLots(Number.isInteger(maxLots) ? maxLots : Number(maxLots.toFixed(4)));
+                        if (value >= Number(maxLots)) {
+                          setLots(maxLots);
                         } else {
-                          setLots(value);
+                          setLots(e.target.value);
                         }
                       }
                     }}
