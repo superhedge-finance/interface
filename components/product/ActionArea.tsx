@@ -471,8 +471,23 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   }, [productAddress, signer, address])
 
   useEffect(() => {
+    let lotsInWei;
+    try {
+      if (lots) {
+        lotsInWei = ethers.utils.parseEther(lots)
+      } else {
+        lotsInWei = ethers.utils.parseEther('0')
+      }
+    } catch (e) {
+      console.error("Error converting lots to BigNumber:", e)
+      lotsInWei = ethers.utils.parseEther(`${Number(lots).toFixed(18)}`)
+    }
     const fetchRoute = async () => {
-      if (selectedAddressCurrency && currencyAddress && BigNumber.from(lots).gt(BigNumber.from(0))) {
+      const token = tokensForCurrentChain.find(token => token.value === selectedAddressCurrency);
+      // const amountIn = BigInt(Number(lots)) * BigInt(10 ** (token?.decimals || 0));
+      const _amountIn = BigNumber.from(lotsInWei)
+      // console.log("fetchRoute amountIn: ", amountIn)
+      if (selectedAddressCurrency && currencyAddress && BigNumber.from(lotsInWei).gt(BigNumber.from(0))) {
         const KYBER_API = process.env.NEXT_PUBLIC_KYBER_API;
         const CHAIN_ID = chainId
         let CHAIN_NAME = ""
@@ -484,12 +499,13 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         try {
           // 1. Get route first
           const token = tokensForCurrentChain.find(token => token.value === selectedAddressCurrency);
-          const amountIn = BigInt(lots) * BigInt(10 ** (token?.decimals || 0));
+          // const amountIn = BigInt(Number(lots)) * BigInt(10 ** (token?.decimals || 0));
+          const _amountIn = BigNumber.from(lotsInWei).mul(BigNumber.from(10).pow(BigNumber.from(token?.decimals || 0))).div(BigNumber.from(10).pow(BigNumber.from(18)))
           const routeUrl = `${KYBER_API}/${CHAIN_NAME}/api/v1/routes`;
           const routeParams = {
             tokenIn: selectedAddressCurrency,
             tokenOut: currencyAddress,
-            amountIn: amountIn.toString(), // Example amount
+            amountIn: _amountIn.toString(), // Example amount
             to: ethers.constants.AddressZero,
             slippage: 100, // Example slippage
             deadline: Math.floor(Date.now() / 1000) + 1800, // 30 minutes
@@ -868,7 +884,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               <div className={"relative flex items-center mt-2 h-[50px] overflow-hidden bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded"}>
                 <div className={"flex-1"}>
                   <input
-                    className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB]  border-none focus:outline-none"}
+                    className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-outer-spin-button]:m-0 [-moz-appearance:textfield]"}
                     value={lots}
                     onChange={(e) => {
                       const value = Number(e.target.value);
@@ -991,7 +1007,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               <PrimaryButton
                 label={depositButtonLabel}
                 onClick={onSwapAndDeposit}
-                disabled={isLoadingSwapAndDeposit || loadingSelectedAddressCurrency}
+                disabled={isLoadingSwapAndDeposit || loadingSelectedAddressCurrency || status !== 1 || walletBalance === 0 || lots === '0' || routeData?.data?.buildData?.amountOut === '0'}
                 loading={isLoadingSwapAndDeposit}
               />
             </div>
