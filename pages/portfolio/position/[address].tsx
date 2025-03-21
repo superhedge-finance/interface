@@ -84,7 +84,11 @@ const PositionDetail = () => {
     setIsLoading(true);
     getProduct(productAddress as string, chainId)
       .then((product) => {
-        setProduct(product);
+        if (!product) {
+          window.location.href = "/";
+        } else {
+          setProduct(product);
+        }
       })
       .finally(() => setIsLoading(false));
   }, [productAddress, chainId]);
@@ -159,17 +163,17 @@ const PositionDetail = () => {
                   <div className={`flex flex-col flex-1 items-center bg-[#0000000a] h-[66px] rounded-[7px] py-3 px-4`}>
                     <p className='text-[12px] font-light text-gray-700'>{product.status == 3 ? "Time to Maturity" : "Time to Issuance"}</p>
                     <h3 className='text-[18px] font-light text-black'>
-                      <Countdown 
-                        intervalDelay={60000} 
-                        date={(product.status == 3 ? product.issuanceCycle.maturityDate : product.issuanceCycle.issuanceDate) * 1000} 
-                        renderer={issuance_date_renderer} 
+                      <Countdown
+                        intervalDelay={60000}
+                        date={(product.status == 3 ? product.issuanceCycle.maturityDate : product.issuanceCycle.issuanceDate) * 1000}
+                        renderer={issuance_date_renderer}
                       />
                     </h3>
                   </div>
                   <RecapCard label={"Coupon"} value={`${product.issuanceCycle.coupon / 10000}%`} />
 
-                  
-                  
+
+
                 </div>
                 <div className={"flex items-center justify-between space-x-2 mt-2"}>
                   <RecapCard label={"Principal Amount"} value={`${principal.toLocaleString()} USDC`} />

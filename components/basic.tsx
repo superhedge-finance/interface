@@ -17,7 +17,7 @@ export const PrimaryButton = ({
     <button
       className={`bg-[#292929] w-full text-white rounded-[8px] px-[28px] h-[50px] ${className ?? ""} ${
         disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
-      }`}
+      } ${loading ? "flex items-center justify-center gap-2" : ""}`}
       onClick={!disabled ? onClick : undefined}
     >
       {loading && (

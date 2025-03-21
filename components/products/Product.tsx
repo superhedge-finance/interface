@@ -15,7 +15,6 @@ import { DECIMAL, YIELD_SOURCE } from "../../utils/constants";
 import ProductABI from "../../utils/abis/SHProduct.json";
 
 export default function Product({ product }: { product: IProduct }) {
-  const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH);
   const router = useRouter(); 
   const { data: signer } = useSigner()
   const { chain } = useNetwork();
@@ -24,6 +23,14 @@ export default function Product({ product }: { product: IProduct }) {
     if (chain) return chain.id;
     return SUPPORT_CHAIN_IDS.ETH;
   }, [chain]);
+
+  // Create provider based on current chain
+  const provider = useMemo(() => {
+    if (chainId === SUPPORT_CHAIN_IDS.BASE) {
+      return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_BASE);
+    }
+    return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH);
+  }, [chainId]);
 
   const [capacity, setCapacity] = useState<number>(0);
 

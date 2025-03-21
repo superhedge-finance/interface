@@ -54,6 +54,13 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
     setCountdown(30); // Reset countdown when closing the modal
 };
 
+const provider = useMemo(() => {
+  if (chainId === SUPPORT_CHAIN_IDS.BASE) {
+    return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_BASE);
+  }
+  return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH);
+}, [chainId]);
+
   const [withdrawBlockSize, setwithdrawBlockSize] = useState<number>(0);
   const [totalBlocks, setTotalBlocks] = useState<number>(0); // State for total blocks
   const [blocksToWithdraw, setBlocksToWithdraw] = useState<number>(0); // State for blocks to withdraw
@@ -107,7 +114,10 @@ export const PositionCard = ({ position, enabled }: { position: IProduct; enable
         const tx = await productInstance.earlyWithdraw(blocksToWithdraw)
         await tx.wait()
         // console.log(tx)
-        const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH)
+        
+
+        
+
         const receipt = await provider.getTransactionReceipt(tx.hash);
         if (receipt && receipt.status === 1) {
           // console.log("Transaction UI was successful");
