@@ -471,7 +471,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   }, [productAddress, signer, address])
 
   useEffect(() => {
-    let lotsInWei;
+    let lotsInWei: ethers.BigNumber;
     try {
       if (lots) {
         lotsInWei = ethers.utils.parseEther(lots)
