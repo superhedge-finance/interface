@@ -106,7 +106,7 @@ const provider = useMemo(() => {
       try{
         const approve_tx = await tokenAddressInstance.approve(
           position.address, 
-          ethers.utils.parseUnits((ptUnwindPrice + ptUnwindPrice*0.001).toString(), DECIMAL[chainId])
+          ethers.utils.parseUnits((ptUnwindPrice + ptUnwindPrice*0.00001).toString(), DECIMAL[chainId])
         );
         await approve_tx.wait()
         // console.log("earlyWithdraw")
