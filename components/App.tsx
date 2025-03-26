@@ -62,22 +62,36 @@ ChartJS.register(Title, Tooltip, Legend, Filler, LineElement, CategoryScale, Lin
 //   ]
 // );
 
+// const { chains, provider, webSocketProvider } = configureChains(
+//   [mainnet, base],
+//   [
+//     jsonRpcProvider({
+//       rpc: () => ({
+//         http: process.env.NEXT_PUBLIC_MORALIS_KEY_ETH || "",
+//       }),
+//     }),
+//     jsonRpcProvider({
+//       rpc: () => ({
+//         http: process.env.NEXT_PUBLIC_MORALIS_KEY_BASE || "",
+//       }),
+//     }),
+//     publicProvider()
+//   ]
+// );
+
 const { chains, provider, webSocketProvider } = configureChains(
-  [mainnet, base],
+  [mainnet],
   [
     jsonRpcProvider({
       rpc: () => ({
         http: process.env.NEXT_PUBLIC_MORALIS_KEY_ETH || "",
       }),
     }),
-    jsonRpcProvider({
-      rpc: () => ({
-        http: process.env.NEXT_PUBLIC_MORALIS_KEY_BASE || "",
-      }),
-    }),
     publicProvider()
   ]
 );
+
+
 
 const { connectors } = getDefaultWallets({
   appName: "Superhedge demo",
