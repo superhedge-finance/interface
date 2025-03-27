@@ -127,7 +127,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       }
 
       const decimal = await currencyInstance.decimals();
-      let depositAmountStr;
+      // let depositAmountStr;
       // let approveAmountStr;
 
       // Handle swap if needed
@@ -163,14 +163,14 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         await executeSwap(swapData);
 
         // Use swap output amount
-        depositAmountStr = ethers.utils.formatUnits(swapData.buildData.amountOut, decimal);
+        // depositAmountStr = ethers.utils.formatUnits(swapData.buildData.amountOut, decimal);
         // approveAmountStr = ethers.utils.formatUnits(
         //   BigInt(swapData.buildData.amountOut) + (BigInt(swapData.buildData.amountOut) * BigInt(5) / BigInt(10000000)),
         //   decimal
         // );
       } else {
         // Direct deposit without swap
-        depositAmountStr = ethers.utils.formatUnits(depositAmount, decimal);
+        // depositAmountStr = ethers.utils.formatUnits(depositAmount, decimal);
         // approveAmountStr = ethers.utils.formatUnits(
         //   depositAmount.add(depositAmount.mul(5).div(10000000)),
         //   decimal
@@ -178,11 +178,13 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       }
 
       // Convert amounts to proper units
-      const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal);
+      // const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal);
+      const productBalance = await currencyInstance.balanceOf(productAddress);
 
       // Check capacity
       const currentCapacity = await productInstance.currentCapacity();
-      const totalDeposit = requestBalance.add(currentCapacity);
+
+      const totalDeposit = productBalance.add(currentCapacity);
       const maxCapacityInWei = ethers.utils.parseUnits(product.maxCapacity.toString(), decimal);
 
       if (totalDeposit.gt(maxCapacityInWei)) {
@@ -191,19 +193,21 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
       // Handle deposit approval
       const currentAllowance = await currencyInstance.allowance(address, productAddress);
-      console.log("currentAllowance: ", currentAllowance)
-      console.log("requestBalance:", ethers.utils.formatUnits(requestBalance, decimal))
-      if (currentAllowance.lt(requestBalance)) {
+      // console.log("currentAllowance: ", currentAllowance)
+      // console.log("requestBalance:", ethers.utils.formatUnits(requestBalance, decimal))
+      console.log("productBalance:", productBalance)
+
+      if (currentAllowance.lt(productBalance)) {
         setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE);
         setIsOpen(true);
-        const approveTx = await currencyInstance.approve(productAddress, requestBalance);
+        const approveTx = await currencyInstance.approve(productAddress, productBalance);
         await approveTx.wait();
       }
 
       // Execute deposit
       setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSITING);
       setIsOpen(true);
-      const depositTx = await productInstance.deposit(requestBalance);
+      const depositTx = await productInstance.deposit(productBalance);
       await depositTx.wait();
 
       // Handle success
