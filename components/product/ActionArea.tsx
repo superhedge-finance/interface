@@ -128,7 +128,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
       const decimal = await currencyInstance.decimals();
       let depositAmountStr;
-      let approveAmountStr;
+      // let approveAmountStr;
 
       // Handle swap if needed
       if (needsSwap) {
@@ -164,22 +164,21 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
         // Use swap output amount
         depositAmountStr = ethers.utils.formatUnits(swapData.buildData.amountOut, decimal);
-        approveAmountStr = ethers.utils.formatUnits(
-          BigInt(swapData.buildData.amountOut) + (BigInt(swapData.buildData.amountOut) * BigInt(5) / BigInt(10000000)),
-          decimal
-        );
+        // approveAmountStr = ethers.utils.formatUnits(
+        //   BigInt(swapData.buildData.amountOut) + (BigInt(swapData.buildData.amountOut) * BigInt(5) / BigInt(10000000)),
+        //   decimal
+        // );
       } else {
         // Direct deposit without swap
         depositAmountStr = ethers.utils.formatUnits(depositAmount, decimal);
-        approveAmountStr = ethers.utils.formatUnits(
-          depositAmount.add(depositAmount.mul(5).div(10000000)),
-          decimal
-        );
+        // approveAmountStr = ethers.utils.formatUnits(
+        //   depositAmount.add(depositAmount.mul(5).div(10000000)),
+        //   decimal
+        // );
       }
 
       // Convert amounts to proper units
       const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal);
-      const approveBalance = ethers.utils.parseUnits(approveAmountStr, decimal);
 
       // Check capacity
       const currentCapacity = await productInstance.currentCapacity();
@@ -197,7 +196,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       if (currentAllowance.lt(requestBalance)) {
         setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE);
         setIsOpen(true);
-        const approveTx = await currencyInstance.approve(productAddress, approveBalance);
+        const approveTx = await currencyInstance.approve(productAddress, requestBalance);
         await approveTx.wait();
       }
 
@@ -814,8 +813,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
             {/* Get currency link */}
             <a
-              href={product.currencyName === "lvlUSD" 
-                ? "https://app.level.money/buy" 
+              href={product.currencyName === "lvlUSD"
+                ? "https://app.level.money/buy"
                 : "https://app.ethena.fi/buy"}
               target="_blank"
               rel="noopener noreferrer"
