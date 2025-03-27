@@ -76,7 +76,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
         const depositAmountStr = ethers.utils.formatUnits(depositAmount, decimal)
         const approveAmountStr = ethers.utils.formatUnits(
-          depositAmount.add(depositAmount.mul(100).div(10000)),
+          depositAmount.add(depositAmount.mul(5).div(10000)),
           decimal
         )
         const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal)
@@ -165,14 +165,14 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         // Use swap output amount
         depositAmountStr = ethers.utils.formatUnits(swapData.buildData.amountOut, decimal);
         approveAmountStr = ethers.utils.formatUnits(
-          BigInt(swapData.buildData.amountOut) + (BigInt(swapData.buildData.amountOut) * BigInt(100) / BigInt(10000)),
+          BigInt(swapData.buildData.amountOut) + (BigInt(swapData.buildData.amountOut) * BigInt(5) / BigInt(10000)),
           decimal
         );
       } else {
         // Direct deposit without swap
         depositAmountStr = ethers.utils.formatUnits(depositAmount, decimal);
         approveAmountStr = ethers.utils.formatUnits(
-          depositAmount.add(depositAmount.mul(100).div(10000)),
+          depositAmount.add(depositAmount.mul(5).div(10000)),
           decimal
         );
       }
