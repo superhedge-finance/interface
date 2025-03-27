@@ -435,7 +435,19 @@ const ProductDetail = () => {
                   <TitleH3>Risk</TitleH3>
                   <p>
                     <strong>{product.currencyName}</strong><br/>
-                    {product.currencyName}, the supported asset for principal deposits and withdrawals, is a synthetic dollar issued by Ethena and is backed by delta-hedging derivatives positions in perpetual and futures markets. Users accept the full risk associated with its stability and performance. DYOR <a href={riskLinks[0]} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">here</a>.
+                    {product.currencyName === "USDe" ? (
+                      <>
+                        {product.currencyName}, the supported asset for principal deposits and withdrawals, is a synthetic dollar issued by Ethena and is backed by delta-hedging derivatives positions in perpetual and futures markets. Users accept the full risk associated with its stability and performance.
+                      </>
+                    ) : product.currencyName === "lvlUSD" ? (
+                      <>
+                        {product.currencyName}, the supported asset for principal deposits and withdrawals, is a stablecoin fully backed by USDC and USDT. Users accept the full risk associated with its stability and performance.
+                      </>
+                    ) : (
+                      <>
+                        {product.currencyName}, the supported asset for principal deposits and withdrawals. Users accept the full risk associated with its stability and performance.
+                      </>
+                    )} DYOR <a href={riskLinks[0]} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">here</a>.
                   </p>
 
                   <p>
