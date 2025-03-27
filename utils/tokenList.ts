@@ -10,6 +10,7 @@ export const tokenList: {
     { decimals: 18, value: "0x6B175474E89094C44Da98b954EedeAC495271d0F", label: "DAI" },
     { decimals: 18, value: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", label: "WETH" },
     { decimals: 18, value: "0x4c9EDD5852cd905f086C759E8383e09bff1E68B3", label: "USDe" },
+    { decimals: 18, value: "0x7C1156E515aA1A2E851674120074968C905aAF37", label: "lvlUSD" },
   ],
   [SUPPORT_CHAIN_IDS.BASE]: [
     { decimals: 18, value: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", label: "ETH" },

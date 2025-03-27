@@ -242,7 +242,7 @@ export default function Product({ product }: { product: IProduct }) {
           label="Coupon" 
           value={`${product.issuanceCycle.coupon / 1000000}%`}
           tooltip={product.couponTooltip}
-          className="whitespace-nowrap"
+          className="whitespace-pre-wrap !w-[160px]"
         />
       </div>
 
