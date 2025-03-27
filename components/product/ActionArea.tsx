@@ -749,8 +749,6 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         maximumFractionDigits: token.decimals > 8 ? 4 : Math.min(token.decimals, 6)
       });
     }
-
-    // Default formatting if token not found
     return balance.toLocaleString();
   }
 
