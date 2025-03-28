@@ -249,17 +249,17 @@ const ProductDetail = () => {
           <div className={"col-span-1"}>
             {!isLoading && product && (
               <div className='flex flex-col px-0 py-6 md:px-6'>
-                <div>
-                  <span className={`inline-block text-white text-sm px-4 py-3 rounded-lg ${ProductStatus[product.status].className}`}>
+                <div className="flex flex-row gap-2">
+                  <div className={`text-white text-[9px] md:text-sm px-4 py-3 rounded-lg ${ProductStatus[product.status].className}`}>
                     {ProductStatus[product.status].label}
-                  </span>
-                  <span className={`inline-block text-white text-sm ml-3 px-4 py-3 rounded-lg ${PrincipalProtection[0].className}`}>
+                  </div>
+                  <div className={`text-white text-[9px] md:text-sm px-4 py-3 rounded-lg ${PrincipalProtection[0].className}`}>
                     {PrincipalProtection[0].label}
-                  </span>
+                  </div>
                   {categoryIndex >= 0 && (
-                    <span className={`inline-block text-white text-sm ml-3 px-4 py-3 rounded-lg ${ProductSpreads[categoryIndex].className}`}>
+                    <div className={`text-white text-[9px] md:text-sm px-4 py-3 rounded-lg ${ProductSpreads[categoryIndex].className}`}>
                       {ProductSpreads[categoryIndex].label}
-                    </span>
+                    </div>
                   )}
                 </div>
                 <div className={"flex justify-between items-end my-5"}>
