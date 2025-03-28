@@ -110,7 +110,10 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   }, [chain])
 
   // Get the tokens for the current chain
-  const tokensForCurrentChain = getTokensForChain(chainId);
+  const tokensForCurrentChain = useMemo(() => {
+    const tokens = getTokensForChain(chainId);
+    return tokens.filter(token => token.label === product.currencyName)
+  }, [chainId, product.currencyName])
 
   const needsSwap = useMemo(() => {
     return selectedAddressCurrency !== '' &&
