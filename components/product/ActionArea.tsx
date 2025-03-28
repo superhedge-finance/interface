@@ -910,12 +910,13 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 <div className={"flex items-center justify-end"}>
                   {selectedAddressCurrency !== "" && (
                     <select
-                      className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none"}
+                      className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none appearance-none"}
                       onChange={(e) => {
                         setSelectedAddressCurrency(e.target.value);
                         setLoadingSelectedAddressCurrency(true);
                       }}
                       defaultValue={selectedAddressCurrency}
+                      disabled
                     >
                       {tokensForCurrentChain.map((token) => (
                         <option key={token.value} value={token.value}>
