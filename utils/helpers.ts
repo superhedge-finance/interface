@@ -40,15 +40,28 @@ export const formatDate = (dateString: Date) => {
 
 export const getTxErrorMessage = (error: any): string => {
   const errMessage = error?.data?.message || error?.message;
+
   if (error?.code === Logger.errors.ACTION_REJECTED) {
     return "User denied transaction";
   } else if (errMessage && /insufficient funds/.test(errMessage)) {
     return "Not enough balance";
+  } else if (errMessage && /Insufficient/.test(errMessage)) {
+    return errMessage;
+  } else if (errMessage && /exceeds max/.test(errMessage)) {
+    return "Deposit exceeds max capacity.";
+  } else if (errMessage && /revert/.test(errMessage)) {
+    return "Transaction reverted in some reason.";
+  } else if (errMessage && /rejected/.test(errMessage)) {
+    return "Transaction rejected.";
+  } else if (errMessage && /invalid decimal value/.test(errMessage)) {
+    return "Invalid decimal value.";
   }
 
   const regex = /execution reverted: ([a-zA-Z0-9 ]+)/;
   const result = errMessage.match(regex);
   const reason = result ? result[1] : undefined;
+
+  console.log("reason: ", reason)
 
   // will make some message translation here.
   if (reason === "Product is full") {

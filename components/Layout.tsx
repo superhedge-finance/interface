@@ -11,7 +11,7 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <>
       <Head>
-        <title>Superhedge</title>
+        <title>SuperHedge</title>
         <link rel='icon' href='/fav-32.svg' key='favicon' />
       </Head>
       <main className='w-full bg-[#F7F7F7]'>

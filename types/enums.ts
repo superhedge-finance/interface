@@ -6,6 +6,17 @@ export enum DEPOSIT_STATUS {
   DONE
 }
 
+export enum SWAP_AND_DEPOSIT_STATUS {
+  NONE,
+  SWAP_APPROVE,
+  SWAP,
+  SWAPPING,
+  DEPOSIT_APPROVE,
+  DEPOSIT,
+  DEPOSITING,
+  DONE
+}
+
 export enum WITHDRAW_STATUS {
   NONE,
   APPROVE,

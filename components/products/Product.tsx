@@ -13,9 +13,9 @@ import { useNetwork, useSigner } from "wagmi";
 import { SUPPORT_CHAIN_IDS } from "../../utils/enums";
 import { DECIMAL, YIELD_SOURCE } from "../../utils/constants";
 import ProductABI from "../../utils/abis/SHProduct.json";
+import ERC20ABI from "../../utils/abis/ERC20.json";
 
 export default function Product({ product }: { product: IProduct }) {
-  const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH);
   const router = useRouter(); 
   const { data: signer } = useSigner()
   const { chain } = useNetwork();
@@ -25,6 +25,14 @@ export default function Product({ product }: { product: IProduct }) {
     return SUPPORT_CHAIN_IDS.ETH;
   }, [chain]);
 
+  // Create provider based on current chain
+  const provider = useMemo(() => {
+    if (chainId === SUPPORT_CHAIN_IDS.BASE) {
+      return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_BASE);
+    }
+    return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH);
+  }, [chainId]);
+
   const [capacity, setCapacity] = useState<number>(0);
 
   useEffect(() => {
@@ -33,11 +41,24 @@ export default function Product({ product }: { product: IProduct }) {
         const productInstance = new ethers.Contract(product.address, ProductABI, signer);
         const _currentCapacity = await productInstance.currentCapacity();
         setCapacity(Math.round(Number(ethers.utils.formatUnits(_currentCapacity, DECIMAL[chainId]))));
+
+        // console.log("productInstance.tokenAddress()", productInstance.tokenAddress());
+
+
+        // const tokenInstance = new ethers.Contract(productInstance.tokenAddress(), ERC20ABI, signer);
+        // const _totalSupply = await tokenInstance.totalSupply();
+        // console.log("totalSupply", _totalSupply);
+        // setCapacity(Math.round(Number(ethers.utils.formatUnits(_totalSupply, DECIMAL[chainId]))));
+
       } else {
         const productInstance = new ethers.Contract(product.address, ProductABI, provider);
         const _currentCapacity = await productInstance.currentCapacity();
         setCapacity(Math.round(Number(ethers.utils.formatUnits(_currentCapacity, DECIMAL[chainId]))));
         // setCapacity(Math.round((Number(product.currentCapacity) / 10 ** DECIMAL[chainId])));
+        // const tokenInstance = new ethers.Contract(productInstance.currencyAddress(), ERC20ABI, signer);
+        // const _totalSupply = await tokenInstance.balanceOf(product.address);
+        // console.log("totalSupply", _totalSupply);
+        // setCapacity(Math.round(Number(ethers.utils.formatUnits(_totalSupply, DECIMAL[chainId]))));
       }
     };
 
@@ -235,7 +256,7 @@ export default function Product({ product }: { product: IProduct }) {
           label="Coupon" 
           value={`${product.issuanceCycle.coupon / 1000000}%`}
           tooltip={product.couponTooltip}
-          className="whitespace-nowrap"
+          className="whitespace-pre-wrap !w-[160px]"
         />
       </div>
 
