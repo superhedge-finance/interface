@@ -28,12 +28,12 @@ const CustomDisclaimer: React.FC<CustomDisclaimerProps> = ({ Text, Link }) => {
   return (
     <div className="p-4">
       <div className="mt-4 flex items-center gap-2">
-        <input 
-          type="checkbox" 
-          id="tosCheckbox" 
-          checked={isChecked} 
+        <input
+          type="checkbox"
+          id="tosCheckbox"
+          checked={isChecked}
           onChange={handleCheckboxChange}
-          className="h-4 w-4" 
+          className="h-4 w-4"
         />
         <label htmlFor="tosCheckbox" className="text-sm text-gray-700">
           By connecting, you agree to the <Link href="https://docs.superhedge.com/other-resources/terms-of-use"><span className="text-blue-600 hover:underline">Terms of Service</span></Link> and <Link href="https://docs.superhedge.com/other-resources/privacy-policy"><span className="text-blue-600 hover:underline">Privacy Policy</span></Link>
@@ -62,34 +62,34 @@ ChartJS.register(Title, Tooltip, Legend, Filler, LineElement, CategoryScale, Lin
 //   ]
 // );
 
-// const { chains, provider, webSocketProvider } = configureChains(
-//   [mainnet, base],
-//   [
-//     jsonRpcProvider({
-//       rpc: () => ({
-//         http: process.env.NEXT_PUBLIC_MORALIS_KEY_ETH || "",
-//       }),
-//     }),
-//     jsonRpcProvider({
-//       rpc: () => ({
-//         http: process.env.NEXT_PUBLIC_MORALIS_KEY_BASE || "",
-//       }),
-//     }),
-//     publicProvider()
-//   ]
-// );
-
 const { chains, provider, webSocketProvider } = configureChains(
-  [mainnet],
+  [mainnet, base],
   [
     jsonRpcProvider({
       rpc: () => ({
         http: process.env.NEXT_PUBLIC_MORALIS_KEY_ETH || "",
       }),
     }),
+    jsonRpcProvider({
+      rpc: () => ({
+        http: process.env.NEXT_PUBLIC_MORALIS_KEY_BASE || "",
+      }),
+    }),
     publicProvider()
   ]
 );
+
+// const { chains, provider, webSocketProvider } = configureChains(
+//   [mainnet],
+//   [
+//     jsonRpcProvider({
+//       rpc: () => ({
+//         http: process.env.NEXT_PUBLIC_MORALIS_KEY_ETH || "",
+//       }),
+//     }),
+//     publicProvider()
+//   ]
+// );
 
 
 
