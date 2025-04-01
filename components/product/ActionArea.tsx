@@ -298,7 +298,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         }
       }
 
-      // Chuẩn bị giao dịch swap
+      // Prepare swap transaction
       setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.SWAPPING);
 
       const tx: any = {
@@ -316,12 +316,12 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         // });
       }
 
-      // Ước tính gas và thêm buffer
-      console.log('Estimating gas...');
+      // Estimate gas and add buffer
+      // console.log('Estimating gas...');
       try {
         const gasEstimate = await signer?.estimateGas(tx);
-        console.log('Gas estimate:', gasEstimate?.toString());
-        tx.gasLimit = gasEstimate?.mul(150).div(100); // Thêm 50% buffer
+        // console.log('Gas estimate:', gasEstimate?.toString());
+        tx.gasLimit = gasEstimate?.mul(150).div(100); // Add 50% buffer
       } catch (gasError: any) {
         console.error('Gas estimation error:', gasError);
         throw new Error('Cannot estimate gas. Please reduce the swap amount or increase slippage.');
@@ -348,27 +348,20 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       try {
         if (status === 1) {
           if (isPrincipalSelected && principalBalance > 0) {
-            // approve token
-            // console.log("Approve token")
             const decimal = await tokenAddressInstance.decimals()
             const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toFixed(decimal), decimal);
-            // console.log(requestBalance)
 
             const _currentCapacity = await productInstance.currentCapacity()
-            // console.log(_currentCapacity)
             if (withdrawableBalance + Number(ethers.utils.formatUnits(_currentCapacity, decimal)) > Number(product.maxCapacity)) {
               return toast.error("Your withdraw results in excess of max capacity.")
             }
             const currentAllowance = await tokenAddressInstance.allowance(address, productAddress)
-            // console.log(currentAllowance)
             if (currentAllowance.lt(requestBalance)) {
               const tx = await tokenAddressInstance.approve(productAddress, requestBalance)
               await setWithdrawStatus(WITHDRAW_STATUS.APPROVING)
               await tx.wait()
             }
-            // withdraw
             await setWithdrawStatus(WITHDRAW_STATUS.WITHDRAW)
-            // console.log("withdrawPrincipal")
             const withdrawTx = await productInstance.withdrawPrincipal()
             await withdrawTx.wait()
           }
@@ -391,18 +384,21 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             await tx2.wait()
           }
           await setWithdrawStatus(WITHDRAW_STATUS.DONE)
-        } else {
-          await setWithdrawStatus(WITHDRAW_STATUS.NONE)
         }
       } catch (e) {
-        await setWithdrawStatus(WITHDRAW_STATUS.NONE)
+        // Reset all states if user rejected the transaction
+        if (getTxErrorMessage(e) === "User denied transaction" || getTxErrorMessage(e) === "User rejected the request.") {
+          setWithdrawStatus(WITHDRAW_STATUS.NONE)
+          setIsCouponSelected(false)
+          setIsOptionSelected(false)
+          setIsPrincipalSelected(false)
+          setIsOpenWithdraw(false)
+        } else {
+          // For other errors, just reset the withdraw status
+          setWithdrawStatus(WITHDRAW_STATUS.NONE)
+          toast.error(getTxErrorMessage(e))
+        }
         console.log(e)
-      } finally {
-        // console.log("Finally!")
-        // Reset selection states after withdrawal
-        setIsCouponSelected(false);
-        setIsOptionSelected(false);
-        setIsPrincipalSelected(false);
       }
     }
   }
