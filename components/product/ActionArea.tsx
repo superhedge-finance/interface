@@ -17,7 +17,6 @@ import { getTokensForChain } from "../../utils/tokenList"
 import axios from "axios"
 import Swap from "../../pages/swap"
 
-
 const pricePerLot = 1
 
 export const ActionArea = ({ productAddress, product }: { productAddress: string; product: IProduct }) => {
@@ -127,7 +126,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       setIsLoadingSwapAndDeposit(true);
 
       if (!currencyInstance || !productInstance) {
-        throw new Error("Contract instances not initialized");
+        throw new Error("Contract instances not initialized!");
       }
 
       const decimal = await currencyInstance.decimals();
