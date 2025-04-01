@@ -39,21 +39,21 @@ export default function Product({ product }: { product: IProduct }) {
     const fetchCapacity = async () => {
       if (signer && product.address) {
         const productInstance = new ethers.Contract(product.address, ProductABI, signer);
-        // const _currentCapacity = await productInstance.currentCapacity();
-        // setCapacity(Math.round(Number(ethers.utils.formatUnits(_currentCapacity, DECIMAL[chainId]))));
+        const _currentCapacity = await productInstance.currentCapacity();
+        setCapacity(Math.round(Number(ethers.utils.formatUnits(_currentCapacity, DECIMAL[chainId]))));
 
-        console.log("productInstance.tokenAddress()", productInstance.tokenAddress());
+        // console.log("productInstance.tokenAddress()", productInstance.tokenAddress());
 
 
-        const tokenInstance = new ethers.Contract(productInstance.tokenAddress(), ERC20ABI, signer);
-        const _totalSupply = await tokenInstance.totalSupply();
-        console.log("totalSupply", _totalSupply);
-        setCapacity(Math.round(Number(ethers.utils.formatUnits(_totalSupply, DECIMAL[chainId]))));
+        // const tokenInstance = new ethers.Contract(productInstance.tokenAddress(), ERC20ABI, signer);
+        // const _totalSupply = await tokenInstance.totalSupply();
+        // console.log("totalSupply", _totalSupply);
+        // setCapacity(Math.round(Number(ethers.utils.formatUnits(_totalSupply, DECIMAL[chainId]))));
 
       } else {
         const productInstance = new ethers.Contract(product.address, ProductABI, provider);
-        // const _currentCapacity = await productInstance.currentCapacity();
-        // setCapacity(Math.round(Number(ethers.utils.formatUnits(_currentCapacity, DECIMAL[chainId]))));
+        const _currentCapacity = await productInstance.currentCapacity();
+        setCapacity(Math.round(Number(ethers.utils.formatUnits(_currentCapacity, DECIMAL[chainId]))));
         // setCapacity(Math.round((Number(product.currentCapacity) / 10 ** DECIMAL[chainId])));
         // const tokenInstance = new ethers.Contract(productInstance.currencyAddress(), ERC20ABI, signer);
         // const _totalSupply = await tokenInstance.balanceOf(product.address);
