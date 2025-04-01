@@ -20,14 +20,14 @@ import { ParaRegular18, PrimaryButton, SecondaryButton, SubtitleRegular16 } from
 const pricePerLot = 1
 
 export const ActionArea = ({ productAddress, product }: { productAddress: string; product: IProduct }) => {
-  const { address } = useAccount()
+  const { address, isConnected } = useAccount()
   const { data: signer } = useSigner()
   const { chain } = useNetwork()
   const { openConnectModal } = useConnectModal()
 
   const [, setScrollY] = useState(0)
   const [tab, setTab] = useState(0)
-  const [lots, setLots] = useState("1")
+  const [lots, setLots] = useState("0")
   const [isOpen, setIsOpen] = useState(false)
   const [isOpenWithdraw, setIsOpenWithdraw] = useState(false)
   const [status, setStatus] = useState(0)
@@ -279,7 +279,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
       setIsOpen(true);
 
-      // Kiểm tra balance và approval
+      // Check balance and approval
       if (routeData.success && signer) {
         if (swapData.tokenIn.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
           // console.log('Checking ETH balance...');
@@ -515,8 +515,13 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           setPrincipalBalance(Number(ethers.utils.formatUnits(_principalBalance, _decimals)))
           // wallet balance
           const currencyBalance = await _currencyInstance.balanceOf(address)
-          setMaxLots(ethers.utils.formatUnits(currencyBalance, _decimals))
-          setWalletBalance(Number(ethers.utils.formatUnits(currencyBalance, _decimals)))
+          const _maxLots = ethers.utils.formatUnits(currencyBalance, _decimals)
+          setMaxLots(_maxLots)
+          if (Number(_maxLots) >= 1) {
+            setLots("1")
+          } else {
+            setLots("0")
+          }
 
         } catch (e) {
           console.error(e)
@@ -936,7 +941,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 </div>
               </div>
 
-              <div className={`relative flex items-center mt-2 h-[50px] overflow-hidden bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded ${Number(lots) > Number(maxLots) ? 'border-red-500' : ''}`}>
+              <div className={`relative flex items-center mt-2 h-[50px] overflow-hidden bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded ${(Number(lots) > Number(maxLots) && isConnected) ? 'border-red-500' : ''}`}>
                 <div className={"flex-1"}>
                   <input
                     className={
@@ -959,7 +964,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 <div className={"flex items-center justify-end"}>
                   {selectedAddressCurrency !== "" && (
                     <select
-                      className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none appearance-none"}
+                      className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none"}
                       onChange={(e) => {
                         setSelectedAddressCurrency(e.target.value);
                         setLoadingSelectedAddressCurrency(true);
