@@ -112,7 +112,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
   // Get the tokens for the current chain
   const tokensForCurrentChain = useMemo(() => {
     const tokens = getTokensForChain(chainId);
-    return tokens.filter(token => token.label === product.currencyName)
+    // return tokens.filter(token => token.label === product.currencyName)
+    return tokens
   }, [chainId, product.currencyName])
 
   const needsSwap = useMemo(() => {
@@ -884,26 +885,23 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 </div>
               </div>
 
-              <div className={"relative flex items-center mt-2 h-[50px] overflow-hidden bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded"}>
+              <div className={`relative flex items-center mt-2 h-[50px] overflow-hidden bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded ${Number(lots) > Number(maxLots) ? 'border-red-500' : ''}`}>
                 <div className={"flex-1"}>
                   <input
-                    className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-outer-spin-button]:m-0 [-moz-appearance:textfield]"}
+                    className={
+                      `w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-outer-spin-button]:m-0 [-moz-appearance:textfield]`
+                    }
                     value={lots}
                     onChange={(e) => {
                       const value = Number(e.target.value);
                       if (value >= 0) {
                         // If value >= maxLots, set maxLots
-                        if (value >= Number(maxLots)) {
-                          setLots(maxLots);
-                        } else {
-                          setLots(e.target.value);
-                        }
+                        setLots(e.target.value);
                       }
                     }}
                     type='number'
                     step='1.00'
                     min={0}
-                    max={maxLots}
                     disabled={loadingSelectedAddressCurrency}
                   />
                 </div>
@@ -916,7 +914,6 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                         setLoadingSelectedAddressCurrency(true);
                       }}
                       defaultValue={selectedAddressCurrency}
-                      disabled
                     >
                       {tokensForCurrentChain.map((token) => (
                         <option key={token.value} value={token.value}>
@@ -928,13 +925,22 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                   {/* <span className={"absolute right-4 text-[#828A93]"}></span> */}
                 </div>
               </div>
-              {product?.currencyName.toLowerCase() !== tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label.toLowerCase() && (
-                <div className={"my-4 text-red-700 text-[10px] text-right"}>
-                  From {lots} {tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label},
-                  Swap via KyperSwap to get {Number(amountOutUsd.toLocaleString()).toFixed(2)} {product.currencyName}
-                  <br />
-                  Redeem {Number(amountOutUsd.toLocaleString()).toFixed(2)} {product.currencyName} at maturity
+              {Number(lots) > Number(maxLots) && (
+                <div className={"mt-4 text-red-700 text-[10px] text-right"}>
+                  Maximum deposit amount is {maxLots} {tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label}
                 </div>
+              )}
+              {Number(lots) <= Number(maxLots) && (
+                <>
+                  {product?.currencyName.toLowerCase() !== tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label.toLowerCase() && (
+                    <div className={"mt-4 text-red-700 text-[10px] text-right"}>
+                      From {lots} {tokensForCurrentChain.find(token => token.value === selectedAddressCurrency)?.label},
+                      Swap via KyperSwap to get {Number(amountOutUsd.toLocaleString()).toFixed(2)} {product.currencyName}
+                      <br />
+                      Redeem {Number(amountOutUsd.toLocaleString()).toFixed(2)} {product.currencyName} at maturity
+                    </div>
+                  )}
+                </>
               )}
 
               {/* <div className={"mt-3"}>
@@ -1011,7 +1017,15 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               <PrimaryButton
                 label={depositButtonLabel}
                 onClick={onSwapAndDeposit}
-                disabled={isLoadingSwapAndDeposit || loadingSelectedAddressCurrency || status !== 1 || walletBalance === 0 || lots === '0' || routeData?.data?.buildData?.amountOut === '0'}
+                disabled={
+                  isLoadingSwapAndDeposit ||
+                  loadingSelectedAddressCurrency ||
+                  status !== 1 ||
+                  walletBalance === 0 ||
+                  lots === '0' ||
+                  Number(routeData?.data?.buildData?.amountOut) === 0 ||
+                  Number(`${lots}`) > Number(`${maxLots}`)
+                }
                 loading={isLoadingSwapAndDeposit}
               />
             </div>

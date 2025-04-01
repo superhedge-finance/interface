@@ -377,6 +377,7 @@ const ProductDetail = () => {
                       label="Coupon"
                       value={`${product.issuanceCycle.coupon / 1000000}%`}
                       tooltip={product.couponTooltip}
+                      className="whitespace-pre-wrap !w-[160px]"
                     />
 
                   </div>
