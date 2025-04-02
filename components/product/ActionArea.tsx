@@ -1,33 +1,33 @@
-import { Dialog, Switch, Transition } from "@headlessui/react"
+import { Dialog, Transition } from "@headlessui/react"
 import { useConnectModal } from "@rainbow-me/rainbowkit"
+import axios from "axios"
 import { BigNumber, ethers } from "ethers"
 import Image from "next/image"
 import { Fragment, useEffect, useMemo, useState } from "react"
 import toast from "react-hot-toast"
 import { useAccount, useNetwork, useSigner } from "wagmi"
-import { DEPOSIT_STATUS, IProduct, WITHDRAW_STATUS, SWAP_AND_DEPOSIT_STATUS } from "../../types"
+import { DEPOSIT_STATUS, IProduct, SWAP_AND_DEPOSIT_STATUS, WITHDRAW_STATUS } from "../../types"
 import ERC20ABI from "../../utils/abis/ERC20.json"
 import ProductABI from "../../utils/abis/SHProduct.json"
 import { EXPLORER } from "../../utils/constants"
 import { SUPPORT_CHAIN_IDS } from "../../utils/enums"
 import { getTxErrorMessage, truncateAddress } from "../../utils/helpers"
+import { getTokensForChain } from "../../utils/tokenList"
 import PTTokenABI from "..//../utils/abis/PTToken.json"
 import { ParaRegular18, PrimaryButton, SecondaryButton, SubtitleRegular16 } from "../basic"
-import { getTokensForChain } from "../../utils/tokenList"
-import axios from "axios"
-import Swap from "../../pages/swap"
+// import Swap from "../../pages/swap"
 
 const pricePerLot = 1
 
 export const ActionArea = ({ productAddress, product }: { productAddress: string; product: IProduct }) => {
-  const { address } = useAccount()
+  const { address, isConnected } = useAccount()
   const { data: signer } = useSigner()
   const { chain } = useNetwork()
   const { openConnectModal } = useConnectModal()
 
   const [, setScrollY] = useState(0)
   const [tab, setTab] = useState(0)
-  const [lots, setLots] = useState("1")
+  const [lots, setLots] = useState("0")
   const [isOpen, setIsOpen] = useState(false)
   const [isOpenWithdraw, setIsOpenWithdraw] = useState(false)
   const [status, setStatus] = useState(0)
@@ -123,56 +123,72 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
   const onSwapAndDeposit = async () => {
     try {
+      console.log('Starting swap and deposit process...');
       setIsLoadingSwapAndDeposit(true);
 
       if (!currencyInstance || !productInstance) {
+        console.log('Error: Contract instances not initialized');
         throw new Error("Contract instances not initialized!");
       }
 
+      // console.log('Getting currency decimals...');
       const decimal = await currencyInstance.decimals();
+      // console.log('Currency decimals:', decimal);
+
       let depositAmountStr;
       let approveAmountStr;
 
       // Handle swap if needed
       if (needsSwap) {
+        console.log('Swap needed - starting swap process...');
+
         if (!routeData?.success || !signer) {
+          console.log('Error: Swap route data or signer not available');
           throw new Error("Swap route data or signer not available");
         }
 
         const swapData = routeData.data;
         if (!swapData) {
+          console.log('Error: Swap data not available');
           throw new Error("Swap data not available");
         }
+        // console.log('Swap data retrieved:', { swapData });
 
-        // Check and approve source token if needed (for non-ETH tokens)
+        // Check and approve source token if needed
         if (swapData.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+          console.log('Non-ETH token swap - checking allowance...');
           const tokenContract = new ethers.Contract(swapData.tokenIn, ERC20ABI, signer);
           const signerAddress = await signer.getAddress();
           const currentAllowance = await tokenContract.allowance(signerAddress, swapData.buildData.routerAddress);
+          // console.log('Current allowance:', currentAllowance.toString());
 
           if (currentAllowance.lt(swapData.buildData.amountIn)) {
+            console.log('Approving token for swap...');
             setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.SWAP_APPROVE);
             setIsOpen(true);
             const approveTx = await tokenContract.approve(
               swapData.buildData.routerAddress,
               ethers.constants.MaxUint256
             );
+            console.log('Waiting for swap approval transaction...');
             await approveTx.wait();
+            console.log('Swap approval complete');
           }
         }
 
         // Execute swap
+        console.log('Executing swap...');
         setIsOpen(true);
         await executeSwap(swapData);
+        console.log('Swap executed successfully');
 
-        // Use swap output amount
         depositAmountStr = ethers.utils.formatUnits(swapData.buildData.amountOut, decimal);
         approveAmountStr = ethers.utils.formatUnits(
           BigInt(swapData.buildData.amountOut) + (BigInt(swapData.buildData.amountOut) * BigInt(5) / BigInt(10000)),
           decimal
         );
       } else {
-        // Direct deposit without swap
+        console.log('Direct deposit without swap');
         depositAmountStr = ethers.utils.formatUnits(depositAmount, decimal);
         approveAmountStr = ethers.utils.formatUnits(
           depositAmount.add(depositAmount.mul(5).div(10000)),
@@ -180,37 +196,55 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         );
       }
 
+      // console.log('Preparing deposit amounts:', { depositAmountStr, approveAmountStr });
+
       // Convert amounts to proper units
       const requestBalance = ethers.utils.parseUnits(depositAmountStr, decimal);
       const approveBalance = ethers.utils.parseUnits(approveAmountStr, decimal);
+      // console.log('Converted amounts:', { requestBalance: requestBalance.toString(), approveBalance: approveBalance.toString() });
 
       // Check capacity
+      console.log('Checking capacity...');
       const currentCapacity = await productInstance.currentCapacity();
       const totalDeposit = requestBalance.add(currentCapacity);
       const maxCapacityInWei = ethers.utils.parseUnits(product.maxCapacity.toString(), decimal);
+      // console.log('Capacity check:', {
+      //   currentCapacity: currentCapacity.toString(),
+      //   totalDeposit: totalDeposit.toString(),
+      //   maxCapacity: maxCapacityInWei.toString()
+      // });
 
       if (totalDeposit.gt(maxCapacityInWei)) {
+        console.log('Error: Deposit exceeds max capacity');
         throw new Error("Your deposit results in excess of max capacity.");
       }
 
       // Handle deposit approval
+      // console.log('Checking deposit allowance...');
       const currentAllowance = await currencyInstance.allowance(address, productAddress);
-      console.log("currentAllowance: ", currentAllowance)
-      console.log("requestBalance:", ethers.utils.formatUnits(requestBalance, decimal))
+      // console.log('Current deposit allowance:', currentAllowance.toString());
+
       if (currentAllowance.lt(requestBalance)) {
+        console.log('Approving deposit...');
         setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSIT_APPROVE);
         setIsOpen(true);
         const approveTx = await currencyInstance.approve(productAddress, approveBalance);
+        console.log('Waiting for deposit approval transaction...');
         await approveTx.wait();
+        console.log('Deposit approval complete');
       }
 
       // Execute deposit
+      console.log('Executing deposit...');
       setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DEPOSITING);
       setIsOpen(true);
       const depositTx = await productInstance.deposit(requestBalance);
+      console.log('Waiting for deposit transaction...');
       await depositTx.wait();
+      console.log('Deposit complete');
 
       // Handle success
+      console.log('Transaction successful - cleaning up...');
       setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.DONE);
       setTimeout(() => {
         setIsLoadingSwapAndDeposit(false);
@@ -230,60 +264,82 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
 
   // Helper function to execute swap
   const executeSwap = async (swapData: any) => {
-    const encodedSwapData = swapData.buildData.data;
-    const routerContract = swapData.buildData.routerAddress;
-    const amountIn = swapData.buildData.amountIn;
-    const signerAddress = await signer?.getAddress();
+    try {
+      // console.log('Starting swap with data:', {
+      //   tokenIn: swapData.tokenIn,
+      //   amountIn: swapData.buildData.amountIn,
+      //   amountOut: swapData.buildData.amountOut,
+      //   routerContract: swapData.buildData.routerAddress
+      // });
 
-    setIsOpen(true)
+      const encodedSwapData = swapData.buildData.data;
+      const routerContract = swapData.buildData.routerAddress;
+      const amountIn = swapData.buildData.amountIn;
+      const signerAddress = await signer?.getAddress();
 
-    // Handle token approvals and balance checks
-    if(routeData.success && signer) {
-      if (swapData.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
-        const tokenContract = new ethers.Contract(swapData.tokenIn, ERC20ABI, signer);
-        const decimals = await tokenContract.decimals();
-        const balance = await tokenContract.balanceOf(signerAddress);
-        const amountInBigInt = BigInt(amountIn);
+      setIsOpen(true);
 
-        if (balance < amountInBigInt) {
-          throw new Error(`Insufficient balance. Required: ${ethers.utils.formatUnits(amountInBigInt, decimals)} ${await tokenContract.symbol()}, Available: ${ethers.utils.formatUnits(balance, decimals)}`);
-        }
+      // Check balance and approval
+      if (routeData.success && signer) {
+        if (swapData.tokenIn.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+          // console.log('Checking ETH balance...');
+          const ethBalance = await getETHBalance(signerAddress || "");
+          const amountInBigInt = BigInt(amountIn);
 
-        // Handle token approval if needed
-        await getTokenApproval(
-          swapData.tokenIn,
-          routerContract,
-          amountIn
-        );
-      } else {
-        const ethBalance = await getETHBalance(signerAddress || "");
-        const amountInBigInt = BigInt(amountIn);
+          // console.log('Swap ETH details:', {
+          //   ethBalance,
+          //   required: ethers.utils.formatUnits(amountInBigInt, 18),
+          //   signerAddress
+          // });
 
-        if (Number(ethBalance) < Number(ethers.utils.formatUnits(amountInBigInt, 18))) {
-          throw new Error(`Insufficient balance. Required: ${ethers.utils.formatUnits(amountInBigInt, 18)} ETH, Available: ${ethBalance}`);
+          if (Number(ethBalance) < Number(ethers.utils.formatUnits(amountInBigInt, 18))) {
+            throw new Error(`Insufficient balance. Need: ${ethers.utils.formatUnits(amountInBigInt, 18)} ETH, Have: ${ethBalance}`);
+          }
         }
       }
-    }
 
-    // Execute swap transaction
-    setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.SWAPPING)
-    setIsOpen(true)
+      // Prepare swap transaction
+      setSwapAndDepositStatus(SWAP_AND_DEPOSIT_STATUS.SWAPPING);
 
-    const tx: any = {
-      data: encodedSwapData,
-      from: signerAddress,
-      to: routerContract,
-    };
+      const tx: any = {
+        data: encodedSwapData,
+        from: signerAddress,
+        to: routerContract,
+      };
 
-    if (swapData.tokenIn.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
-      tx.value = BigInt(amountIn);
-    }
+      if (swapData.tokenIn.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+        tx.value = BigInt(amountIn);
+        // console.log('Swap ETH transaction details:', {
+        //   value: ethers.utils.formatEther(tx.value.toString()),
+        //   to: routerContract,
+        //   from: signerAddress
+        // });
+      }
 
-    const executeSwapTx = await signer?.sendTransaction(tx);
-    const executeSwapTxReceipt = await executeSwapTx?.wait();
+      // Estimate gas and add buffer
+      // console.log('Estimating gas...');
+      try {
+        const gasEstimate = await signer?.estimateGas(tx);
+        // console.log('Gas estimate:', gasEstimate?.toString());
+        tx.gasLimit = gasEstimate?.mul(150).div(100); // Add 50% buffer
+      } catch (gasError: any) {
+        console.error('Gas estimation error:', gasError);
+        throw new Error('Cannot estimate gas. Please reduce the swap amount or increase slippage.');
+      }
 
-    if (!executeSwapTxReceipt?.status) {
-      throw new Error('Swap transaction failed');
+      // console.log('Executing swap transaction with parameters:', tx);
+      const executeSwapTx = await signer?.sendTransaction(tx);
+      // console.log('Swap transaction sent:', executeSwapTx?.hash);
+
+      const executeSwapTxReceipt = await executeSwapTx?.wait();
+      // console.log('Swap transaction result:', executeSwapTxReceipt);
+
+      if (!executeSwapTxReceipt?.status) {
+        throw new Error('Swap transaction failed');
+      }
+    } catch (error: any) {
+      console.error('Swap execution error:', error);
+      throw error;
     }
   };
 
@@ -292,27 +348,20 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       try {
         if (status === 1) {
           if (isPrincipalSelected && principalBalance > 0) {
-            // approve token
-            // console.log("Approve token")
             const decimal = await tokenAddressInstance.decimals()
             const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toFixed(decimal), decimal);
-            // console.log(requestBalance)
 
             const _currentCapacity = await productInstance.currentCapacity()
-            // console.log(_currentCapacity)
             if (withdrawableBalance + Number(ethers.utils.formatUnits(_currentCapacity, decimal)) > Number(product.maxCapacity)) {
               return toast.error("Your withdraw results in excess of max capacity.")
             }
             const currentAllowance = await tokenAddressInstance.allowance(address, productAddress)
-            // console.log(currentAllowance)
             if (currentAllowance.lt(requestBalance)) {
               const tx = await tokenAddressInstance.approve(productAddress, requestBalance)
               await setWithdrawStatus(WITHDRAW_STATUS.APPROVING)
               await tx.wait()
             }
-            // withdraw
             await setWithdrawStatus(WITHDRAW_STATUS.WITHDRAW)
-            // console.log("withdrawPrincipal")
             const withdrawTx = await productInstance.withdrawPrincipal()
             await withdrawTx.wait()
           }
@@ -335,18 +384,21 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             await tx2.wait()
           }
           await setWithdrawStatus(WITHDRAW_STATUS.DONE)
-        } else {
-          await setWithdrawStatus(WITHDRAW_STATUS.NONE)
         }
       } catch (e) {
-        await setWithdrawStatus(WITHDRAW_STATUS.NONE)
+        // Reset all states if user rejected the transaction
+        if (getTxErrorMessage(e) === "User denied transaction" || getTxErrorMessage(e) === "User rejected the request.") {
+          setWithdrawStatus(WITHDRAW_STATUS.NONE)
+          setIsCouponSelected(false)
+          setIsOptionSelected(false)
+          setIsPrincipalSelected(false)
+          setIsOpenWithdraw(false)
+        } else {
+          // For other errors, just reset the withdraw status
+          setWithdrawStatus(WITHDRAW_STATUS.NONE)
+          toast.error(getTxErrorMessage(e))
+        }
         console.log(e)
-      } finally {
-        // console.log("Finally!")
-        // Reset selection states after withdrawal
-        setIsCouponSelected(false);
-        setIsOptionSelected(false);
-        setIsPrincipalSelected(false);
       }
     }
   }
@@ -463,8 +515,13 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           setPrincipalBalance(Number(ethers.utils.formatUnits(_principalBalance, _decimals)))
           // wallet balance
           const currencyBalance = await _currencyInstance.balanceOf(address)
-          setMaxLots(ethers.utils.formatUnits(currencyBalance, _decimals))
-          setWalletBalance(Number(ethers.utils.formatUnits(currencyBalance, _decimals)))
+          const _maxLots = ethers.utils.formatUnits(currencyBalance, _decimals)
+          setMaxLots(_maxLots)
+          if (Number(_maxLots) >= 1) {
+            setLots("1")
+          } else {
+            setLots("0")
+          }
 
         } catch (e) {
           console.error(e)
@@ -521,8 +578,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           // Get the signer's address
           const signerAddress = await signer?.getAddress();
 
-          console.log("routeData")
-          console.log(routeData.data.routeSummary.amountOutUsd)
+          // console.log("routeData")
+          // console.log(routeData.data.routeSummary.amountOutUsd)
 
           setAmountOutUsd(routeData.data.routeSummary.amountOutUsd)
           // 2. Build route
@@ -531,7 +588,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             routeSummary: routeData.data.routeSummary,
             sender: signerAddress,
             recipient: signerAddress,
-            slippageTolerance: 10 //0.1%
+            slippageTolerance: 15 // 0.15%
           };
           const buildResponse = await axios.post(buildUrl, {
             ...buildParams
@@ -611,7 +668,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
       const swapData = routeData.data;
       // const swapData = response.data;
         try {
-            console.log({ swapData });
+            // console.log({ swapData });
             if (!swapData) {
               return {
                 success: false,
@@ -628,14 +685,14 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             const signerAddress = await signer?.getAddress();
 
 
-            console.log({ tokenIn: swapData.tokenIn });
+            // console.log({ tokenIn: swapData.tokenIn });
 
             // Add balance check
 
-            console.log({
-              tokenIn: swapData.tokenIn,
-              tokenInLower: swapData.tokenIn.toLowerCase(),
-            });
+            // console.log({
+            //   tokenIn: swapData.tokenIn,
+            //   tokenInLower: swapData.tokenIn.toLowerCase(),
+            // });
 
             if (swapData.tokenIn.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
               const tokenContract = new ethers.Contract(swapData.tokenIn, ERC20ABI, signer);
@@ -643,13 +700,13 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               const balance = await tokenContract.balanceOf(signerAddress);
               const amountInBigInt = BigInt(amountIn);
 
-              console.log({
-                balance1: ethers.utils.formatUnits(balance, decimals),
-                required: ethers.utils.formatUnits(amountInBigInt, decimals),
-                address: signerAddress
-              });
+              // console.log({
+              //   balance1: ethers.utils.formatUnits(balance, decimals),
+              //   required: ethers.utils.formatUnits(amountInBigInt, decimals),
+              //   address: signerAddress
+              // });
 
-              console.log("WETH Balance:", ethers.utils.formatUnits(balance, 18));
+              // console.log("WETH Balance:", ethers.utils.formatUnits(balance, 18));
 
               if (balance < amountInBigInt) {
                 return {
@@ -667,13 +724,13 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             } else {
               const ethBalance = await getETHBalance(signerAddress);
               const amountInBigInt = BigInt(amountIn);
-              console.log("ETH Balance:", ethBalance);
+              // console.log("ETH Balance:", ethBalance);
 
-              console.log({
-                balance2: ethBalance,
-                required: ethers.utils.formatUnits(amountInBigInt, 18),
-                address: signerAddress
-              });
+              // console.log({
+              //   balance2: ethBalance,
+              //   required: ethers.utils.formatUnits(amountInBigInt, 18),
+              //   address: signerAddress
+              // });
 
               if (Number(ethBalance) < Number(ethers.utils.formatUnits(amountInBigInt, 18))) {
                 return {
@@ -698,8 +755,8 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             }
 
             // Execute the swap transaction
-            console.log(`Executing the swap tx on-chain: `);
-            console.log({ txBody: tx });
+            // console.log(`Executing the swap tx on-chain: `);
+            // console.log({ txBody: tx });
 
             const executeSwapTx = await signer.sendTransaction({
               ...tx,
@@ -884,7 +941,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 </div>
               </div>
 
-              <div className={`relative flex items-center mt-2 h-[50px] overflow-hidden bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded ${Number(lots) > Number(maxLots) ? 'border-red-500' : ''}`}>
+              <div className={`relative flex items-center mt-2 h-[50px] overflow-hidden bg-[#FBFBFB] border-[1px] border-[#E6E6E6] rounded ${(Number(lots) > Number(maxLots) && isConnected) ? 'border-red-500' : ''}`}>
                 <div className={"flex-1"}>
                   <input
                     className={
@@ -907,7 +964,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 <div className={"flex items-center justify-end"}>
                   {selectedAddressCurrency !== "" && (
                     <select
-                      className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none appearance-none"}
+                      className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none"}
                       onChange={(e) => {
                         setSelectedAddressCurrency(e.target.value);
                         setLoadingSelectedAddressCurrency(true);

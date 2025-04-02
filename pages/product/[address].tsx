@@ -436,9 +436,9 @@ const ProductDetail = () => {
                   <TitleH3>Risk</TitleH3>
                   <p>
                     <strong>{product.currencyName}</strong><br/>
-                    {product.currencyName === "USDe" ? (
+                    {product.currencyName === "eUSDe" ? (
                       <>
-                        {product.currencyName}, the supported asset for principal deposits and withdrawals, is a synthetic dollar issued by Ethena and is backed by delta-hedging derivatives positions in perpetual and futures markets. Users accept the full risk associated with its stability and performance.
+                        {product.currencyName}, the supported asset for principal deposits and withdrawals, is the receipt token for USDe pre-deposits into Ethereal. eUSDe is redeemable for USDe (1:1) at any time. Users accept the full risk associated with its stability and performance. 
                       </>
                     ) : product.currencyName === "lvlUSD" ? (
                       <>
