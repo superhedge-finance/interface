@@ -873,16 +873,18 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
             </div>
 
             {/* Get currency link */}
-            <a
-              href={product.currencyName === "lvlUSD"
-                ? "https://app.level.money/buy"
-                : "https://deposit.ethereal.trade/points"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              Get {product.currencyName} →
-            </a>
+            {product.currencyName !== 'eUSDe' && (
+              <a
+                href={product.currencyName === "lvlUSD"
+                  ? "https://app.level.money/buy"
+                  : "https://deposit.ethereal.trade/points"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Get {product.currencyName} →
+              </a>
+            )}
           </div>
         ) : (
           <div className={"flex items-center justify-end"}>
@@ -896,6 +898,35 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
           </div>
         )}
 
+        {address && tab === 0 && (
+          <>
+            {product.currencyName === 'eUSDe' && (
+              <div className="flex justify-end gap-2 w-full mt-2">
+                <div>
+                  <a
+                    href={"https://app.ethena.fi/swap"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    Get USDe →
+                  </a>
+                </div>
+                <div className="pt-0.5 mx-1 text-sm flex items-center text-gray-500 select-none">or</div>
+                <div>
+                  <a
+                    href={"https://deposit.ethereal.trade/points"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    Get eUSDe →
+                  </a>
+                </div>
+              </div>
+            )}
+          </>
+        )}
         {address && tab === 0 && (
           <div className={"flex flex-col justify-between w-full"}>
             <div className={"bg-[#EBEBEB] p-5 rounded-[6px] flex flex-col items-center mt-[17px]"}>
@@ -964,12 +995,13 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 <div className={"flex items-center justify-end"}>
                   {selectedAddressCurrency !== "" && (
                     <select
-                      className={"w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none"}
+                      className={`w-full py-3 px-4 h-[50px] bg-[#FBFBFB] border-none focus:outline-none ${product.currencyName === 'eUSDe' ? 'appearance-none' : ''}`}
                       onChange={(e) => {
                         setSelectedAddressCurrency(e.target.value);
                         setLoadingSelectedAddressCurrency(true);
                       }}
                       defaultValue={selectedAddressCurrency}
+                      disabled={product.currencyName === 'eUSDe'}
                     >
                       {tokensForCurrentChain.map((token) => (
                         <option key={token.value} value={token.value}>
