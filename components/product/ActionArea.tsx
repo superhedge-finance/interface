@@ -912,7 +912,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                     Get USDe →
                   </a>
                 </div>
-                <div className="pt-0.5 mx-1 text-sm flex items-center text-gray-500 select-none">or</div>
+                <div className="pt-0.5 mx-1 text-sm flex items-center text-gray-500 select-none">then</div>
                 <div>
                   <a
                     href={"https://deposit.ethereal.trade/points"}
