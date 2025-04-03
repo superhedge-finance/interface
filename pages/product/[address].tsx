@@ -458,7 +458,7 @@ const ProductDetail = () => {
 
                   <p>
                     <strong>Counterparty</strong><br/>
-                    Execution of option strategies through CEXs and/or market makers introduces risks, including liquidation due to insufficient collateral or adverse market conditions, as well as risks of insolvency, default, or exchange failure.
+                    Execution of option strategies through CEXs and/or market makers introduces risks, including insolvency, default, or exchange failure. Liquidation risk does not apply as the option strategies maintain a net long exposure.
                   </p>
 
                   <p>
