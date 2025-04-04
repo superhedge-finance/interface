@@ -1003,11 +1003,19 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                       defaultValue={selectedAddressCurrency}
                       disabled={product.currencyName === 'eUSDe'}
                     >
-                      {tokensForCurrentChain.map((token) => (
-                        <option key={token.value} value={token.value}>
-                          {token.label}
-                        </option>
-                      ))}
+                      {product.currencyName === 'eUSDe' && (
+                        <option value="eUSDe">eUSDe</option>
+                      )}
+                      {product.currencyName !== 'eUSDe' && (
+                        <>
+                          {tokensForCurrentChain.map((token) => (
+                            <option key={token.value} value={token.value}>
+                              {token.label}
+                            </option>
+                          ))}
+                        </>
+                      )}
+
                     </select>
                   )}
                   {/* <span className={"absolute right-4 text-[#828A93]"}></span> */}
