@@ -33,7 +33,7 @@ module.exports = {
         active: '#68AC6F',
         matured: '#E89D45',
         callSpread: '#95B221',
-        putSpread: '#7991DA',
+        putSpread: '#EB6565',
         butterFly: '#8B78CB',
         greenHover: '#11CB79',
         principalProtection: '#7991DA'

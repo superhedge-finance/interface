@@ -8,7 +8,7 @@ export const ProductStatus = [
 
 export const ProductSpreads = [
   { label: "Call-spread", className: "bg-callSpread" },
-  { label: "Put-spread", className: "bg-putSpread" },
+  { label: "Put", className: "bg-putSpread" },
   { label: "Butterfly", className: "bg-butterFly" }
 ];
 
