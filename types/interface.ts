@@ -34,6 +34,8 @@ export interface IProduct {
   underlyingName: string;
   couponTooltip: string;
   isExpired: boolean;
+  strategyContent?: string;
+  riskContent?: string;
 }
 
 export type ProductDetailType = IProduct & {

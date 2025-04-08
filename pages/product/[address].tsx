@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { ethers } from "ethers";
 import { useNetwork,useAccount } from "wagmi";
+import HTMLReactParser from "html-react-parser";
 import { ActionArea } from "../../components/product/ActionArea";
 import { ParaLight16, SkeletonCard, SubtitleRegular20, TitleH2, TitleH3 } from "../../components/basic";
 import { ReturnsChart } from "../../components/product/ReturnsChart";
@@ -176,12 +177,9 @@ const ProductDetail = () => {
   };
 
   const handleSubmit = async() => {
-    // console.log(inputValue)
-    // console.log(address)
     if(inputValue && address)
     {
       const results = await axios.post(`/refcodes/signUp?refcode=${inputValue}&address=${address}`);
-      // console.log(results.data)
       if (results.data)
       {
         setIsPopupVisible(false);
@@ -328,28 +326,28 @@ const ProductDetail = () => {
                 </div>
 
                 <div className={"mt-[80px] flex flex-col space-y-5"}>
-                  <TitleH3>Strategy</TitleH3>
-                  {/* <ParaLight16>{product.vaultStrategy}</ParaLight16> */}
-                  {/* <ParaLight16>
-                    This N-Vault deploys {product.currencyName} deposits into{" "}
-                    <a href={product.vaultStrategy} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
-                      PT {product.currencyName} Market
-                    </a>{" "}
-                    and integrates a long Call-Spread options strategy with {product.underlyingName}/USD underlying. Fixed-rate coupons are distributed to users according to the predefined schedule. At maturity, only the principal deposits auto-roll into pre-deposits for the next epoch. 100% Principal-Protection of {product.currencyName} deposits is guaranteed only at maturity.
-                  </ParaLight16> */}
-                  <p>
-                    This N-Vault deploys {product.currencyName} deposits into Pendle&apos;s {" "}
-                    <a href={product.vaultStrategy} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
-                      PT {product.currencyName} Market
-                    </a>{" "}
-                    and integrates a long &quot;out-of-the-money&quot; {ProductSpreads[categoryIndex].label.toLowerCase()} options strategy based on {product.underlyingName}/USD underlying.
-                  </p>
-                  <p>
-                  Designed for users with a bullish view on {product.underlyingName}, the vault distributes fixed-rate coupons on a predefined schedule. At maturity, only the principal deposits are automatically rolled over into pre-deposits for the next epoch. 100% Principal-Protection of {product.currencyName} deposits is ensured only at maturity. Early withdrawals are permitted, subject to the minimum block size.
-                  </p>
+                  <div className="flex justify-between items-center">
+                    <TitleH3>Strategy</TitleH3>
+                  </div>
+                  {product.strategyContent ? (
+                    <div>{HTMLReactParser(product?.strategyContent ?? "")}</div>
+                  ) : (
+                    <>
+                      <p>
+                        This N-Vault deploys {product.currencyName} deposits into Pendle&apos;s {" "}
+                        <a href={product.vaultStrategy} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
+                          PT {product.currencyName} Market
+                        </a>{" "}
+                        and integrates a long &quot;out-of-the-money&quot; {ProductSpreads[categoryIndex].label.toLowerCase()} options strategy based on {product.underlyingName}/USD underlying.
+                      </p>
+                      <p>
+                      Designed for users with a bullish view on {product.underlyingName}, the vault distributes fixed-rate coupons on a predefined schedule. At maturity, only the principal deposits are automatically rolled over into pre-deposits for the next epoch. 100% Principal-Protection of {product.currencyName} deposits is ensured only at maturity. Early withdrawals are permitted, subject to the minimum block size.
+                      </p>
+                    </>
+                  )}
                 </div>
 
-                <div className={"flex flex-col mt-[80px]"}>
+                <div className={"mt-[80px]"}>
                   <TitleH3>Parameters</TitleH3>
                   <div
                     className={"md:flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 space-y-3 md:space-y-0 mt-5"}
@@ -433,48 +431,56 @@ const ProductDetail = () => {
                 </div> */}
 
                 <div className={"mt-[80px] flex flex-col space-y-5"}>
-                  <TitleH3>Risk</TitleH3>
-                  <p>
-                    <strong>{product.currencyName}</strong><br/>
-                    {product.currencyName === "eUSDe" ? (
-                      <>
-                        {product.currencyName}, the supported asset for principal deposits and withdrawals, is the receipt token for USDe pre-deposits into Ethereal. eUSDe is redeemable for USDe (1:1) at any time. Users accept the full risk associated with its stability and performance. 
-                      </>
-                    ) : product.currencyName === "lvlUSD" ? (
-                      <>
-                        {product.currencyName}, the supported asset for principal deposits and withdrawals, is a stablecoin fully backed by USDC and USDT. Users accept the full risk associated with its stability and performance.
-                      </>
-                    ) : (
-                      <>
-                        {product.currencyName}, the supported asset for principal deposits and withdrawals. Users accept the full risk associated with its stability and performance.
-                      </>
-                    )} DYOR <a href={riskLinks[0]} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">here</a>.
-                  </p>
+                  <div className="flex justify-between items-center">
+                    <TitleH3>Risk</TitleH3>
+                  </div>
+                  {product.riskContent ? (
+                    <div>{HTMLReactParser(product?.riskContent ?? "")}</div>
+                  ) : (
+                    <>
+                      <p>
+                        <strong>{product.currencyName}</strong><br/>
+                        {product.currencyName === "eUSDe" ? (
+                          <>
+                            {product.currencyName}, the supported asset for principal deposits and withdrawals, is the receipt token for USDe pre-deposits into Ethereal. eUSDe is redeemable for USDe (1:1) at any time. Users accept the full risk associated with its stability and performance.
+                          </>
+                        ) : product.currencyName === "lvlUSD" ? (
+                          <>
+                            {product.currencyName}, the supported asset for principal deposits and withdrawals, is a stablecoin fully backed by USDC and USDT. Users accept the full risk associated with its stability and performance.
+                          </>
+                        ) : (
+                          <>
+                            {product.currencyName}, the supported asset for principal deposits and withdrawals. Users accept the full risk associated with its stability and performance.
+                          </>
+                        )} DYOR <a href={riskLinks[0]} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">here</a>.
+                      </p>
 
-                  <p>
-                    <strong>Third-party protocols</strong><br/>
-                    Integration with protocols such as Pendle Finance (Principal-Token) for yield generation and structuring of 100% Principal-Protection of deposits introduces risks if these protocols encounter issues. Please DYOR <a href={riskLinks[1]} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">here</a>.
-                  </p>
+                      <p>
+                        <strong>Third-party protocols</strong><br/>
+                        Integration with protocols such as Pendle Finance (Principal-Token) for yield generation and structuring of 100% Principal-Protection of deposits introduces risks if these protocols encounter issues. Please DYOR <a href={riskLinks[1]} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">here</a>.
+                      </p>
 
-                  <p>
-                    <strong>Counterparty</strong><br/>
-                    Execution of option strategies through CEXs and/or market makers introduces risks, including insolvency, default, or exchange failure. Liquidation risk does not apply as the option strategies maintain a net long exposure.
-                  </p>
+                      <p>
+                        <strong>Counterparty</strong><br/>
+                        Execution of option strategies through CEXs and/or market makers introduces risks, including insolvency, default, or exchange failure. Liquidation risk does not apply as the option strategies maintain a net long exposure.
+                      </p>
 
-                  <p>
-                    <strong>Market</strong><br/>
-                    Fluctuations in the market price of the options strategy and Pendle Finance&apos;s Principal-Token can impact returns. User accepts that in the indicative phase, parameters and est. APY may be updated ad hoc. Users accepts that early withdrawals may result in receiving less than their initial deposits.
-                  </p>
+                      <p>
+                        <strong>Market</strong><br/>
+                        Fluctuations in the market price of the options strategy and Pendle Finance&apos;s Principal-Token can impact returns. User accepts that in the indicative phase, parameters and est. APY may be updated ad hoc. Users accepts that early withdrawals may result in receiving less than their initial deposits.
+                      </p>
 
-                  <p>
-                    <strong>On-Chain Security</strong><br/>
-                    Vulnerabilities in smart contracts or on-chain operations could be exploited, leading to potential loss of funds. <a href={riskLinks[2]} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">SuperHedge is audited by Halborn</a>
-                  </p>
+                      <p>
+                        <strong>On-Chain Security</strong><br/>
+                        Vulnerabilities in smart contracts or on-chain operations could be exploited, leading to potential loss of funds. <a href={riskLinks[2]} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">SuperHedge is audited by Halborn</a>
+                      </p>
 
-                  <p>
-                    <strong>Network</strong><br/>
-                    Users accept the risk of technical issues on the Ethereum blockchain, including forks or node problems, and SuperHedge is not responsible for any resulting losses.
-                  </p>
+                      <p>
+                        <strong>Network</strong><br/>
+                        Users accept the risk of technical issues on the Ethereum blockchain, including forks or node problems, and SuperHedge is not responsible for any resulting losses.
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {/* <div className={"mt-[80px] flex flex-col space-y-5"}>
