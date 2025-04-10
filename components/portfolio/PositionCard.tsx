@@ -61,7 +61,7 @@ const provider = useMemo(() => {
   return new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_MORALIS_KEY_ETH);
 }, [chainId]);
 
-  const [withdrawBlockSize, setwithdrawBlockSize] = useState<number>(0);
+  const [withdrawBlockSizeValue, setwithdrawBlockSize] = useState<number>(0);
   const [totalBlocks, setTotalBlocks] = useState<number>(0); // State for total blocks
   const [blocksToWithdraw, setBlocksToWithdraw] = useState<number>(0); // State for blocks to withdraw
   const [optionUnwindPrice, setOptionUnwindPrice] = useState<number | null>(null); // State for option unwind price
@@ -80,7 +80,7 @@ const provider = useMemo(() => {
     setLoadingUnwind(true)
     try {
       const results = await axios.get(`products/get-pt-and-position?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}`);
-      
+      // console.log(results.data)
       const ptUnwindPrice = Number(results.data.amountToken)
       setPtUnwindPrice(Number((ptUnwindPrice / (10 ** DECIMAL[chainId])).toFixed(2)));
 
@@ -360,17 +360,17 @@ const provider = useMemo(() => {
                 <>
                     {ptUnwindPrice !== null && (
                         <div className="mt-4">
-                            <p className="text-lg font-semibold">PT Price: {ptUnwindPrice.toLocaleString()} {position.currencyName} ({(ptUnwindPrice/100).toFixed(2)}%)</p>
+                            <p className="text-lg font-semibold">PT Price: {ptUnwindPrice.toLocaleString()} {position.currencyName} ({((ptUnwindPrice/withdrawBlockSizeValue)*100).toFixed(2)}%)</p>
                         </div>
                     )}
                     {optionUnwindPrice !== null && (
                         <div className="mt-4">
-                            <p className="text-lg font-semibold">Option Price: {optionUnwindPrice.toLocaleString()} {position.currencyName} ({(optionUnwindPrice/100).toFixed(2)}%)</p>
+                            <p className="text-lg font-semibold">Option Price: {optionUnwindPrice.toLocaleString()} {position.currencyName} ({((optionUnwindPrice/withdrawBlockSizeValue)*100).toFixed(2)}%)</p>
                         </div>
                     )}
                     {TotalPtOption !== null && (
                         <div className="mt-4">
-                            <p className="text-lg font-semibold">Total: {TotalPtOption.toLocaleString()} {position.currencyName} ({(TotalPtOption/100).toFixed(2)}%)</p>
+                            <p className="text-lg font-semibold">Total: {TotalPtOption.toLocaleString()} {position.currencyName} ({((TotalPtOption/withdrawBlockSizeValue)*100).toFixed(2)}%)</p>
                         </div>
                     )}
                     {/* Countdown Display */}
