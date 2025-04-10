@@ -121,6 +121,20 @@ const ProductDetail = () => {
     return [];
   }, [product]);
 
+  const formattedUpdateDate = useMemo(() => {
+    if (!product?.updatedAt) return "N/A";
+    
+    const date = new Date(product.updatedAt);
+    
+    // Format: "9 April, 01:15 UTC"
+    const day = date.getUTCDate();
+    const month = date.toLocaleString('en-GB', { month: 'long', timeZone: 'UTC' });
+    const hours = date.getUTCHours().toString().padStart(2, '0');
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    
+    return `${day} ${month}, ${hours}:${minutes} UTC`;
+  }, [product?.updatedAt]);
+
   useEffect(() => {
     setIsLoading(true);
 
@@ -362,14 +376,6 @@ const ProductDetail = () => {
                         />
                       }
                     />
-                    {/* <RecapCardMobile
-                      label="Time to Issuance"
-                      value={new Date(product.issuanceCycle.issuanceDate * 1000).toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    /> */}
                     <RecapCardMobile label={"Maturity Date"} value={investment_duration} />
                     <RecapCard
                       label="Coupon"
@@ -377,9 +383,8 @@ const ProductDetail = () => {
                       tooltip={product.couponTooltip}
                       className="whitespace-pre-wrap !w-[160px]"
                     />
-
                   </div>
-                  {/* <div className={"grid md:grid-cols-4 grid-cols-2 gap-2 mt-2"}> */}
+                  
                   <div
                     className={"md:flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 space-y-3 md:space-y-0 mt-5"}
                   >
@@ -395,15 +400,12 @@ const ProductDetail = () => {
                       label={"Strike 2 price"}
                       value={formatStrikePrice(product.issuanceCycle.strikePrice2)}
                     />
-                    {/* <RecapCard label={"Strike 3 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice3)} />
-                    <RecapCard label={"Strike 4 price"} value={formatStrikePrice(product.issuanceCycle.strikePrice4)} /> */}
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 mt-3">
+                    Updated: {formattedUpdateDate}
                   </div>
                 </div>
-
-                {/* <div className={"mt-[80px] flex flex-col space-y-5"}>
-                  <TitleH3>Block Size: {(product.issuanceCycle.optionMinOrderSize * product.issuanceCycle.underlyingSpotRef)/10} {product.currencyName}</TitleH3>
-
-                </div> */}
 
                 <div className={"mt-[80px]"}>
                   <TitleH3>Payoff</TitleH3>

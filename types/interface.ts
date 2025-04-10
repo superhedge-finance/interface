@@ -36,6 +36,7 @@ export interface IProduct {
   isExpired: boolean;
   strategyContent?: string;
   riskContent?: string;
+  updatedAt: string;
 }
 
 export type ProductDetailType = IProduct & {
