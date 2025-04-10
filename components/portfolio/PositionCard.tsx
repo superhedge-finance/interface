@@ -193,7 +193,7 @@ const provider = useMemo(() => {
             const optionMinOrderSize = (position.issuanceCycle.optionMinOrderSize) / 10
             const withdrawBlockSize = underlyingSpotRef * optionMinOrderSize
             setwithdrawBlockSize(withdrawBlockSize)
-            setTotalBlocks(Math.round(tokenBalance/withdrawBlockSize))
+            setTotalBlocks(Math.floor(tokenBalance/withdrawBlockSize))
             setLoadingBlock(false)
             const _currency = await productInstance.currency()
             const _currencyInstance = new ethers.Contract(_currency, ERC20ABI, signer)
