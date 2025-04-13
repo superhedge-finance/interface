@@ -80,7 +80,7 @@ const provider = useMemo(() => {
     setLoadingUnwind(true)
     try {
       const results = await axios.get(`products/get-pt-and-position?chainId=${chainId}&walletAddress=${address}&productAddress=${position.address}&noOfBlock=${blocksToWithdraw}`);
-      // console.log(results.data)
+      
       const ptUnwindPrice = Number(results.data.amountToken)
       setPtUnwindPrice(Number((ptUnwindPrice / (10 ** DECIMAL[chainId])).toFixed(2)));
 
