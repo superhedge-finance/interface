@@ -87,14 +87,10 @@ const Admin = () => {
 
     // Handle confirmation of unwind margin change
     const handleConfirm = async () => {
-        if (!signer || !unwindMargin || !adminProductAddress) return;
+        if (!unwindMargin || !adminProductAddress) return;
         setIsFetching(true);
         try {
-            const message = ethers.utils.solidityKeccak256(["uint256"], [unwindMargin]);
-            const signature = await signer.signMessage(ethers.utils.arrayify(message));
-            setSignature(signature);
-
-            await axios.post(`/products/change-unwind-margin?chainId=${chainId}&productAddress=${adminProductAddress}&unwindMarginValue=${unwindMargin}&signatureAdmin=${signature}`);
+            await axios.post(`/products/change-unwind-margin?chainId=${chainId}&productAddress=${adminProductAddress}&unwindMarginValue=${unwindMargin}`);
             setIsOpen(true);
         } catch (error) {
             console.error("Error during confirmation:", error);
