@@ -9,7 +9,7 @@ const Admin = () => {
     const { data: signer } = useSigner();
     const [isOpen, setIsOpen] = useState(false);
     const [isFetching, setIsFetching] = useState(false);
-    const [productAddress, setProductAddress] = useState<string>("");
+    const [adminProductAddress, setAdminProductAddress] = useState<string>("");
     const [unwindMargin, setUnwindMargin] = useState<string>("");
     const [currentUnwindMargin, setCurrentUnwindMargin] = useState<string>("");
     const [signature, setSignature] = useState("");
@@ -19,14 +19,21 @@ const Admin = () => {
     const chainId = chain ? chain.id : SUPPORT_CHAIN_IDS.ETH;
     const [holderList, setHolderList] = useState<string[]>([]);
     const [balanceList, setBalanceList] = useState<number[]>([]);
-
+    const [withdrawalProductAddress, setWithdrawalProductAddress] = useState<string>("");
+    const [earlyWithdrawalProductAddress, setEarlyWithdrawalProductAddress] = useState<string>("");
+    const [couponProductAddress, setCouponProductAddress] = useState<string>("");
+    
+    // Add states for checking expired status
+    const [isChecking, setIsChecking] = useState(false);
+    const [isEarlyWithdrawalChecked, setIsEarlyWithdrawalChecked] = useState(false);
+    const [earlyWithdrawalErrorMessage, setEarlyWithdrawalErrorMessage] = useState("");
     const closeModal = () => setIsOpen(false);
 
     // Fetch the current unwind margin based on the product address
     const fetchCurrentUnwindMargin = async () => {
-        if (!productAddress) return;
+        if (!adminProductAddress) return;
         try {
-            const response = await axios.post(`/products/get-unwind-margin?chainId=${chainId}&productAddress=${productAddress}`);
+            const response = await axios.post(`/products/get-unwind-margin?chainId=${chainId}&productAddress=${adminProductAddress}`);
             const { unwindMargin } = response.data;
             setCurrentUnwindMargin(unwindMargin);
             setUnwindMargin(unwindMargin);
@@ -35,23 +42,36 @@ const Admin = () => {
         }
     };
 
-    // Fetch expired status based on the product address
-    const fetchExpired = async () => {
-        if (!productAddress) return;
+    // New function to check expired status with validation
+    const checkExpiredStatus = async () => {
+        if (!earlyWithdrawalProductAddress) return;
+        
+        setIsChecking(true);
+        setEarlyWithdrawalErrorMessage("");
         try {
-            const response = await axios.post(`/products/get-product-expired?chainId=${chainId}&productAddress=${productAddress}`);
-            setExpired(response.data.expiredFlag);
+            const response = await axios.get(`/products/check-expired-early-withdraw?chainId=${chainId}&productAddress=${earlyWithdrawalProductAddress}`);
+            // If successful response, mark as checked and set initial expired value
+            console.log('response.data', response.data);
+            if (response.data === 'Product not found or early withdraw check failed') {
+                setEarlyWithdrawalErrorMessage("Product not found or early withdraw check failed");
+                setIsEarlyWithdrawalChecked(false);
+            } else {
+                setExpired(response.data.expiredFlag);
+                setIsEarlyWithdrawalChecked(true);
+            }
         } catch (error) {
-            console.error("Error fetching expired flag:", error);
+            console.error("Error checking early withdrawal status:", error);
+            setEarlyWithdrawalErrorMessage("Failed to verify product address. Please check the address and try again.");
+            setIsEarlyWithdrawalChecked(false);
+        } finally {
+            setIsChecking(false);
         }
     };
 
     const fetchCoupon = async () => {
-        if (!productAddress) return;
+        if (!couponProductAddress) return;
         try {
-            const response = await axios.post(`/products/get-token-holder-list-final?chainId=${chainId}&productAddress=${productAddress}`);
-            // console.log("fetchCoupon");
-            // console.log(response.data);
+            const response = await axios.post(`/products/get-token-holder-list-final?chainId=${chainId}&productAddress=${couponProductAddress}`);
             setHolderList(response.data.ownerAddresses);
             setBalanceList(response.data.balance || []);
         } catch (error) {
@@ -62,20 +82,19 @@ const Admin = () => {
     // Fetch data when product address changes
     useEffect(() => {
         fetchCurrentUnwindMargin();
-        fetchExpired();
         fetchCoupon();
-    }, [productAddress]);
+    }, [adminProductAddress]);
 
     // Handle confirmation of unwind margin change
     const handleConfirm = async () => {
-        if (!signer || !unwindMargin || !productAddress) return;
+        if (!signer || !unwindMargin || !adminProductAddress) return;
         setIsFetching(true);
         try {
             const message = ethers.utils.solidityKeccak256(["uint256"], [unwindMargin]);
             const signature = await signer.signMessage(ethers.utils.arrayify(message));
             setSignature(signature);
 
-            await axios.post(`/products/change-unwind-margin?chainId=${chainId}&productAddress=${productAddress}&unwindMarginValue=${unwindMargin}&signatureAdmin=${signature}`);
+            await axios.post(`/products/change-unwind-margin?chainId=${chainId}&productAddress=${adminProductAddress}&unwindMarginValue=${unwindMargin}&signatureAdmin=${signature}`);
             setIsOpen(true);
         } catch (error) {
             console.error("Error during confirmation:", error);
@@ -85,15 +104,32 @@ const Admin = () => {
     };
 
     // Handle confirmation of expired status change
+    // const handleConfirmExpired = async () => {
+    //     if (!signer || !withdrawalProductAddress) return;
+    //     setIsFetching(true);
+    //     try {
+    //         const message = ethers.utils.solidityKeccak256(["bool"], [expired]);
+    //         const signature = await signer.signMessage(ethers.utils.arrayify(message));
+    //         setSignature(signature);
+
+    //         await axios.post(`/products/change-expired-flag?chainId=${chainId}&productAddress=${withdrawalProductAddress}&expiredFlag=${expired}&signatureAdmin=${signature}`);
+    //         setIsOpen(true);
+    //     } catch (error) {
+    //         console.error("Error during confirmation:", error);
+    //     } finally {
+    //         setIsFetching(false);
+    //     }
+    // };
+
+    
+
     const handleConfirmExpired = async () => {
-        if (!signer || !productAddress) return;
         setIsFetching(true);
         try {
-            const message = ethers.utils.solidityKeccak256(["bool"], [expired]);
-            const signature = await signer.signMessage(ethers.utils.arrayify(message));
-            setSignature(signature);
-
-            await axios.post(`/products/change-expired-flag?chainId=${chainId}&productAddress=${productAddress}&expiredFlag=${expired}&signatureAdmin=${signature}`);
+            console.log('chainId', chainId);
+            console.log('earlyWithdrawalProductAddress', earlyWithdrawalProductAddress);
+            console.log('expired', expired);
+            await axios.post(`/products/change-early-withdraw-flag?chainId=${chainId}&productAddress=${earlyWithdrawalProductAddress}&earlyWithdrawFlag=${expired}`);
             setIsOpen(true);
         } catch (error) {
             console.error("Error during confirmation:", error);
@@ -101,6 +137,12 @@ const Admin = () => {
             setIsFetching(false);
         }
     };
+
+    // Reset withdrawal check when address changes
+    useEffect(() => {
+        setIsEarlyWithdrawalChecked(false);
+        setEarlyWithdrawalErrorMessage("");
+    }, [withdrawalProductAddress]);
 
     // Validate unwind margin input
     const handleUnwindMarginChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -133,8 +175,8 @@ const Admin = () => {
                         {/* Input for Product Address */}
                         <input
                             type="text"
-                            value={productAddress || ""}
-                            onChange={(e) => setProductAddress(e.target.value)}
+                            value={adminProductAddress || ""}
+                            onChange={(e) => setAdminProductAddress(e.target.value)}
                             className="border rounded px-2 py-1 mb-4"
                             placeholder="Enter product address"
                         />
@@ -179,47 +221,66 @@ const Admin = () => {
                         {/* Input for Product Address */}
                         <input
                             type="text"
-                            value={productAddress || ""}
-                            onChange={(e) => setProductAddress(e.target.value)}
+                            value={earlyWithdrawalProductAddress || ""}
+                            onChange={(e) => setEarlyWithdrawalProductAddress(e.target.value)}
                             className="border rounded px-2 py-1 mb-4"
                             placeholder="Enter product address"
                         />
+                        
+                        {/* Check Button below the input */}
+                        <PrimaryButton
+                            label={isChecking ? "Checking..." : "Check"}
+                            onClick={checkExpiredStatus}
+                            disabled={!earlyWithdrawalProductAddress || isChecking}
+                            className="mb-6"
+                        />
 
-                        {/* Display Is Expired as Radio Buttons */}
-                        <div className="mb-4">
-                            <strong>Get unwind price enabled:</strong>
-                            <div>
-                                <label>
-                                    <input
-                                        type="radio"
-                                        value="Yes"
-                                        checked={expired === true}
-                                        onChange={handleExpiredChange}
-                                    />
-                                    Yes
-                                </label>
-                                <label className="ml-4">
-                                    <input
-                                        type="radio"
-                                        value="No"
-                                        checked={expired === false}
-                                        onChange={handleExpiredChange}
-                                    />
-                                    No
-                                </label>
-                            </div>
-                        </div>
-
-                        {/* Error Message */}
-                        {errorMessage && (
-                            <div className="text-red-500 mb-2">{errorMessage}</div>
+                        {/* Error message for withdrawal check */}
+                        {earlyWithdrawalErrorMessage && (
+                            <div className="text-red-500 mb-4">{earlyWithdrawalErrorMessage}</div>
                         )}
 
-                        <PrimaryButton
-                            label={isFetching ? 'Processing...' : 'Confirm'}
-                            className="mt-10 max-w-[220px]"
-                            onClick={handleConfirmExpired}
-                        />
+                        {/* Only show these UI elements after a successful check */}
+                        {isEarlyWithdrawalChecked && (
+                            <>
+                                {/* Display Is Expired as Radio Buttons */}
+                                <div className="mb-4">
+                                    <strong>Check early withdraw enabled:</strong>
+                                    <div>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="Yes"
+                                                checked={expired === true}
+                                                onChange={handleExpiredChange}
+                                            />
+                                            Turned On
+                                        </label>
+                                        <label className="ml-4">
+                                            <input
+                                                type="radio"
+                                                value="No"
+                                                checked={expired === false}
+                                                onChange={handleExpiredChange}
+                                            />
+                                            Turned Off
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Error Message */}
+                                {errorMessage && (
+                                    <div className="text-red-500 mb-2">{errorMessage}</div>
+                                )}
+
+                                <PrimaryButton
+                                    label={isFetching ? 'Processing...' : 'Switch'}
+                                    className="mt-10 max-w-[220px]"
+                                    onClick={handleConfirmExpired}
+                                    disabled={isFetching}
+                                />
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -235,8 +296,8 @@ const Admin = () => {
                         {/* Input for Product Address */}
                         <input
                             type="text"
-                            value={productAddress || ""}
-                            onChange={(e) => setProductAddress(e.target.value)}
+                            value={couponProductAddress || ""}
+                            onChange={(e) => setCouponProductAddress(e.target.value)}
                             className="border rounded px-2 py-1 mb-4"
                             placeholder="Enter product address"
                         />
