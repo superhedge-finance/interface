@@ -17,10 +17,7 @@ interface Transaction {
 }
 
 const TRANSACTION_TYPES = [
-    "[SuperHedge] Coupon Credited",
     "[SuperHedge] Early Withdraw - Option Payout (Airdrop)",
-    "[SuperHedge] Option Payout Credit",
-    "[SuperHedge] Principal Credit",
     "[User] Option Payout Withdraw",
     "[User] Principal Withdraw",    
     "[User] Principal Deposit",
