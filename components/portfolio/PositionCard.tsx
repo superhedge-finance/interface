@@ -115,17 +115,11 @@ const provider = useMemo(() => {
         await tx.wait()
         // console.log(tx)
         
-
-        
-
         const receipt = await provider.getTransactionReceipt(tx.hash);
         if (receipt && receipt.status === 1) {
-          // console.log("Transaction UI was successful");
-          // console.log(optionUnwindPrice * 10 ** (DECIMAL[chainId]))
-          // console.log(ptUnwindPrice * 10 **(DECIMAL[chainId]))
-
           const data = {
             "chainId": chainId,
+            "numberOfBlock": blocksToWithdraw,
             "product": position.address,
             "address": address,
             "txid": tx.hash,

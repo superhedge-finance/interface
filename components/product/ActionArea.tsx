@@ -72,7 +72,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
     try {
       if (currencyInstance && productInstance) {
         const decimal = await currencyInstance.decimals()
-
+        
         const depositAmountStr = ethers.utils.formatUnits(depositAmount, decimal)
         const approveAmountStr = ethers.utils.formatUnits(
           depositAmount.add(depositAmount.mul(5).div(10000)),
@@ -349,15 +349,23 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
         if (status === 1) {
           if (isPrincipalSelected && principalBalance > 0) {
             const decimal = await tokenAddressInstance.decimals()
-            const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toFixed(decimal), decimal);
-
+            // const requestBalance = ethers.utils.parseUnits(withdrawableBalance.toFixed(decimal), decimal);
+            let withdrawPrincipalAmount = ethers.utils.parseUnits(withdrawableBalance.toFixed(decimal), decimal);
+            if(isOptionSelected)
+            {
+              withdrawPrincipalAmount = withdrawPrincipalAmount.add(ethers.utils.parseUnits(optionBalance.toFixed(decimal), decimal))
+            }
+            if(isCouponSelected)
+            {
+              withdrawPrincipalAmount = withdrawPrincipalAmount.add(ethers.utils.parseUnits(couponBalance.toFixed(decimal), decimal))
+            }
             const _currentCapacity = await productInstance.currentCapacity()
             if (withdrawableBalance + Number(ethers.utils.formatUnits(_currentCapacity, decimal)) > Number(product.maxCapacity)) {
               return toast.error("Your withdraw results in excess of max capacity.")
             }
             const currentAllowance = await tokenAddressInstance.allowance(address, productAddress)
-            if (currentAllowance.lt(requestBalance)) {
-              const tx = await tokenAddressInstance.approve(productAddress, requestBalance)
+            if (currentAllowance.lt(withdrawPrincipalAmount)) {
+              const tx = await tokenAddressInstance.approve(productAddress, withdrawPrincipalAmount)
               await setWithdrawStatus(WITHDRAW_STATUS.APPROVING)
               await tx.wait()
             }
