@@ -923,7 +923,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
                 <div className="pt-0.5 mx-1 text-sm flex items-center text-gray-500 select-none">then</div>
                 <div>
                   <a
-                    href={"https://deposit.ethereal.trade/points"}
+                    href={"https://app.ethena.fi/swap"}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
