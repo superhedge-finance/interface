@@ -885,7 +885,7 @@ export const ActionArea = ({ productAddress, product }: { productAddress: string
               <a
                 href={product.currencyName === "lvlUSD"
                   ? "https://app.level.money/buy"
-                  : "https://deposit.ethereal.trade/points"}
+                  : "https://app.ethena.fi/swap"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
