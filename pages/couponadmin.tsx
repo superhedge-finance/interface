@@ -5,6 +5,7 @@ import { PrimaryButton } from "../components/basic";
 import axios from "../service/axios";
 import { SUPPORT_CHAIN_IDS } from "../utils/enums";
 import ProductABI from "../utils/abis/SHProduct.json";
+import { toast } from "react-hot-toast";
 
 const CouponAdmin = () => {
     const { data: signer } = useSigner();
@@ -134,19 +135,28 @@ const CouponAdmin = () => {
                             </div>
                         )}
 
-                        {/* Sign Button for Each Item */}
+                        {/* Copy Buttons for Each Item */}
                         {arrayData.length > 0 && (
                             <div className="mb-4">
                                 {arrayData.map((item, index) => (
                                     <div key={index} className="flex justify-between items-center mb-2">
                                         <span>Item {index + 1}</span>
-                                        <PrimaryButton
-                                            label="Sign"
-                                            onClick={() => {
-                                                console.log(`Address: ${item.address}, Balance: ${item.balance}`);
-                                                handleSignature(item.address, item.balance);
-                                            }}
-                                        />
+                                        <div className="flex space-x-2">
+                                            <PrimaryButton
+                                                label="Copy Address"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(item.address);
+                                                    toast.success("Address copied to clipboard");
+                                                }}
+                                            />
+                                            <PrimaryButton
+                                                label="Copy Balance"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(item.balance);
+                                                    toast.success("Balance copied to clipboard");
+                                                }}
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                             </div>
